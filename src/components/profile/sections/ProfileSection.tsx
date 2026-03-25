@@ -345,7 +345,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
               neshamaInsightTldr={neshamaInsightTldr}
               dict={dict}
               direction={direction}
-              onScrollToInsight={onScrollToInsight}
+              onScrollToInsight={viewOnly ? undefined : onScrollToInsight}
+              viewOnly={viewOnly}
             />
             <EducationCareerCard
               {...cardProps}

@@ -22,6 +22,7 @@ import type {
   BodyType,
   AppearanceTone,
   GroomingStyle,
+  EthnicBackground,
 } from '@prisma/client';
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { DefaultJWT } from 'next-auth/jwt';
@@ -130,6 +131,7 @@ internalMatchmakerNotes?: string | null;
   preferredHobbies: string[]; // UserProfile was missing this
   preferredAliyaStatus?: string | null;
   preferredReligiousJourneys: ReligiousJourney[];
+  preferredEthnicBackgrounds: EthnicBackground[];
   bodyType?: BodyType | null;
   appearanceTone?: AppearanceTone | null;
   groomingStyle?: GroomingStyle | null;

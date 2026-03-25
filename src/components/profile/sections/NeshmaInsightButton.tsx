@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -209,6 +209,15 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
   }, [isPrivileged, localLastGeneratedAt]);
 
   const canGenerate = isProfileComplete && canGenerateToday();
+
+  // Calculate days remaining until next generation
+  const daysUntilNextGeneration = useMemo(() => {
+    if (!localLastGeneratedAt || isPrivileged) return 0;
+    const diffMs = Date.now() - new Date(localLastGeneratedAt).getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    const remaining = Math.ceil(7 - diffDays);
+    return remaining > 0 ? remaining : 0;
+  }, [localLastGeneratedAt, isPrivileged]);
 
   // Fetch saved report from DB
   const handleViewSaved = async () => {
@@ -434,10 +443,16 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-800">
-                  {dict.minimizedButtonText || (isHe ? 'התמונה המלאה' : 'Full Picture')}
+                  {dict.minimizedButtonText || (isHe ? 'התמונה המלאה + טיפים' : 'Full Picture + Tips')}
                 </h4>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {isHe ? 'הדוח האישי שלך מוכן' : 'Your personal report is ready'}
+                  {!canGenerate && daysUntilNextGeneration > 0
+                    ? (daysUntilNextGeneration === 1
+                        ? (dict.nextReportTomorrow || (isHe ? 'הדוח הבא מחר' : 'Next report tomorrow'))
+                        : (dict.nextReportIn || (isHe ? 'הדוח הבא בעוד {{days}} ימים' : 'Next report in {{days}} days')).replace('{{days}}', String(daysUntilNextGeneration))
+                      )
+                    : (isHe ? 'הדוח האישי שלך מוכן' : 'Your personal report is ready')
+                  }
                 </p>
               </div>
             </div>
@@ -515,7 +530,7 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
               <p className="text-sm text-gray-600 mt-1">{dict.buttonSubtitle}</p>
             </div>
             <div className="bg-gradient-to-r from-teal-600 to-orange-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
-              {isHe ? 'צור עכשיו' : 'Generate'}
+              {isHe ? 'צור דוח + טיפים' : 'Report + Tips'}
             </div>
           </div>
         </div>

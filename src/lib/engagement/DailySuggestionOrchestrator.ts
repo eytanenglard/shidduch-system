@@ -2,10 +2,15 @@
 // =============================================================================
 // NeshamaTech - Daily Auto-Suggestion Orchestrator
 // שולח הצעת שידוך יומית אחת לכל יוזר זכאי בשעה 19:00
-// 
-// 🆕 V2.1 - wantsToBeFirstParty Support:
-// - If user opted out of being first party → swap parties (other party becomes first)
-// - If BOTH users opted out → send generic notification email, don't create suggestion
+//
+// V3.0 - Major improvements:
+// - Manual users (MANUAL_ENTRY/IMPORTED) eligible as second party
+// - Hard/soft blocking split (FIRST_PARTY_APPROVED+ = hard, PENDING = soft)
+// - Concurrent second party: up to 3 parallel suggestions per person
+// - Contest mechanism: when first party approves, others get "in demand" hint
+// - wantsToBeFirstParty: always swap if false (no "both opted out" scenario)
+// - Batch query optimization in findBestMatch
+// - Skipped match logging for matchmaker visibility
 // =============================================================================
 
 import prisma from '@/lib/prisma';
@@ -24,10 +29,8 @@ const MIN_AI_SCORE = 70;
 
 const DECISION_DEADLINE_DAYS = 3;
 
-// סטטוסים שחוסמים הצעות חדשות
-const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
-  'PENDING_FIRST_PARTY',
-  'PENDING_SECOND_PARTY',
+// Hard block: user has an active match process — cannot participate at all (first or second party)
+const HARD_BLOCK_STATUSES: MatchSuggestionStatus[] = [
   'FIRST_PARTY_APPROVED',
   'SECOND_PARTY_APPROVED',
   'AWAITING_MATCHMAKER_APPROVAL',
@@ -41,11 +44,17 @@ const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
   'DATING',
 ];
 
-// סטטוסים שנחשבים "ממתינים לתגובה"
-const PENDING_RESPONSE_STATUSES: MatchSuggestionStatus[] = [
+// Soft block: user has a pending suggestion — skip new auto-suggestion, let reminders cron handle it
+const SOFT_BLOCK_STATUSES: MatchSuggestionStatus[] = [
   'PENDING_FIRST_PARTY',
   'PENDING_SECOND_PARTY',
 ];
+
+// Max concurrent auto-suggestions where the same person is second party
+const MAX_CONCURRENT_AS_SECOND_PARTY = 3;
+
+// Shortened deadline when suggestion becomes contested (hours)
+const CONTESTED_DEADLINE_HOURS = 24;
 
 // סטטוסים שנחשבים "סגורים" — מותר ליצור הצעה חדשה אם קיימת כזו ישנה
 const CLOSED_STATUSES: MatchSuggestionStatus[] = [
@@ -63,7 +72,7 @@ const CLOSED_STATUSES: MatchSuggestionStatus[] = [
 interface DailySuggestionResult {
   processed: number;
   newSuggestionsSent: number;
-  remindersSent: number;
+  remindersSent: number; // Kept for backward compat (always 0 — reminders handled by suggestion-reminders cron)
   skipped: number;
   errors: number;
   details: {
@@ -218,53 +227,43 @@ export class DailySuggestionOrchestrator {
     dictionaries: { he: EmailDictionary; en: EmailDictionary }
   ): Promise<DailySuggestionResult['details'][number]> {
 
-    // Check 1: Does user have a blocking active suggestion?
-    const blockingSuggestion = await prisma.matchSuggestion.findFirst({
+    // Check 1a: Hard block — user has an advanced suggestion (FIRST_PARTY_APPROVED+)
+    const hardBlock = await prisma.matchSuggestion.findFirst({
       where: {
         OR: [
           { firstPartyId: user.id },
           { secondPartyId: user.id },
         ],
-        status: { in: BLOCKING_SUGGESTION_STATUSES },
+        status: { in: HARD_BLOCK_STATUSES },
       },
-      select: {
-        id: true,
-        status: true,
-        isAutoSuggestion: true,
-        firstPartyId: true,
-        secondPartyId: true,
-        createdAt: true,
-      },
+      select: { id: true, status: true },
     });
 
-    if (blockingSuggestion) {
-      // Is it an auto-suggestion pending response? → send reminder
-      if (
-        blockingSuggestion.isAutoSuggestion === true &&
-        PENDING_RESPONSE_STATUSES.includes(blockingSuggestion.status)
-      ) {
-        const hoursSinceCreated = (Date.now() - blockingSuggestion.createdAt.getTime()) / (1000 * 60 * 60);
-        
-        if (hoursSinceCreated >= 24) {
-          await this.sendReminder(user, blockingSuggestion, dictionaries);
-          return {
-            userId: user.id,
-            action: 'reminder',
-            suggestionId: blockingSuggestion.id,
-          };
-        } else {
-          return {
-            userId: user.id,
-            action: 'skipped',
-            reason: 'System suggestion exists but is less than 24h old',
-          };
-        }
-      }
-
+    if (hardBlock) {
       return {
         userId: user.id,
         action: 'skipped',
-        reason: `Has active suggestion (${blockingSuggestion.status}) - ID: ${blockingSuggestion.id}`,
+        reason: `Hard-blocked: active suggestion at ${hardBlock.status} (ID: ${hardBlock.id})`,
+      };
+    }
+
+    // Check 1b: Soft block — user has a pending suggestion (reminders handled by suggestion-reminders cron)
+    const softBlock = await prisma.matchSuggestion.findFirst({
+      where: {
+        OR: [
+          { firstPartyId: user.id },
+          { secondPartyId: user.id },
+        ],
+        status: { in: SOFT_BLOCK_STATUSES },
+      },
+      select: { id: true, status: true },
+    });
+
+    if (softBlock) {
+      return {
+        userId: user.id,
+        action: 'skipped',
+        reason: `Soft-blocked: pending suggestion (${softBlock.status}) - ID: ${softBlock.id}`,
       };
     }
 
@@ -280,7 +279,9 @@ export class DailySuggestionOrchestrator {
     }
 
     // =========================================================================
-    // 🆕 V2.1: Check 3 - Determine party assignment based on wantsToBeFirstParty
+    // V3.0: Check 3 - Determine party assignment based on wantsToBeFirstParty
+    // Users can't opt out of being second party — only first party.
+    // If user doesn't want first party: swap, unless other party is manual user.
     // =========================================================================
     const otherPartyId = user.id === bestMatch.maleUserId ? bestMatch.femaleUserId : bestMatch.maleUserId;
     const userWantsFirst = user.profile?.wantsToBeFirstParty ?? true;
@@ -288,27 +289,20 @@ export class DailySuggestionOrchestrator {
     let swapParties = false;
 
     if (!userWantsFirst) {
-      // User doesn't want to be first party → check other party's preference
-      const otherPartyProfile = await prisma.profile.findUnique({
-        where: { userId: otherPartyId },
-        select: { wantsToBeFirstParty: true },
+      // Check if other party is a manual user — manual users can't be first party (no app/notifications)
+      const otherParty = await prisma.user.findUnique({
+        where: { id: otherPartyId },
+        select: { source: true },
       });
-      const otherWantsFirst = otherPartyProfile?.wantsToBeFirstParty ?? true;
 
-      if (!otherWantsFirst) {
-        // ❌ Both opted out → send generic notification, don't create suggestion
-        console.log(`  🚫 Both parties opted out of first party — sending generic notification`);
-        await this.sendBothOptedOutNotification(user, bestMatch, dictionaries);
-        return {
-          userId: user.id,
-          action: 'skipped',
-          reason: `Both parties opted out of auto-scan first party — generic notification sent (Match: ${bestMatch.id})`,
-        };
+      if (otherParty?.source === 'MANUAL_ENTRY') {
+        // Manual users can't be first party — keep original assignment regardless of preference
+        console.log(`  ℹ️ Other party is manual user — keeping original party assignment`);
+      } else {
+        // Swap: other party becomes first party
+        swapParties = true;
+        console.log(`  🔄 Swapping parties: ${user.firstName} opted out of first party → other party (${otherPartyId}) will be first`);
       }
-
-      // 🔄 Other party is OK being first → swap sides
-      swapParties = true;
-      console.log(`  🔄 Swapping parties: ${user.firstName} opted out of first party → other party (${otherPartyId}) will be first`);
     }
 
     // Check 4: Create the suggestion (with optional party swap)
@@ -333,34 +327,21 @@ export class DailySuggestionOrchestrator {
 
     const isMale = user.profile.gender === 'MALE';
 
-    // שליפת top 10 התאמות עם סינון בסיסי ברמת ה-DB
+    // V3.0: Other party filter allows manual users (MANUAL_ENTRY with PENDING_EMAIL_VERIFICATION)
+    const otherPartyFilter = {
+      OR: [
+        { status: 'ACTIVE' as const },
+        { status: 'PENDING_EMAIL_VERIFICATION' as const, source: 'MANUAL_ENTRY' as const },
+      ],
+      profile: { isNot: null, isProfileVisible: true },
+    };
+
     const matches = await prisma.potentialMatch.findMany({
       where: {
         ...(isMale ? { maleUserId: user.id } : { femaleUserId: user.id }),
         status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
         aiScore: { gte: MIN_AI_SCORE },
-        // וידוא שהצד השני הוא יוזר רשום ופעיל (ללא availabilityStatus ברמת DB)
-        ...(isMale
-          ? {
-              female: {
-                source: 'REGISTRATION',
-                status: 'ACTIVE',
-                isPhoneVerified: true,
-                email: { not: '' },
-                phone: { not: null },
-                profile: { isNot: null },
-              },
-            }
-          : {
-              male: {
-                source: 'REGISTRATION',
-                status: 'ACTIVE',
-                isPhoneVerified: true,
-                email: { not: '' },
-                phone: { not: null },
-                profile: { isNot: null },
-              },
-            }),
+        ...(isMale ? { female: otherPartyFilter } : { male: otherPartyFilter }),
       },
       orderBy: { aiScore: 'desc' },
       take: 10,
@@ -380,8 +361,71 @@ export class DailySuggestionOrchestrator {
       },
     });
 
-    // סינון בקוד: availabilityStatus + בדיקות נוספות
-    // Collect all valid matches first, then apply feedback re-ranking
+    if (matches.length === 0) return null;
+
+    // === Batch queries to avoid N+1 ===
+
+    // Collect all candidate pair IDs and other party IDs
+    const otherPartyIds = matches.map(m =>
+      user.id === m.maleUserId ? m.femaleUserId : m.maleUserId
+    );
+
+    // Batch 1: Check existing suggestions between all candidate pairs
+    const pairConditions = matches.flatMap(m => [
+      { firstPartyId: m.maleUserId, secondPartyId: m.femaleUserId },
+      { firstPartyId: m.femaleUserId, secondPartyId: m.maleUserId },
+    ]);
+
+    const existingSuggestions = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: pairConditions,
+        status: { notIn: CLOSED_STATUSES },
+      },
+      select: { firstPartyId: true, secondPartyId: true },
+    });
+
+    const blockedPairs = new Set<string>();
+    for (const s of existingSuggestions) {
+      blockedPairs.add(`${s.firstPartyId}-${s.secondPartyId}`);
+      blockedPairs.add(`${s.secondPartyId}-${s.firstPartyId}`);
+    }
+
+    // Batch 2: Check hard-blocked other parties + concurrent second party count
+    const [hardBlockedSuggestions, concurrentSecondPartyCounts] = await Promise.all([
+      prisma.matchSuggestion.findMany({
+        where: {
+          OR: [
+            { firstPartyId: { in: otherPartyIds } },
+            { secondPartyId: { in: otherPartyIds } },
+          ],
+          status: { in: HARD_BLOCK_STATUSES },
+        },
+        select: { firstPartyId: true, secondPartyId: true },
+      }),
+      // Count how many PENDING auto-suggestions each other party is already second party in
+      prisma.matchSuggestion.groupBy({
+        by: ['secondPartyId'],
+        where: {
+          secondPartyId: { in: otherPartyIds },
+          isAutoSuggestion: true,
+          status: { in: SOFT_BLOCK_STATUSES },
+        },
+        _count: { id: true },
+      }),
+    ]);
+
+    const hardBlockedOtherPartyIds = new Set<string>();
+    for (const s of hardBlockedSuggestions) {
+      if (otherPartyIds.includes(s.firstPartyId)) hardBlockedOtherPartyIds.add(s.firstPartyId);
+      if (otherPartyIds.includes(s.secondPartyId)) hardBlockedOtherPartyIds.add(s.secondPartyId);
+    }
+
+    const concurrentCountMap = new Map<string, number>();
+    for (const g of concurrentSecondPartyCounts) {
+      concurrentCountMap.set(g.secondPartyId, g._count.id);
+    }
+
+    // === Filter matches using batch results ===
     const validMatches: {
       id: string;
       maleUserId: string;
@@ -392,42 +436,35 @@ export class DailySuggestionOrchestrator {
     }[] = [];
 
     for (const match of matches) {
-      // בדיקת availabilityStatus של הצד השני
-      const otherPartyProfile = isMale ? match.female?.profile : match.male?.profile;
-      if (otherPartyProfile?.availabilityStatus !== 'AVAILABLE') {
-        continue;
-      }
-
-      // בדיקה שלא קיימת כבר הצעה בין שני הצדדים
-      const existingSuggestion = await prisma.matchSuggestion.findFirst({
-        where: {
-          OR: [
-            { firstPartyId: match.maleUserId, secondPartyId: match.femaleUserId },
-            { firstPartyId: match.femaleUserId, secondPartyId: match.maleUserId },
-          ],
-          status: { notIn: CLOSED_STATUSES },
-        },
-      });
-
-      if (existingSuggestion) {
-        console.log(`  ⚠️ Existing suggestion between ${match.maleUserId} & ${match.femaleUserId}, trying next...`);
-        continue;
-      }
-
-      // בדיקה שלצד השני אין הצעה פעילה חוסמת
       const otherPartyId = user.id === match.maleUserId ? match.femaleUserId : match.maleUserId;
-      const otherPartyBlocking = await prisma.matchSuggestion.findFirst({
-        where: {
-          OR: [
-            { firstPartyId: otherPartyId },
-            { secondPartyId: otherPartyId },
-          ],
-          status: { in: BLOCKING_SUGGESTION_STATUSES },
-        },
-      });
 
-      if (otherPartyBlocking) {
-        console.log(`  ⚠️ Other party (${otherPartyId}) has active suggestion, trying next...`);
+      // Check availabilityStatus of other party (AVAILABLE or null for manual users without explicit status)
+      const otherPartyProfile = isMale ? match.female?.profile : match.male?.profile;
+      const avStatus = otherPartyProfile?.availabilityStatus;
+      if (avStatus && avStatus !== 'AVAILABLE') {
+        continue;
+      }
+
+      // Check existing suggestion between the pair
+      const pairKey = `${match.maleUserId}-${match.femaleUserId}`;
+      if (blockedPairs.has(pairKey)) {
+        await this.logSkippedMatch({ userId: user.id, otherPartyId, potentialMatchId: match.id, aiScore: match.aiScore, skipReason: 'existing_suggestion' });
+        console.log(`  ⚠️ Existing suggestion between pair, trying next...`);
+        continue;
+      }
+
+      // Check hard block on other party
+      if (hardBlockedOtherPartyIds.has(otherPartyId)) {
+        await this.logSkippedMatch({ userId: user.id, otherPartyId, potentialMatchId: match.id, aiScore: match.aiScore, skipReason: 'other_party_hard_blocked' });
+        console.log(`  ⚠️ Other party (${otherPartyId}) hard-blocked, trying next...`);
+        continue;
+      }
+
+      // Check concurrent second party limit
+      const currentConcurrent = concurrentCountMap.get(otherPartyId) || 0;
+      if (currentConcurrent >= MAX_CONCURRENT_AS_SECOND_PARTY) {
+        await this.logSkippedMatch({ userId: user.id, otherPartyId, potentialMatchId: match.id, aiScore: match.aiScore, skipReason: 'concurrent_limit', skipDetails: `Already in ${currentConcurrent} pending auto-suggestions as second party` });
+        console.log(`  ⚠️ Other party (${otherPartyId}) at concurrent limit (${currentConcurrent}/${MAX_CONCURRENT_AS_SECOND_PARTY}), trying next...`);
         continue;
       }
 
@@ -443,14 +480,41 @@ export class DailySuggestionOrchestrator {
 
     if (validMatches.length === 0) return null;
 
-    // 🆕 Apply feedback-based re-ranking if user has enough feedback
+    // Apply feedback-based re-ranking if user has enough feedback
     try {
       const reranked = await AutoSuggestionFeedbackService.applyFeedbackReranking(validMatches, user.id);
       console.log(`  📊 Feedback re-ranking applied for ${user.id}: ${reranked.length} valid matches`);
-      return reranked[0]; // Return top-ranked match
+      return reranked[0];
     } catch (err) {
       console.error(`  ⚠️ Feedback re-ranking failed, using original order:`, err);
-      return validMatches[0]; // Fallback to original order
+      return validMatches[0];
+    }
+  }
+
+  // ========== Log Skipped Match ==========
+
+  private static async logSkippedMatch(params: {
+    userId: string;
+    otherPartyId: string;
+    potentialMatchId?: string;
+    aiScore?: number;
+    skipReason: string;
+    skipDetails?: string;
+  }): Promise<void> {
+    try {
+      await prisma.skippedAutoSuggestion.create({
+        data: {
+          userId: params.userId,
+          otherPartyId: params.otherPartyId,
+          potentialMatchId: params.potentialMatchId,
+          aiScore: params.aiScore,
+          skipReason: params.skipReason,
+          skipDetails: params.skipDetails,
+        },
+      });
+    } catch (err) {
+      // Non-critical — log and continue
+      console.error(`[SkippedLog] Failed to log skip:`, err);
     }
   }
 
@@ -575,202 +639,6 @@ export class DailySuggestionOrchestrator {
     }
 
     return suggestion;
-  }
-
-  // ========== Send Reminder ==========
-
-  private static async sendReminder(
-    user: EligibleUser,
-    suggestion: { id: string; firstPartyId: string; secondPartyId: string },
-    dictionaries: { he: EmailDictionary; en: EmailDictionary }
-  ): Promise<void> {
-    const locale = (user.language as 'he' | 'en') || 'he';
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const reviewUrl = `${baseUrl}/matches`;
-
-    const isHebrew = locale === 'he';
-    const greeting = isHebrew ? `שלום ${user.firstName},` : `Hello ${user.firstName},`;
-
-    const subject = isHebrew 
-      ? '⏰ ההצעה שלך עדיין מחכה לך'
-      : '⏰ Your match is still waiting for you';
-    
-    const body = [
-      greeting,
-      '',
-      isHebrew
-        ? 'שלחנו לך הצעת שידוך שנבחרה במיוחד עבורך. היא עדיין מחכה לתגובתך.'
-        : 'We sent you a specially selected match that\'s still waiting for your response.',
-      '',
-      isHebrew ? `👉 צפה בהצעה: ${reviewUrl}` : `👉 View match: ${reviewUrl}`,
-      '',
-      isHebrew ? 'בברכה,' : 'Best regards,',
-      isHebrew ? 'NeshamaTech - המערכת החכמה' : 'NeshamaTech Smart System',
-    ].join('\n');
-
-    const htmlBody = `
-      <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%); color: #ffffff; padding: 35px 25px; text-align: center; border-radius: 16px 16px 0 0;">
-        <span style="font-size: 32px; display: block; margin-bottom: 10px;">⏰</span>
-        <h1 style="margin: 0; font-size: 24px; color: #fbbf24;">${isHebrew ? 'ההצעה שלך מחכה' : 'Your Match is Waiting'}</h1>
-      </div>
-      <div style="padding: 30px 25px; font-family: 'Segoe UI', sans-serif; direction: ${isHebrew ? 'rtl' : 'ltr'}; text-align: ${isHebrew ? 'right' : 'left'};">
-        <p style="font-size: 20px; color: #1e293b; margin-bottom: 15px;">${greeting}</p>
-        <p style="color: #475569; line-height: 1.8; margin-bottom: 25px;">
-          ${isHebrew 
-            ? 'שלחנו לך הצעת שידוך שנבחרה במיוחד עבורך על בסיס הלמידה של המערכת. היא עדיין מחכה לתגובתך. קח/י רגע לצפות בה – אולי זה הדבר הכי חשוב שתעשה/י היום.'
-            : 'We sent you a specially selected match based on our system\'s learning. It\'s still waiting for your response. Take a moment to review it – this could be the most important thing you do today.'}
-        </p>
-        <div style="text-align: center; margin: 25px 0;">
-          <a href="${reviewUrl}" style="display: inline-block; padding: 16px 45px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #1e293b !important; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 16px;">
-            ${isHebrew ? '👀 צפה בהצעה' : '👀 View Match'}
-          </a>
-        </div>
-        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
-          <p>NeshamaTech - ${isHebrew ? 'המערכת החכמה' : 'Smart System'}</p>
-        </div>
-      </div>
-    `;
-
-    try {
-      const notificationService = initNotificationService();
-      
-      await notificationService.sendNotification(
-        {
-          email: user.email,
-          phone: user.phone || undefined,
-          name: user.firstName,
-        },
-        { subject, body, htmlBody },
-        { channels: ['email', 'whatsapp'] }
-      );
-
-      console.log(`  📨 Reminder sent to ${user.email}`);
-    } catch (error) {
-      console.error(`  ⚠️ Failed to send reminder to ${user.email}:`, error);
-    }
-  }
-
-  // =========================================================================
-  // 🆕 V2.1: Send notification when BOTH parties opted out of being first party
-  // =========================================================================
-
-  private static async sendBothOptedOutNotification(
-    user: EligibleUser,
-    match: {
-      id: string;
-      maleUserId: string;
-      femaleUserId: string;
-      aiScore: number;
-    },
-    dictionaries: { he: EmailDictionary; en: EmailDictionary }
-  ): Promise<void> {
-    const locale = (user.language as 'he' | 'en') || 'he';
-    const isHebrew = locale === 'he';
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const matchesUrl = `${baseUrl}/matches`;
-    const settingsUrl = `${baseUrl}/settings`;
-
-    const subject = isHebrew
-      ? '💡 מצאנו הצעה מעניינת בשבילך'
-      : '💡 We found an interesting match for you';
-
-    const body = [
-      isHebrew ? `שלום ${user.firstName},` : `Hello ${user.firstName},`,
-      '',
-      isHebrew
-        ? 'המערכת שלנו מצאה עבורך הצעת שידוך שנראית מעניינת במיוחד.'
-        : 'Our system found a match that looks especially interesting for you.',
-      '',
-      isHebrew
-        ? 'מכיוון שבחרת שלא לקבל הצעות מהסריקה האוטומטית כצד ראשון, לא שלחנו אותה ישירות.'
-        : 'Since you chose not to receive auto-scan suggestions as first party, we didn\'t send it directly.',
-      '',
-      isHebrew
-        ? 'אם את/ה מעוניין/ת לשמוע על ההצעה, פשוט פנה/י אלינו דרך המערכת ונשמח לספר לך.'
-        : 'If you\'re interested, simply reach out to us through the system and we\'ll be happy to share.',
-      '',
-      isHebrew ? `👉 פנה אלינו: ${matchesUrl}` : `👉 Contact us: ${matchesUrl}`,
-      '',
-      isHebrew ? 'בברכה,' : 'Best regards,',
-      isHebrew ? 'NeshamaTech' : 'NeshamaTech',
-    ].join('\n');
-
-    const htmlBody = `
-      <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%); color: #ffffff; padding: 35px 25px; text-align: center; border-radius: 16px 16px 0 0;">
-        <span style="font-size: 32px; display: block; margin-bottom: 10px;">💡</span>
-        <h1 style="margin: 0; font-size: 22px; color: #a78bfa;">
-          ${isHebrew ? 'מצאנו הצעה מעניינת בשבילך' : 'We Found an Interesting Match'}
-        </h1>
-      </div>
-      <div style="padding: 30px 25px; font-family: 'Segoe UI', Tahoma, sans-serif; direction: ${isHebrew ? 'rtl' : 'ltr'}; text-align: ${isHebrew ? 'right' : 'left'}; background-color: #ffffff;">
-        <p style="font-size: 18px; color: #1e293b; margin-bottom: 15px;">
-          ${isHebrew ? `שלום ${user.firstName},` : `Hello ${user.firstName},`}
-        </p>
-        
-        <p style="color: #475569; line-height: 1.8; margin-bottom: 20px;">
-          ${isHebrew
-            ? 'המערכת שלנו מצאה עבורך הצעת שידוך שנראית לנו מעניינת במיוחד. 🌟'
-            : 'Our system found a match that looks especially interesting for you. 🌟'
-          }
-        </p>
-
-        <div style="background: linear-gradient(135deg, #f5f3ff, #ede9fe); border: 1px solid #ddd6fe; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-          <p style="color: #5b21b6; font-weight: 600; margin: 0 0 8px 0; font-size: 15px;">
-            ${isHebrew ? '📋 למה לא שלחנו ישירות?' : '📋 Why didn\'t we send it directly?'}
-          </p>
-          <p style="color: #6d28d9; margin: 0; line-height: 1.6; font-size: 14px;">
-            ${isHebrew
-              ? 'מכיוון שבחרת בהגדרות הפרופיל שלך שלא לקבל הצעות מהסריקה האוטומטית כצד ראשון, לא שלחנו את ההצעה באופן אוטומטי. אנחנו מכבדים את ההעדפות שלך.'
-              : 'Because you chose in your profile settings not to receive auto-scan suggestions as first party, we didn\'t send the suggestion automatically. We respect your preferences.'
-            }
-          </p>
-        </div>
-
-        <p style="color: #475569; line-height: 1.8; margin-bottom: 25px;">
-          ${isHebrew
-            ? 'אם את/ה מעוניין/ת לשמוע על ההצעה, פשוט פנה/י אלינו דרך המערכת ונשמח לספר לך עליה. 😊'
-            : 'If you\'re interested in hearing about this match, simply reach out to us through the system and we\'ll be happy to share more. 😊'
-          }
-        </p>
-
-        <div style="text-align: center; margin: 25px 0;">
-          <a href="${matchesUrl}" style="display: inline-block; padding: 16px 45px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #ffffff !important; text-decoration: none; border-radius: 50px; font-weight: 800; font-size: 16px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
-            ${isHebrew ? '💬 פנה אלינו דרך המערכת' : '💬 Contact Us Through the System'}
-          </a>
-        </div>
-
-        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 13px; text-align: center;">
-          <p style="margin: 0;">
-            ${isHebrew
-              ? 'ניתן לשנות את הגדרות קבלת ההצעות בכל עת'
-              : 'You can change your suggestion preferences anytime'
-            }
-            — <a href="${settingsUrl}" style="color: #8b5cf6; text-decoration: underline;">
-              ${isHebrew ? 'הגדרות פרופיל' : 'Profile Settings'}
-            </a>
-          </p>
-          <p style="margin: 8px 0 0 0;">NeshamaTech 💜</p>
-        </div>
-      </div>
-    `;
-
-    try {
-      const notificationService = initNotificationService();
-
-      await notificationService.sendNotification(
-        {
-          email: user.email,
-          phone: user.phone || undefined,
-          name: user.firstName,
-        },
-        { subject, body, htmlBody },
-        { channels: ['email'] } // רק אימייל — לא וואטסאפ, כי זה לא הצעה ממשית
-      );
-
-      console.log(`  📧 Both-opted-out notification sent to ${user.email} (Match: ${match.id})`);
-    } catch (error) {
-      console.error(`  ⚠️ Failed to send both-opted-out notification to ${user.email}:`, error);
-    }
   }
 
   // ==========================================================================
@@ -913,11 +781,8 @@ export class DailySuggestionOrchestrator {
 
       console.log(`  📋 Found ${topMatches.length} eligible matches (requested ${count})\n`);
 
-      // 🆕 V2.1: Get user's first party preference once (used in the loop)
+      // V3.0: Get user's first party preference once (used in the loop)
       const userWantsFirst = user.profile.wantsToBeFirstParty ?? true;
-
-      // Track if we already sent a both-opted-out notification (to avoid spam)
-      let bothOptedOutNotificationSent = false;
 
       // 5. Create suggestions for each match
       for (let i = 0; i < topMatches.length; i++) {
@@ -927,35 +792,21 @@ export class DailySuggestionOrchestrator {
         console.log(`  [${i + 1}/${topMatches.length}] Creating suggestion — Score: ${Math.round(match.aiScore)}, Other: ${otherPartyId}`);
 
         try {
-          // =====================================================================
-          // 🆕 V2.1: Determine party assignment based on wantsToBeFirstParty
-          // =====================================================================
+          // V3.0: Determine party assignment — always swap if user doesn't want first party
+          // (unless other party is manual user who can't receive notifications)
           let swapParties = false;
 
           if (!userWantsFirst) {
-            const otherProfile = await prisma.profile.findUnique({
-              where: { userId: otherPartyId },
-              select: { wantsToBeFirstParty: true },
+            const otherParty = await prisma.user.findUnique({
+              where: { id: otherPartyId },
+              select: { source: true },
             });
-            const otherWantsFirst = otherProfile?.wantsToBeFirstParty ?? true;
-
-            if (!otherWantsFirst) {
-              // Both opted out → skip this match, try next
-              console.log(`  🚫 Both parties opted out of first party — skipping match ${match.id}`);
-              const skipReason = `Match ${match.id}: Both parties opted out of first party`;
-              result.skipped.push(skipReason);
-
-              // Send notification only once (to avoid spam)
-              if (!bothOptedOutNotificationSent) {
-                await this.sendBothOptedOutNotification(user, match, dictionaries);
-                bothOptedOutNotificationSent = true;
-                console.log(`  📧 Both-opted-out notification sent`);
-              }
-              continue;
+            if (otherParty?.source === 'MANUAL_ENTRY') {
+              console.log(`  ℹ️ Other party is manual user — keeping original party assignment`);
+            } else {
+              swapParties = true;
+              console.log(`  🔄 Swapping parties: user opted out of first party`);
             }
-
-            swapParties = true;
-            console.log(`  🔄 Swapping parties: user opted out of first party`);
           }
 
           const suggestion = await this.createAutoSuggestion(user, match, matchmakerId, dictionaries, swapParties);
@@ -1023,19 +874,24 @@ export class DailySuggestionOrchestrator {
         ...(options?.scanMethod ? { lastScanMethod: options.scanMethod } : {}),
         // Filter by scan date
         ...(options?.scanAfter ? { scannedAt: { gte: new Date(options.scanAfter) } } : {}),
+        // V3.0: Allow manual users as other party
         ...(isMale
           ? {
               female: {
-                source: 'REGISTRATION',
-                status: 'ACTIVE',
-                profile: { isNot: null },
+                OR: [
+                  { status: 'ACTIVE' },
+                  { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' },
+                ],
+                profile: { isNot: null, isProfileVisible: true },
               },
             }
           : {
               male: {
-                source: 'REGISTRATION',
-                status: 'ACTIVE',
-                profile: { isNot: null },
+                OR: [
+                  { status: 'ACTIVE' },
+                  { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' },
+                ],
+                profile: { isNot: null, isProfileVisible: true },
               },
             }),
       },
@@ -1057,6 +913,25 @@ export class DailySuggestionOrchestrator {
       },
     });
 
+    if (matches.length === 0) return [];
+
+    // Batch query: check existing suggestions for all candidate pairs
+    const pairConditions = matches.flatMap(m => [
+      { firstPartyId: m.maleUserId, secondPartyId: m.femaleUserId },
+      { firstPartyId: m.femaleUserId, secondPartyId: m.maleUserId },
+    ]);
+
+    const existingSuggestions = await prisma.matchSuggestion.findMany({
+      where: { OR: pairConditions, status: { notIn: CLOSED_STATUSES } },
+      select: { firstPartyId: true, secondPartyId: true },
+    });
+
+    const blockedPairs = new Set<string>();
+    for (const s of existingSuggestions) {
+      blockedPairs.add(`${s.firstPartyId}-${s.secondPartyId}`);
+      blockedPairs.add(`${s.secondPartyId}-${s.firstPartyId}`);
+    }
+
     const validMatches: {
       id: string;
       maleUserId: string;
@@ -1069,24 +944,16 @@ export class DailySuggestionOrchestrator {
     for (const match of matches) {
       if (validMatches.length >= count) break;
 
-      // בדיקת availabilityStatus של הצד השני
+      // Check availabilityStatus (AVAILABLE or null for manual users)
       const otherPartyProfile = isMale ? match.female?.profile : match.male?.profile;
-      if (otherPartyProfile?.availabilityStatus !== 'AVAILABLE') {
+      const avStatus = otherPartyProfile?.availabilityStatus;
+      if (avStatus && avStatus !== 'AVAILABLE') {
         continue;
       }
 
-      // בדיקה שלא קיימת כבר הצעה בין שני הצדדים (כולל הצעות פעילות)
-      const existingSuggestion = await prisma.matchSuggestion.findFirst({
-        where: {
-          OR: [
-            { firstPartyId: match.maleUserId, secondPartyId: match.femaleUserId },
-            { firstPartyId: match.femaleUserId, secondPartyId: match.maleUserId },
-          ],
-          status: { notIn: CLOSED_STATUSES },
-        },
-      });
-
-      if (existingSuggestion) {
+      // Check existing suggestion between the pair
+      const pairKey = `${match.maleUserId}-${match.femaleUserId}`;
+      if (blockedPairs.has(pairKey)) {
         console.log(`  ⚠️ Existing suggestion between ${match.maleUserId} & ${match.femaleUserId}, skipping`);
         continue;
       }
@@ -1478,28 +1345,23 @@ export class DailySuggestionOrchestrator {
           ? { ...match, shortReasoning: customMatchingReason }
           : match;
 
-        // =====================================================================
-        // 🆕 V2.1: Check wantsToBeFirstParty — same logic as batch mode
-        // =====================================================================
+        // V3.0: Check wantsToBeFirstParty — always swap unless other party is manual user
         let swapParties = false;
         const userWantsFirst = user.profile.wantsToBeFirstParty ?? true;
 
         if (!userWantsFirst) {
           const otherPartyId = userId === match.maleUserId ? match.femaleUserId : match.maleUserId;
-          const otherProfile = await prisma.profile.findUnique({
-            where: { userId: otherPartyId },
-            select: { wantsToBeFirstParty: true },
+          const otherParty = await prisma.user.findUnique({
+            where: { id: otherPartyId },
+            select: { source: true },
           });
-          const otherWantsFirst = otherProfile?.wantsToBeFirstParty ?? true;
 
-          if (!otherWantsFirst) {
-            errors.push({ userId, error: 'Both parties opted out of being first party in auto-suggestions' });
-            console.log(`  🚫 Skipped ${user.firstName}: both parties opted out of first party`);
-            continue;
+          if (otherParty?.source === 'MANUAL_ENTRY') {
+            console.log(`  ℹ️ Other party is manual user — keeping original party assignment`);
+          } else {
+            swapParties = true;
+            console.log(`  🔄 Swapping parties for ${user.firstName}: opted out of first party`);
           }
-
-          swapParties = true;
-          console.log(`  🔄 Swapping parties for ${user.firstName}: opted out of first party`);
         }
 
         await this.createAutoSuggestion(user, matchWithReason, matchmakerId, dictionaries, swapParties);

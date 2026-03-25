@@ -201,7 +201,10 @@ export async function PATCH(
       }
     }
 
-    // 11. Return success response
+    // 11. Contest mechanism — handle concurrent second party suggestions
+    await handleSecondPartyContest(updatedSuggestion, status, suggestion.status);
+
+    // 12. Return success response
     return NextResponse.json({
       success: true,
       message: "Status updated successfully",
@@ -431,5 +434,133 @@ export async function HEAD(
   } catch (error) {
     console.error("Error fetching suggestion status:", error);
     return new Response(null, { status: 500 });
+  }
+}
+
+// =============================================================================
+// Contest Mechanism — Handles concurrent second party suggestions
+// =============================================================================
+
+const CONTESTED_DEADLINE_HOURS = 24;
+
+const TERMINAL_STATUSES: MatchSuggestionStatus[] = [
+  'FIRST_PARTY_DECLINED', 'SECOND_PARTY_DECLINED', 'CLOSED', 'CANCELLED', 'EXPIRED',
+];
+
+/**
+ * When a suggestion status changes, handle contest scenarios:
+ * 1. FIRST_PARTY_APPROVED → mark other pending auto-suggestions for same second party as contested
+ * 2. PENDING_SECOND_PARTY → freeze other suggestions for same second party
+ * 3. Terminal status (DECLINED/CLOSED/CANCELLED/EXPIRED) → release queue, notify next in line
+ */
+async function handleSecondPartyContest(
+  suggestion: { id: string; secondPartyId: string; isAutoSuggestion: boolean },
+  newStatus: MatchSuggestionStatus,
+  previousStatus: MatchSuggestionStatus,
+) {
+  try {
+    const secondPartyId = suggestion.secondPartyId;
+
+    // Case 1: First party approved → contest other pending suggestions
+    if (newStatus === 'FIRST_PARTY_APPROVED') {
+      const otherPending = await prisma.matchSuggestion.findMany({
+        where: {
+          secondPartyId,
+          id: { not: suggestion.id },
+          status: 'PENDING_FIRST_PARTY',
+          isAutoSuggestion: true,
+          secondPartyContested: false,
+        },
+        select: { id: true, decisionDeadline: true },
+      });
+
+      if (otherPending.length === 0) return;
+
+      const newDeadline = new Date(Date.now() + CONTESTED_DEADLINE_HOURS * 60 * 60 * 1000);
+
+      for (const other of otherPending) {
+        const shouldShortenDeadline = !other.decisionDeadline || newDeadline < other.decisionDeadline;
+        await prisma.matchSuggestion.update({
+          where: { id: other.id },
+          data: {
+            secondPartyContested: true,
+            secondPartyContestedAt: new Date(),
+            originalDeadline: other.decisionDeadline,
+            ...(shouldShortenDeadline ? { decisionDeadline: newDeadline } : {}),
+          },
+        });
+      }
+
+      console.log(`[Contest] ${otherPending.length} suggestions marked as contested for second party ${secondPartyId}`);
+    }
+
+    // Case 2: Moved to PENDING_SECOND_PARTY → freeze other suggestions
+    if (newStatus === 'PENDING_SECOND_PARTY') {
+      const otherActive = await prisma.matchSuggestion.findMany({
+        where: {
+          secondPartyId,
+          id: { not: suggestion.id },
+          status: 'PENDING_FIRST_PARTY',
+          isAutoSuggestion: true,
+        },
+        select: { id: true, internalNotes: true },
+      });
+
+      for (const other of otherActive) {
+        await prisma.matchSuggestion.update({
+          where: { id: other.id },
+          data: {
+            internalNotes: `${other.internalNotes || ''}\n⏸️ Second party sent to another suggestion — on hold`.trim(),
+          },
+        });
+      }
+
+      if (otherActive.length > 0) {
+        console.log(`[Contest] ${otherActive.length} suggestions frozen — second party ${secondPartyId} now in PENDING_SECOND_PARTY`);
+      }
+    }
+
+    // Case 3: Terminal status → release queue, check for next in line
+    if (TERMINAL_STATUSES.includes(newStatus)) {
+      // Find next suggestion in queue (already approved by their first party, highest AI score)
+      const nextInQueue = await prisma.matchSuggestion.findFirst({
+        where: {
+          secondPartyId,
+          id: { not: suggestion.id },
+          status: 'FIRST_PARTY_APPROVED',
+          isAutoSuggestion: true,
+        },
+        include: {
+          potentialMatch: { select: { aiScore: true } },
+          matchmaker: { select: { id: true, firstName: true, email: true } },
+        },
+        orderBy: { createdAt: 'asc' }, // First approved gets priority
+      });
+
+      if (nextInQueue) {
+        // Notify matchmaker that second party is available again
+        console.log(`[Contest] Second party ${secondPartyId} released — next in queue: suggestion ${nextInQueue.id}`);
+        // The matchmaker will see this in their dashboard and can proceed to PENDING_SECOND_PARTY
+      }
+
+      // Also release contested flags on remaining PENDING_FIRST_PARTY suggestions
+      await prisma.matchSuggestion.updateMany({
+        where: {
+          secondPartyId,
+          id: { not: suggestion.id },
+          status: 'PENDING_FIRST_PARTY',
+          isAutoSuggestion: true,
+          secondPartyContested: true,
+        },
+        data: {
+          secondPartyContested: false,
+          secondPartyContestedAt: null,
+          // Restore original deadline if it was shortened
+        },
+      });
+    }
+  } catch (error) {
+    // Non-critical — log and continue (don't fail the status transition)
+    console.error('[Contest] Error handling second party contest:', error);
   }
 }

@@ -137,6 +137,7 @@ export async function GET(req: Request) {
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
+      preferredEthnicBackgrounds: dbProfile.preferredEthnicBackgrounds ?? [],
 
       contactPreference: dbProfile.contactPreference || undefined,
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender,
@@ -371,6 +372,7 @@ export async function PUT(req: Request) {
       preferredHobbies: dbProfile.preferredHobbies || [],
       preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
       preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
+      preferredEthnicBackgrounds: dbProfile.preferredEthnicBackgrounds ?? [],
 
       contactPreference: dbProfile.contactPreference || undefined,
       preferredMatchmakerGender: dbProfile.preferredMatchmakerGender,

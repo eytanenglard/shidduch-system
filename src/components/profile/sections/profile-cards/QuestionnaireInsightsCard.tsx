@@ -11,6 +11,7 @@ interface QuestionnaireInsightsCardProps {
   dict: ProfileSectionDict;
   direction: 'rtl' | 'ltr';
   onScrollToInsight?: () => void;
+  viewOnly?: boolean;
 }
 
 const QuestionnaireInsightsCard: React.FC<QuestionnaireInsightsCardProps> = ({
@@ -18,9 +19,13 @@ const QuestionnaireInsightsCard: React.FC<QuestionnaireInsightsCardProps> = ({
   dict,
   direction,
   onScrollToInsight,
+  viewOnly = false,
 }) => {
   const soulMapDict = dict.cards.soulMapSummary;
   if (!soulMapDict) return null;
+
+  // In viewOnly mode (matchmaker), only show if there's a tldr — no CTA
+  if (viewOnly && !neshamaInsightTldr) return null;
 
   const isRTL = direction === 'rtl';
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;

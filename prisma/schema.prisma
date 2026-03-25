@@ -164,6 +164,10 @@ model User {
   // === Custom Sources ===
   customSources CustomSource[] @relation("CustomSourceCreator")
 
+  // === Skipped Auto-Suggestions ===
+  skippedSuggestionsForUser SkippedAutoSuggestion[] @relation("SkippedForUser")
+  skippedSuggestionsAsOther SkippedAutoSuggestion[] @relation("SkippedOtherParty")
+
   @@index([email])
   @@index([role])
   @@index([status])
@@ -462,6 +466,11 @@ model MatchSuggestion {
   firstPartyRank          Int?
   firstPartyInterestedAt  DateTime?
   matchmakerNotifiedAt    DateTime?         // When the matchmaker was notified of first party approval (delayed by grace period)
+
+  // === Contest Mechanism (concurrent second party suggestions) ===
+  secondPartyContested   Boolean   @default(false)  // Another suggestion with same second party was approved by first party
+  secondPartyContestedAt DateTime?                   // When the contest was detected
+  originalDeadline       DateTime?                   // Original deadline before shortening due to contest
 
   // === Reports ===
   reports UserReport[]
@@ -2092,6 +2101,25 @@ model UserMatchingPreferences {
   lastUpdated    DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// === Skipped Auto-Suggestions Log ===
+model SkippedAutoSuggestion {
+  id               String   @id @default(cuid())
+  userId           String
+  otherPartyId     String
+  potentialMatchId String?
+  aiScore          Float?
+  skipReason       String   // "hard_blocked", "other_party_hard_blocked", "existing_suggestion", "concurrent_limit"
+  skipDetails      String?
+  runDate          DateTime @default(now())
+
+  user       User @relation("SkippedForUser", fields: [userId], references: [id], onDelete: Cascade)
+  otherParty User @relation("SkippedOtherParty", fields: [otherPartyId], references: [id], onDelete: Cascade)
+
+  @@index([userId, runDate])
+  @@index([otherPartyId])
+  @@index([runDate])
 }
 
 // === AI Chat Bot ===
