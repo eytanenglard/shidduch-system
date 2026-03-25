@@ -106,17 +106,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Rate Limiting — regular users only
+    // Rate Limiting — once per 7 days for regular users
     if (isSelf && !isPrivileged && user.neshamaInsightLastGeneratedAt) {
       const diffMs = Date.now() - new Date(user.neshamaInsightLastGeneratedAt).getTime();
       const diffHours = diffMs / (1000 * 60 * 60);
+      const COOLDOWN_HOURS = 168; // 7 days
 
-      if (diffHours < 24) {
-        const hoursLeft = Math.ceil(24 - diffHours);
+      if (diffHours < COOLDOWN_HOURS) {
+        const daysLeft = Math.ceil((COOLDOWN_HOURS - diffHours) / 24);
         const message =
           locale === 'he'
-            ? `ניתן ליצור דוח חדש בעוד ${hoursLeft} שעות`
-            : `You can generate a new report in ${hoursLeft} hours`;
+            ? `ניתן ליצור דוח חדש בעוד ${daysLeft} ${daysLeft === 1 ? 'יום' : 'ימים'}`
+            : `You can generate a new report in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`;
         return NextResponse.json({ success: false, message }, { status: 429 });
       }
     }
@@ -174,7 +175,7 @@ async function generateStructuredInsight(
     generationConfig: {
       temperature: 0.7,
       topP: 0.95,
-      maxOutputTokens: 8192,
+      maxOutputTokens: 12288,
       responseMimeType: 'application/json',
     },
   });
@@ -216,6 +217,7 @@ async function generateStructuredInsight(
       recommendedDate: fallback.recommendedDate || '',
       actionSteps: Array.isArray(fallback.actionSteps) ? fallback.actionSteps : [],
       closingWords: fallback.closingWords || '',
+      profileTips: fallback.profileTips || undefined,
     };
   }
 
@@ -260,6 +262,7 @@ ${narrativeProfile}
 7. כל שדה טקסטואלי חייב להיות פסקה עשירה ומפורטת (5-10 משפטים לפחות). אל תקצר!
 8. goldenQuestions — 3 שאלות ספציפיות שמתאימות לאישיות של ${firstName}, לא שאלות גנריות.
 9. actionSteps — 3 צעדים קונקרטיים ומעשיים שאפשר ליישם החודש.
+10. profileTips — בנוסף לדוח האישי, נתח את שלמות הפרופיל ותן המלצות לשיפור. בדוק: תמונות, תיאור אישי, שאלון מפת הנשמה, העדפות, כותרת פרופיל, סיפור אישי, תחביבים ותכונות.
 
 החזר JSON בדיוק במבנה הזה (כל הערכים בעברית):
 
@@ -277,7 +280,17 @@ ${narrativeProfile}
   "goldenQuestions": ["שאלה ספציפית 1 לדייט שחושפת תאימות עמוקה", "שאלה ספציפית 2 שבודקת ערכים", "שאלה ספציפית 3 שפותחת שיחה אמיתית"],
   "recommendedDate": "סוג הדייט שהכי מתאים לאופי של ${firstName} — איפה, מה לעשות, ולמה דווקא זה יביא את הצד הטוב ${isMale ? 'שלו' : 'שלה'} החוצה.",
   "actionSteps": ["צעד קונקרטי 1 ליישום החודש", "צעד קונקרטי 2", "צעד קונקרטי 3"],
-  "closingWords": "סיום אופטימי ומעצים — משפט שנשאר בראש, מחזק ומניע לפעולה. אישי ל${firstName}."
+  "closingWords": "סיום אופטימי ומעצים — משפט שנשאר בראש, מחזק ומניע לפעולה. אישי ל${firstName}.",
+  "profileTips": {
+    "personalitySummary": "סיכום אישיות קצר ב-2-3 משפטים — מי ${genderPronoun} כבן/בת אדם",
+    "lookingForSummary": "סיכום מה ${genderPronoun} מחפש${genderSuffix} בבן/בת זוג ב-2-3 משפטים",
+    "completenessReport": [
+      {"area": "שם התחום", "status": "COMPLETE או PARTIAL או MISSING", "feedback": "משפט ספציפי — מה חסר או מה אפשר לשפר"}
+    ],
+    "actionableTips": [
+      {"area": "שם התחום", "tip": "טיפ קונקרטי ומעשי לשיפור הפרופיל — ספציפי ל${firstName}"}
+    ]
+  }
 }`;
   }
 
@@ -305,6 +318,7 @@ Critical style guidelines:
 7. Every text field must be a rich, detailed paragraph (5-10 sentences minimum). Do not shorten!
 8. goldenQuestions — 3 specific questions tailored to ${firstName}'s personality, not generic ones.
 9. actionSteps — 3 concrete, actionable steps that can be implemented this month.
+10. profileTips — In addition to the personal report, analyze profile completeness and provide improvement tips. Check: photos, personal description, Soul Map questionnaire, preferences, profile headline, personal story, hobbies and traits.
 
 Return JSON in exactly this structure (all values in English):
 
@@ -322,6 +336,16 @@ Return JSON in exactly this structure (all values in English):
   "goldenQuestions": ["Specific question 1 for a date that reveals deep compatibility", "Specific question 2 testing values", "Specific question 3 opening real conversation"],
   "recommendedDate": "The date type that best suits ${firstName}'s personality — where, what to do, and why this brings out the best side.",
   "actionSteps": ["Concrete step 1 to implement this month", "Concrete step 2", "Concrete step 3"],
-  "closingWords": "Optimistic, empowering closing — a memorable sentence that strengthens and motivates. Personal to ${firstName}."
+  "closingWords": "Optimistic, empowering closing — a memorable sentence that strengthens and motivates. Personal to ${firstName}.",
+  "profileTips": {
+    "personalitySummary": "Short 2-3 sentence personality summary — who ${firstName} is as a person",
+    "lookingForSummary": "Short 2-3 sentence summary of what ${firstName} is looking for in a partner",
+    "completenessReport": [
+      {"area": "Area name", "status": "COMPLETE or PARTIAL or MISSING", "feedback": "Specific sentence — what's missing or what can be improved"}
+    ],
+    "actionableTips": [
+      {"area": "Area name", "tip": "Concrete, actionable tip for improving the profile — specific to ${firstName}"}
+    ]
+  }
 }`;
 }

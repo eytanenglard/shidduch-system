@@ -2,21 +2,26 @@
 import { Gender, AvailabilityStatus, UserStatus, UserSource  } from '@prisma/client';
 import type { UserProfile, UserImage, QuestionnaireResponse} from '@/types/next-auth';
 
+// Re-export shared types for backward compatibility
+export type {
+  ScoreBreakdown,
+  BackgroundCompatibility,
+  AiMatch,
+  AiMatchMeta,
+  CandidateWithAiData,
+  VirtualCandidate,
+  VirtualCandidateData,
+} from './shared';
+export { toBackgroundCompatibility } from './shared';
+
+import type { ScoreBreakdown } from './shared';
+
 // Base API Response Type
 export interface APIResponse<T> {
   success: boolean;
   clients: T[];
   count: number;
   error?: string;
-}
-// 🆕 טיפוס לפירוט ציון AI
-export interface ScoreBreakdown {
-  religious: number;
-  careerFamily: number;
-  lifestyle: number;
-  ambition: number;
-  communication: number;
-  values: number;
 }
 // Base Types
 export type CandidateImage = UserImage;
@@ -28,7 +33,7 @@ export type MobileView = 'split' | 'single' | 'double';
 export interface Candidate {
   id: string;
   email: string;
-  phone?: string | null; 
+  phone?: string | null;
   firstName: string;
   createdAt: Date;
   lastName: string;
@@ -55,7 +60,7 @@ export interface Candidate {
 }
 export interface CandidatesFilter {
    source?: UserSource;
-   
+
   gender?: Gender;
   ageRange?: {
     min: number;
@@ -76,14 +81,17 @@ export interface CandidatesFilter {
   hasReferences?: boolean;
   lastActiveDays?: number;
   isProfileComplete?: boolean;
+  bodyType?: string[];
+  appearanceTone?: string[];
+  ethnicBackground?: string[];
   searchQuery?: string;
   savedFilterId?: string;
   separateFiltering?: boolean;
-  
+
   // הוספת שדות חיפוש נפרדים
   maleSearchQuery?: string;
   femaleSearchQuery?: string;
-  
+
   maleFilters?: Partial<CandidatesFilter>;
   femaleFilters?: Partial<CandidatesFilter>;
   userStatus?: UserStatus;

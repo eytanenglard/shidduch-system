@@ -230,6 +230,13 @@ export class StatusTransitionService {
     switch (newStatus) {
       case MatchSuggestionStatus.PENDING_SECOND_PARTY:
         await notifyNewSuggestion({ userId: suggestion.secondPartyId, matchmakerName, suggestionId: suggestion.id });
+        // Notify first party that suggestion was sent to second party
+        await sendPushToUser(suggestion.firstPartyId, {
+          title: '📤 ההצעה נשלחה!',
+          body: 'ההצעה שאישרת נשלחה לצד השני. נעדכן אותך כשתהיה תגובה.',
+          data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
+          sound: 'default',
+        });
         break;
       case MatchSuggestionStatus.FIRST_PARTY_APPROVED:
         await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.firstParty.firstName} ${suggestion.firstParty.lastName} אישר/ה את ההצעה! ✅` });
@@ -242,9 +249,23 @@ export class StatusTransitionService {
         break;
       case MatchSuggestionStatus.SECOND_PARTY_APPROVED:
         await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} אישר/ה את ההצעה! ✅ שני הצדדים אישרו!` });
+        // Notify first party that second party approved
+        await sendPushToUser(suggestion.firstPartyId, {
+          title: '🎉 הצד השני אישר/ה!',
+          body: 'שני הצדדים אישרו! השדכן/ית ישתף/תשתף בקרוב את פרטי הקשר.',
+          data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
+          sound: 'default',
+        });
         break;
       case MatchSuggestionStatus.SECOND_PARTY_DECLINED:
         await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} דחה/תה את ההצעה` });
+        // Notify first party that second party declined (without revealing identity)
+        await sendPushToUser(suggestion.firstPartyId, {
+          title: 'עדכון לגבי ההצעה',
+          body: 'הצד השני החליט שלא להמשיך בהצעה זו. אנחנו ממשיכים לחפש עבורך!',
+          data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id },
+          sound: 'default',
+        });
         break;
       case MatchSuggestionStatus.SECOND_PARTY_NOT_AVAILABLE:
         await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.secondParty.firstName} ${suggestion.secondParty.lastName} לא זמין/ה כרגע` });

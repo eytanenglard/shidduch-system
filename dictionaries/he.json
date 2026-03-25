@@ -97,9 +97,17 @@
     "typewriterText": "בעולם שבו הצעות לדייטים מסתכמות לרוב בתמונה ותיאור כללי, אנו מאמינים בדרך אחרת. יצרנו עבורכם מסע היכרות אישי, המתחיל בשאלון ייחודי. הוא מאפשר לנו להכיר אתכם לעומק, וכך להגיש לכם הצעות שידוך שהן הרבה יותר מפרטים יבשים – הן סיפור שלם, שמאפשר לכם לקבל החלטה ממקום של הבנה אמיתית.",
     "ctaButton": "להרשמה",
     "ctaButtonShort": "להרשמה",
+    "ctaButtonLoggedIn": "להמשיך את המסע",
+    "ctaButtonLoggedInShort": "המשך",
+    "ctaButtonCompleted": "לאזור האישי",
+    "ctaButtonCompletedShort": "אזור אישי",
 
     "secondaryButton": "לשאלון",
-         "secondaryButtonShort": "לשאלון",
+    "secondaryButtonShort": "לשאלון",
+    "secondaryButtonLoggedIn": "להמשיך את השאלון",
+    "secondaryButtonLoggedInShort": "המשך שאלון",
+    "secondaryButtonCompleted": "לצפות בתובנות",
+    "secondaryButtonCompletedShort": "תובנות",
 
     "principlesHeader": {
       "title": "הגישה שלנו",
@@ -120,7 +128,7 @@
       { "value": "200+", "label": "שאלות בטביעת הנשמה" },
       { "value": "5", "label": "עולמות תוכן" },
       { "value": "100%", "label": "פרטיות מלאה" },
-      { "value": "24/7", "label": "ליווי אישי" }
+      { "value": "AI+", "label": "התאמה חכמה + ליווי אישי" }
     ]
   },
   "valueProposition": {
@@ -389,14 +397,26 @@
       "time": "10 דקות בלבד",
       "noSignup": "ללא הרשמה"
     },
-    "cta": "התחילו עכשיו",
+    "discoveries": [
+      "סגנון התקשורת שלך",
+      "ערכי הליבה שלך",
+      "חוזקות הזוגיות שלך",
+      "סוג האישיות שלך"
+    ],
+    "cta": "גלו את מפת הלב שלכם",
     "mobileNote": "גלו מי מחכה לכם ←"
   },
   "cta": {
     "title_part1": "המסע שלכם לזוגיות",
     "title_highlight": "מתחיל כאן",
+    "title_highlightLoggedIn": "ממשיך",
+    "title_highlightCompleted": "בעיצומו",
     "subtitle": "אם הגישה האישית, המכבדת והמעמיקה שלנו מדברת אליכם, אולי מצאתם את הבית שלכם. הצעד הראשון פשוט, דיסקרטי וללא התחייבות.",
-    "button": "אני רוצה להתחיל את המסע"
+    "subtitleLoggedIn": "כבר התחלת - עכשיו בואו נמשיך יחד את הדרך לזוגיות שמתאימה לך באמת.",
+    "subtitleCompleted": "השאלון הושלם! עכשיו המערכת שלנו עובדת עבורך ברקע. צפו בתובנות שלכם.",
+    "button": "אני רוצה להתחיל את המסע",
+    "buttonLoggedIn": "להמשיך את המסע שלי",
+    "buttonCompleted": "לצפות בתובנות שלי"
   },
   "footer": {
     "description": "משלבים טכנולוגיה מתקדמת וליווי אישי ליצירת קשרים משמעותיים ארוכי טווח.",
@@ -746,7 +766,11 @@
     "transitionCTA": "אז מה עושים עם התובנות האלה? 👇",
     "cta": {
       "button": "אני רוצה לראות את התמונה המלאה שלי",
-      "subtitle": "התחילו עכשיו וגלו את הדרך לזוגיות שתמיד רציתם."
+      "subtitle": "התחילו עכשיו וגלו את הדרך לזוגיות שתמיד רציתם.",
+      "buttonContinue": "להמשיך את המסע שלי",
+      "subtitleContinue": "כבר התחלת - בואו נסיים את התמונה המלאה שלך.",
+      "buttonCompleted": "לצפות בתובנות שלי",
+      "subtitleCompleted": "השאלון הושלם! גלו את התובנות האישיות שלכם."
     },
     "placeholder": "הודעה...",
     "progressLabels": [

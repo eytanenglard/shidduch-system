@@ -95,6 +95,7 @@ const SuggestionActionBar: React.FC<SuggestionActionBarProps> = ({
     filters.status?.length,
     filters.dateRange,
     filters.userId,
+    filters.isAutoSuggestion,
   ].filter(Boolean).length;
 
   const [dateRange, setDateRange] = useState<{
@@ -352,6 +353,22 @@ const SuggestionActionBar: React.FC<SuggestionActionBarProps> = ({
                   )}
                 </SelectContent>
               </Select>
+
+              {/* הצעות אוטומטיות בלבד */}
+              <label className="flex items-center gap-2 p-2 bg-white rounded-lg hover:bg-gray-50 cursor-pointer transition-colors mt-3">
+                <Checkbox
+                  id="auto-suggestion-filter"
+                  checked={filters.isAutoSuggestion === true}
+                  onCheckedChange={(checked) =>
+                    onFiltersChange({
+                      ...filters,
+                      isAutoSuggestion: checked ? true : undefined,
+                    })
+                  }
+                />
+                <Star className="h-3.5 w-3.5 text-cyan-500" />
+                <span className="text-xs text-gray-700">הצעות אוטומטיות בלבד</span>
+              </label>
             </div>
           </div>
         </div>
@@ -399,6 +416,20 @@ const SuggestionActionBar: React.FC<SuggestionActionBarProps> = ({
               <button
                 onClick={() => handleRemoveFilter('status')}
                 className="hover:bg-green-200 rounded-full p-0.5 ml-1"
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            </Badge>
+          )}
+          {filters.isAutoSuggestion && (
+            <Badge
+              variant="secondary"
+              className="text-xs bg-cyan-50 text-cyan-700 border-cyan-200 rounded-lg px-2 py-0.5 gap-1"
+            >
+              הצעות אוטומטיות
+              <button
+                onClick={() => handleRemoveFilter('isAutoSuggestion')}
+                className="hover:bg-cyan-200 rounded-full p-0.5 ml-1"
               >
                 <X className="w-2.5 h-2.5" />
               </button>

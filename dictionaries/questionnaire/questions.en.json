@@ -265,6 +265,54 @@
         "trying_to_quit": "I smoke but I'm trying to quit"
       }
     },
+    "personality_body_type_self": {
+      "question": "How would you describe your body type?",
+      "helpText": "There's no 'right' or 'wrong' answer — this helps our matchmakers suggest more accurate matches for you.",
+      "options": {
+        "VERY_SLIM": "Very Slim",
+        "SLIM": "Slim",
+        "SLIM_MEDIUM": "Slim-Average",
+        "MEDIUM": "Average",
+        "MEDIUM_FULL": "Average-Full",
+        "FULL": "Full",
+        "ATHLETIC": "Athletic / Muscular"
+      }
+    },
+    "personality_appearance_tone_self": {
+      "question": "What is your complexion tone?",
+      "helpText": "This helps us better match appearance preferences between candidates.",
+      "options": {
+        "VERY_FAIR": "Very Fair",
+        "FAIR": "Fair",
+        "MEDIUM": "Medium",
+        "MEDITERRANEAN": "Olive / Mediterranean",
+        "DARK": "Dark",
+        "VERY_DARK": "Very Dark"
+      }
+    },
+    "personality_ethnic_background_self": {
+      "question": "What is your ethnic background?",
+      "helpText": "You can select more than one option. This helps matchmakers better understand your cultural background.",
+      "options": {
+        "ASHKENAZI": "Ashkenazi",
+        "SEPHARDI": "Sephardi / Mizrachi",
+        "YEMENITE": "Yemenite",
+        "ETHIOPIAN": "Ethiopian",
+        "MIXED": "Mixed",
+        "OTHER": "Other"
+      }
+    },
+    "personality_grooming_style_self": {
+      "question": "How would you describe your grooming/appearance style?",
+      "helpText": "Think about how you typically present yourself day-to-day — what feels most natural to you.",
+      "options": {
+        "VERY_POLISHED": "Very polished — always well-groomed and put-together",
+        "CLASSIC_NEAT": "Classic & neat — looks good without overthinking it",
+        "NATURAL": "Natural — comfortable in my own skin",
+        "SPORTY_CASUAL": "Sporty-casual — comfortable and practical",
+        "TRENDY": "Trendy — likes to keep up with style"
+      }
+    },
     "personality_growth_after_previous_marriage": {
       "question": "Your previous marriage taught you something profound about yourself. What did you discover about your personality, needs, and patterns — things you may not have known before?",
       "placeholder": "e.g., 'I discovered I need more personal space than I thought', 'I realized I struggle to ask for help', 'I learned how important humor is to me in a relationship...'",
@@ -801,6 +849,58 @@
       "labels": {
         "min": "Personality is key",
         "max": "Essential for me"
+      }
+    },
+    "partner_body_type_preference": {
+      "question": "What body type appeals to you in a partner?",
+      "helpText": "Select all that apply. If you have no particular preference, select 'Open to all'.",
+      "options": {
+        "open_to_all": "Open to all body types",
+        "VERY_SLIM": "Very Slim",
+        "SLIM": "Slim",
+        "SLIM_MEDIUM": "Slim-Average",
+        "MEDIUM": "Average",
+        "MEDIUM_FULL": "Average-Full",
+        "FULL": "Full",
+        "ATHLETIC": "Athletic / Muscular"
+      }
+    },
+    "partner_appearance_tone_preference": {
+      "question": "What complexion tone are you drawn to?",
+      "helpText": "Select all that apply. This is a preference, not a requirement — we factor it in as part of the bigger picture.",
+      "options": {
+        "open_to_all": "Open to all tones",
+        "VERY_FAIR": "Very Fair",
+        "FAIR": "Fair",
+        "MEDIUM": "Medium",
+        "MEDITERRANEAN": "Olive / Mediterranean",
+        "DARK": "Dark",
+        "VERY_DARK": "Very Dark"
+      }
+    },
+    "partner_ethnic_background_preference": {
+      "question": "Do you have a preference for ethnic background?",
+      "helpText": "Select all that apply. If you have no preference, select 'Open to all'.",
+      "options": {
+        "open_to_all": "Open to all backgrounds",
+        "ASHKENAZI": "Ashkenazi",
+        "SEPHARDI": "Sephardi / Mizrachi",
+        "YEMENITE": "Yemenite",
+        "ETHIOPIAN": "Ethiopian",
+        "MIXED": "Mixed",
+        "OTHER": "Other"
+      }
+    },
+    "partner_grooming_style_preference": {
+      "question": "Do you have a preference for grooming/appearance style?",
+      "helpText": "Select all styles that appeal to you. If you have no preference, select 'Open to all styles'.",
+      "options": {
+        "open_to_all": "Open to all styles",
+        "VERY_POLISHED": "Very polished",
+        "CLASSIC_NEAT": "Classic & neat",
+        "NATURAL": "Natural",
+        "SPORTY_CASUAL": "Sporty-casual",
+        "TRENDY": "Trendy"
       }
     },
     "partner_intelligence_types": {

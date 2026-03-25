@@ -231,7 +231,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
             <input
               ref={inputRef}
-              type="text"
+              type="search"
+              role="searchbox"
+              aria-label={dict.generalPlaceholder || 'חיפוש מועמדים'}
+              aria-autocomplete="list"
+              aria-expanded={showDropdown}
+              autoComplete="off"
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
@@ -248,9 +253,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 separateMode ? 'pl-32 pr-16' : 'pl-6 pr-16'
               )}
               autoFocus={autoFocus}
-              autoComplete="off"
               spellCheck="false"
             />
+
+            {/* Screen reader announcement for search results */}
+            <div className="sr-only" aria-live="polite" aria-atomic="true">
+              {inputValue && suggestions.length > 0
+                ? `נמצאו ${suggestions.length} תוצאות עבור "${inputValue}"`
+                : inputValue
+                ? 'לא נמצאו תוצאות'
+                : ''}
+            </div>
 
             <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10">
               <motion.div

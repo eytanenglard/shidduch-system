@@ -409,7 +409,7 @@ export default function MatchmakerDashboard() {
         });
       }
     } catch (err) {
-      console.error('Failed to dismiss alert:', err);
+      // Error handled silently
     }
   };
 
@@ -436,7 +436,7 @@ export default function MatchmakerDashboard() {
         });
       }
     } catch (err) {
-      console.error('Failed to mark as read:', err);
+      // Error handled silently
     }
   };
 

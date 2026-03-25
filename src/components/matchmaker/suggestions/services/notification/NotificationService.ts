@@ -414,12 +414,17 @@ export class NotificationService {
             <a href="${baseUrl}/privacy" style="color: #6b7280; text-decoration: none; margin: 0 5px;">${privacyText}</a> |
             <a href="${baseUrl}/terms" style="color: #6b7280; text-decoration: none; margin: 0 5px;">${termsText}</a>
           </p>
-          ${optOutUrls?.optOutFirstPartyUrl || optOutUrls?.unsubscribeUrl ? `
-          <!-- Opt-out Links -->
+          ${optOutUrls?.optOutFirstPartyUrl ? `
+          <!-- Opt-out & Unsubscribe Links -->
           <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
-            ${optOutUrls.optOutFirstPartyUrl ? `<a href="${optOutUrls.optOutFirstPartyUrl}" style="color: #9ca3af; font-size: 11px; text-decoration: underline;">${isHebrew ? 'לא מעוניין/ת להיות צד ראשון בהצעות אוטומטיות' : 'Opt out of being first party in auto-suggestions'}</a>` : ''}
-            ${optOutUrls.optOutFirstPartyUrl && optOutUrls.unsubscribeUrl ? '<span style="color: #d1d5db; margin: 0 6px;">|</span>' : ''}
-            ${optOutUrls.unsubscribeUrl ? `<a href="${optOutUrls.unsubscribeUrl}" style="color: #9ca3af; font-size: 11px; text-decoration: underline;">${isHebrew ? 'הסרה מרשימת הצעות אוטומטיות' : 'Unsubscribe from auto-suggestions'}</a>` : ''}
+            <p style="color: #9ca3af; font-size: 11px; margin: 0 0 6px 0;">
+              <a href="${optOutUrls.optOutFirstPartyUrl}" style="color: #9ca3af; font-size: 11px; text-decoration: underline;">${isHebrew ? 'לא מעוניין/ת לקבל הצעות אוטומטיות (עדיין אוכל לקבל הצעות דרך שדכן)' : 'Stop receiving auto-suggestions (I can still receive suggestions via matchmaker)'}</a>
+            </p>
+            ${optOutUrls.unsubscribeUrl ? `
+            <p style="color: #cbd5e1; font-size: 10px; margin: 4px 0 0 0;">
+              <a href="${optOutUrls.unsubscribeUrl}" style="color: #cbd5e1; font-size: 10px; text-decoration: underline;">${isHebrew ? 'הסרה מכל רשימות הדיוור' : 'Unsubscribe from all emails'}</a>
+            </p>
+            ` : ''}
           </div>
           ` : ''}
         </td>

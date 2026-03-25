@@ -74,7 +74,7 @@ export function useHiddenCandidates(): UseHiddenCandidatesReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      console.error('Error fetching hidden candidates:', err);
+      // Error handled - error state is set above
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +114,6 @@ export function useHiddenCandidates(): UseHiddenCandidatesReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       toast.error(`שגיאה בהסתרת המועמד: ${errorMessage}`);
-      console.error('Error hiding candidate:', err);
       return false;
     }
   }, [refreshHiddenCandidates]);
@@ -154,7 +153,6 @@ export function useHiddenCandidates(): UseHiddenCandidatesReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       toast.error(`שגיאה בהחזרת המועמד: ${errorMessage}`);
-      console.error('Error unhiding candidate:', err);
       return false;
     }
   }, [hiddenCandidates]);
@@ -191,7 +189,6 @@ export function useHiddenCandidates(): UseHiddenCandidatesReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       toast.error(`שגיאה בעדכון הסיבה: ${errorMessage}`);
-      console.error('Error updating reason:', err);
       return false;
     }
   }, []);

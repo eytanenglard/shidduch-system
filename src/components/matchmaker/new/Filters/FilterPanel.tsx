@@ -1,17 +1,13 @@
 // src/components/matchmaker/new/Filters/FilterPanel.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// Lucide React Icons
 import {
   Activity,
   Award,
   Bookmark,
   Calendar,
-  ChevronDown,
-  Copy,
   Crown,
   Filter as FilterIcon,
   Heart,
@@ -26,22 +22,11 @@ import {
   Target,
   User,
   Zap,
-  Check,
-  Search,
 } from 'lucide-react';
-
-// Utility Functions
 import { cn } from '@/lib/utils';
-
-// UI Components
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -60,11 +45,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
-// Local Components, Types & Constants
 import SavedFilters from './SavedFilters';
+import {
+  FilterSection,
+  SafeNumberInput,
+  ReligiousMultiSelect,
+  LanguageMultiSelect,
+  GenderFilterPanel,
+  MARITAL_STATUS_OPTIONS,
+} from './sections';
 import {
   AGE_RANGE,
   HEIGHT_RANGE,
@@ -74,48 +64,6 @@ import type { CandidatesFilter } from '../types/candidates';
 import type { FilterState } from '../types/filters';
 import type { FilterPanelDict } from '@/types/dictionaries/matchmaker';
 import { DEFAULT_FILTER_STATE } from '../types/filters';
-
-// --- Constants for Religious Levels based on Dictionary ---
-const RELIGIOUS_OPTIONS = [
-  { value: 'charedi_litvak', label: 'חרדי/ת ליטאי/ת' },
-  { value: 'charedi_hasidic', label: 'חרדי/ת חסידי/ת' },
-  { value: 'charedi_sephardic', label: 'חרדי/ת ספרדי/ת' },
-  { value: 'charedi_modern', label: 'חרדי/ת מודרני/ת' },
-  { value: 'chabad', label: 'חב״ד' },
-  { value: 'breslov', label: 'ברסלב' },
-  { value: 'dati_leumi_torani', label: 'דתי/ה לאומי/ת תורני/ת' },
-  { value: 'dati_leumi_standard', label: 'דתי/ה לאומי/ת (סטנדרטי)' },
-  { value: 'dati_leumi_liberal', label: 'דתי/ה לאומי/ת ליברלי/ת' },
-  { value: 'masorti_strong', label: 'מסורתי/ת (קרוב/ה לדת)' },
-  { value: 'masorti_light', label: 'מסורתי/ת (קשר קל למסורת)' },
-  { value: 'secular_traditional_connection', label: 'חילוני/ת עם זיקה למסורת' },
-  { value: 'secular', label: 'חילוני/ת' },
-  { value: 'spiritual_not_religious', label: 'רוחני/ת (לאו דווקא דתי/ה)' },
-  { value: 'other', label: 'אחר' },
-  { value: 'not_defined', label: 'לא מוגדר / ללא רמה דתית' },
-];
-
-const LANGUAGE_OPTIONS = [
-  { value: 'hebrew', label: 'עברית' },
-  { value: 'english', label: 'אנגלית' },
-  { value: 'russian', label: 'רוסית' },
-  { value: 'french', label: 'צרפתית' },
-  { value: 'spanish', label: 'ספרדית' },
-  { value: 'yiddish', label: 'יידיש' },
-  { value: 'arabic', label: 'ערבית' },
-  { value: 'portuguese', label: 'פורטוגזית' },
-  { value: 'german', label: 'גרמנית' },
-  { value: 'amharic', label: 'אמהרית' },
-];
-
-// שינוי 1: הוספת MARITAL_STATUS_OPTIONS
-const MARITAL_STATUS_OPTIONS = [
-  { value: 'single', label: 'רווק/ה' },
-  { value: 'divorced', label: 'גרוש/ה' },
-  { value: 'widowed', label: 'אלמן/ה' },
-  { value: 'divorced_with_children', label: 'גרוש/ה עם ילדים' },
-  { value: 'widowed_with_children', label: 'אלמן/ה עם ילדים' },
-];
 
 // Interfaces
 interface FilterPanelProps {
@@ -138,766 +86,6 @@ interface FilterPanelProps {
   ) => void;
   dict: FilterPanelDict;
 }
-
-interface FilterSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-  badge?: number;
-  gradient?: string;
-}
-
-// --- New Helper Component for Safe Typing ---
-interface SafeNumberInputProps {
-  value: number;
-  min: number;
-  max: number;
-  onCommit: (value: number) => void;
-  className?: string;
-}
-
-const SafeNumberInput: React.FC<SafeNumberInputProps> = ({
-  value,
-  min,
-  max,
-  onCommit,
-  className,
-}) => {
-  const [localValue, setLocalValue] = useState<string>(value?.toString() || '');
-
-  useEffect(() => {
-    setLocalValue(value?.toString() || '');
-  }, [value]);
-
-  const handleCommit = () => {
-    let num = parseInt(localValue);
-
-    // Validation
-    if (isNaN(num)) num = min;
-    if (num < min) num = min;
-    if (num > max) num = max;
-
-    setLocalValue(num.toString());
-    onCommit(num);
-  };
-
-  return (
-    <input
-      type="number"
-      value={localValue}
-      onChange={(e) => setLocalValue(e.target.value)}
-      onBlur={handleCommit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          (e.target as HTMLInputElement).blur();
-        }
-      }}
-      className={className}
-    />
-  );
-};
-
-// --- MultiSelect Component for Religious Levels ---
-const ReligiousMultiSelect = ({
-  selectedValues = [],
-  onChange,
-  dict,
-}: {
-  selectedValues: string[];
-  onChange: (values: string[]) => void;
-  dict: any;
-}) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const toggleValue = (value: string) => {
-    const newValues = selectedValues.includes(value)
-      ? selectedValues.filter((v) => v !== value)
-      : [...selectedValues, value];
-    onChange(newValues);
-  };
-
-  const filteredOptions = RELIGIOUS_OPTIONS.filter((opt) =>
-    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50 space-y-2">
-      <div className="relative">
-        <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-        <Input
-          placeholder={dict.placeholders?.search || 'חפש רמה דתית...'}
-          className="pr-9 bg-white border-gray-200"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-      <ScrollArea className="h-48 rounded-md border border-gray-100 bg-white p-2">
-        <div className="space-y-1">
-          {filteredOptions.map((option) => {
-            const isSelected = selectedValues.includes(option.value);
-            return (
-              <div
-                key={option.value}
-                onClick={() => toggleValue(option.value)}
-                className={cn(
-                  'flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors text-sm',
-                  isSelected
-                    ? 'bg-amber-50 text-amber-900'
-                    : 'hover:bg-gray-50 text-gray-700'
-                )}
-              >
-                <Checkbox
-                  checked={isSelected}
-                  onCheckedChange={() => toggleValue(option.value)}
-                  className="data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
-                />
-                <span className="flex-1">{option.label}</span>
-              </div>
-            );
-          })}
-          {filteredOptions.length === 0 && (
-            <p className="text-center text-xs text-gray-500 py-4">
-              לא נמצאו תוצאות
-            </p>
-          )}
-        </div>
-      </ScrollArea>
-      {selectedValues.length > 0 && (
-        <div className="flex flex-wrap gap-1 pt-1">
-          {selectedValues.map((val) => {
-            const label = RELIGIOUS_OPTIONS.find((o) => o.value === val)?.label;
-            return (
-              <Badge
-                key={val}
-                variant="secondary"
-                className="text-xs bg-amber-100 text-amber-800 hover:bg-amber-200"
-              >
-                {label}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleValue(val);
-                  }}
-                  className="mr-1 hover:text-red-600"
-                >
-                  ×
-                </button>
-              </Badge>
-            );
-          })}
-          <button
-            onClick={() => onChange([])}
-            className="text-xs text-gray-500 underline mr-auto hover:text-gray-800"
-          >
-            נקה הכל
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// --- MultiSelect Component for Languages ---
-const LanguageMultiSelect = ({
-  selectedValues = [],
-  onChange,
-  dict,
-}: {
-  selectedValues: string[];
-  onChange: (values: string[]) => void;
-  dict: any;
-}) => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const toggleValue = (value: string) => {
-    const newValues = selectedValues.includes(value)
-      ? selectedValues.filter((v) => v !== value)
-      : [...selectedValues, value];
-    onChange(newValues);
-  };
-
-  const filteredOptions = LANGUAGE_OPTIONS.filter((opt) =>
-    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50 space-y-2">
-      <div className="relative">
-        <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-        <Input
-          placeholder={dict.placeholders?.searchLanguage || 'חפש שפה...'}
-          className="pr-9 bg-white border-gray-200"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-      <ScrollArea className="h-48 rounded-md border border-gray-100 bg-white p-2">
-        <div className="space-y-1">
-          {filteredOptions.map((option) => {
-            const isSelected = selectedValues.includes(option.value);
-            return (
-              <div
-                key={option.value}
-                onClick={() => toggleValue(option.value)}
-                className={cn(
-                  'flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors text-sm',
-                  isSelected
-                    ? 'bg-teal-50 text-teal-900'
-                    : 'hover:bg-gray-50 text-gray-700'
-                )}
-              >
-                <Checkbox
-                  checked={isSelected}
-                  onCheckedChange={() => toggleValue(option.value)}
-                  className="data-[state=checked]:bg-teal-500 data-[state=checked]:border-teal-500"
-                />
-                <span className="flex-1">{option.label}</span>
-              </div>
-            );
-          })}
-          {filteredOptions.length === 0 && (
-            <p className="text-center text-xs text-gray-500 py-4">
-              לא נמצאו תוצאות
-            </p>
-          )}
-        </div>
-      </ScrollArea>
-      {selectedValues.length > 0 && (
-        <div className="flex flex-wrap gap-1 pt-1">
-          {selectedValues.map((val) => {
-            const label = LANGUAGE_OPTIONS.find((o) => o.value === val)?.label;
-            return (
-              <Badge
-                key={val}
-                variant="secondary"
-                className="text-xs bg-teal-100 text-teal-800 hover:bg-teal-200"
-              >
-                {label}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleValue(val);
-                  }}
-                  className="mr-1 hover:text-red-600"
-                >
-                  ×
-                </button>
-              </Badge>
-            );
-          })}
-          <button
-            onClick={() => onChange([])}
-            className="text-xs text-gray-500 underline mr-auto hover:text-gray-800"
-          >
-            נקה הכל
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Helper Components
-const FilterSection: React.FC<FilterSectionProps> = ({
-  title,
-  icon,
-  children,
-  defaultOpen = false,
-  badge,
-  gradient = 'from-blue-500 to-cyan-500',
-}) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-4"
-    >
-      <Collapsible
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        className="rounded-2xl overflow-hidden shadow-xl border-0 bg-gradient-to-br from-white via-gray-50/30 to-white"
-      >
-        <CollapsibleTrigger asChild>
-          <motion.div
-            className={cn(
-              'flex items-center justify-between p-4 cursor-pointer transition-all duration-300',
-              'bg-gradient-to-r',
-              gradient,
-              'text-white hover:shadow-lg'
-            )}
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm shadow-lg">
-                {icon}
-              </div>
-              <span className="font-bold text-lg">{title}</span>
-              {badge !== undefined && (
-                <Badge className="bg-white/20 text-white border-white/30 shadow-lg">
-                  {badge}
-                </Badge>
-              )}
-            </div>
-            <motion.div
-              animate={{ rotate: isOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ChevronDown size={20} className="text-white/80" />
-            </motion.div>
-          </motion.div>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-1 data-[state=open]:slide-in-from-top-1">
-          <div className="p-6 bg-gradient-to-br from-white via-gray-50/20 to-white">
-            {children}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </motion.div>
-  );
-};
-
-const GenderFilterPanel = ({
-  gender,
-  filters,
-  onFiltersChange,
-  className,
-  copyTarget,
-  onCopyFilters,
-  dict,
-}: {
-  gender: 'male' | 'female';
-  filters: Partial<FilterState>;
-  onFiltersChange: (filters: Partial<FilterState>) => void;
-  className?: string;
-  copyTarget: 'male' | 'female';
-  onCopyFilters?: (
-    source: 'male' | 'female',
-    target: 'male' | 'female'
-  ) => void;
-  dict: FilterPanelDict['genderFilterPanel'];
-}) => {
-  const genderConfig = {
-    male: {
-      gradient: 'from-blue-500 to-cyan-500',
-      bg: 'from-blue-50/50 to-cyan-50/30',
-      text: 'text-blue-800',
-      icon: <Target className="w-5 h-5" />,
-      title: dict.maleTitle,
-      copyLabel: dict.copyToFemale,
-    },
-    female: {
-      gradient: 'from-purple-500 to-pink-500',
-      bg: 'from-purple-50/50 to-pink-50/30',
-      text: 'text-purple-800',
-      icon: <Crown className="w-5 h-5" />,
-      title: dict.femaleTitle,
-      copyLabel: dict.copyToMale,
-    },
-  };
-  const config = genderConfig[gender];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className={cn(
-        'mb-6 rounded-2xl overflow-hidden shadow-xl border-0',
-        className
-      )}
-    >
-      <div
-        className={cn(
-          'flex justify-between items-center px-6 py-4',
-          'bg-gradient-to-r',
-          config.gradient,
-          'text-white'
-        )}
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
-            {config.icon}
-          </div>
-          <h3 className="text-lg font-bold">{config.title}</h3>
-        </div>
-        {onCopyFilters && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onCopyFilters(gender, copyTarget)}
-                  className="text-white hover:bg-white/20 rounded-xl transition-all duration-300 hover:scale-105"
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  {config.copyLabel}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {dict.copyTooltip.replace(
-                    '{{gender}}',
-                    copyTarget === 'male' ? dict.maleTitle : dict.femaleTitle
-                  )}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-      <div className={cn('p-6 space-y-6 bg-gradient-to-br', config.bg)}>
-        {/* Age Range */}
-        <div className="space-y-4">
-          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-blue-600" />
-            {dict.ageLabel}
-          </Label>
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100/50">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-center bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl shadow-md p-3 min-w-[80px]">
-                <p className="text-xs text-blue-600 mb-1 font-medium">
-                  {dict.minLabel}
-                </p>
-                <SafeNumberInput
-                  min={AGE_RANGE.min}
-                  max={AGE_RANGE.max}
-                  value={filters?.ageRange?.min || AGE_RANGE.default.min}
-                  onCommit={(val) => {
-                    const currentMax =
-                      filters.ageRange?.max || AGE_RANGE.default.max;
-                    onFiltersChange({
-                      ...filters,
-                      ageRange: {
-                        min: Math.min(val, currentMax),
-                        max: currentMax,
-                      },
-                    });
-                  }}
-                  className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none bg-transparent"
-                />
-              </div>
-              <span className="text-xl font-bold text-gray-400">-</span>
-              <div className="text-center bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl shadow-md p-3 min-w-[80px]">
-                <p className="text-xs text-blue-600 mb-1 font-medium">
-                  {dict.maxLabel}
-                </p>
-                <SafeNumberInput
-                  min={AGE_RANGE.min}
-                  max={AGE_RANGE.max}
-                  value={filters?.ageRange?.max || AGE_RANGE.default.max}
-                  onCommit={(val) => {
-                    const currentMin =
-                      filters.ageRange?.min || AGE_RANGE.default.min;
-                    onFiltersChange({
-                      ...filters,
-                      ageRange: {
-                        min: currentMin,
-                        max: Math.max(val, currentMin),
-                      },
-                    });
-                  }}
-                  className="w-16 text-center text-lg font-bold text-blue-700 focus:outline-none bg-transparent"
-                />
-              </div>
-            </div>
-            <div className="px-2">
-              <Slider
-                value={[
-                  filters?.ageRange?.min || AGE_RANGE.default.min,
-                  filters?.ageRange?.max || AGE_RANGE.default.max,
-                ]}
-                min={AGE_RANGE.min}
-                max={AGE_RANGE.max}
-                step={1}
-                onValueChange={(value) =>
-                  onFiltersChange({
-                    ...filters,
-                    ageRange: { min: value[0], max: value[1] },
-                  })
-                }
-                className="h-5 [&>span]:bg-gradient-to-r [&>span]:from-blue-500 [&>span]:to-cyan-500"
-                dir="rtl"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Height Range */}
-        <div className="space-y-4">
-          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
-            <Ruler className="w-5 h-5 text-purple-600" />
-            {dict.heightLabel}
-          </Label>
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100/50">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-center bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl shadow-md p-3 min-w-[80px]">
-                <p className="text-xs text-purple-600 mb-1 font-medium">
-                  {dict.minLabel}
-                </p>
-                <SafeNumberInput
-                  min={HEIGHT_RANGE.min}
-                  max={HEIGHT_RANGE.max}
-                  value={filters?.heightRange?.min || HEIGHT_RANGE.default.min}
-                  onCommit={(val) => {
-                    const currentMax =
-                      filters.heightRange?.max || HEIGHT_RANGE.default.max;
-                    onFiltersChange({
-                      ...filters,
-                      heightRange: {
-                        min: Math.min(val, currentMax),
-                        max: currentMax,
-                      },
-                    });
-                  }}
-                  className="w-16 text-center text-lg font-bold text-purple-700 focus:outline-none bg-transparent"
-                />
-              </div>
-              <span className="text-xl font-bold text-gray-400">-</span>
-              <div className="text-center bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl shadow-md p-3 min-w-[80px]">
-                <p className="text-xs text-purple-600 mb-1 font-medium">
-                  {dict.maxLabel}
-                </p>
-                <SafeNumberInput
-                  min={HEIGHT_RANGE.min}
-                  max={HEIGHT_RANGE.max}
-                  value={filters?.heightRange?.max || HEIGHT_RANGE.default.max}
-                  onCommit={(val) => {
-                    const currentMin =
-                      filters.heightRange?.min || HEIGHT_RANGE.default.min;
-                    onFiltersChange({
-                      ...filters,
-                      heightRange: {
-                        min: currentMin,
-                        max: Math.max(val, currentMin),
-                      },
-                    });
-                  }}
-                  className="w-16 text-center text-lg font-bold text-purple-700 focus:outline-none bg-transparent"
-                />
-              </div>
-            </div>
-            <div className="px-2">
-              <Slider
-                value={[
-                  filters?.heightRange?.min || HEIGHT_RANGE.default.min,
-                  filters?.heightRange?.max || HEIGHT_RANGE.default.max,
-                ]}
-                min={HEIGHT_RANGE.min}
-                max={HEIGHT_RANGE.max}
-                step={1}
-                onValueChange={(value) =>
-                  onFiltersChange({
-                    ...filters,
-                    heightRange: { min: value[0], max: value[1] },
-                  })
-                }
-                className="h-5 [&>span]:bg-gradient-to-r [&>span]:from-purple-500 [&>span]:to-pink-500"
-                dir="rtl"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Religious Level (Multi-Select) */}
-        <div className="space-y-3">
-          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
-            <Scroll className="w-5 h-5 text-amber-600" />
-            {dict.religiousLevelLabel}
-          </Label>
-          <ReligiousMultiSelect
-            selectedValues={filters.religiousLevel || []}
-            onChange={(values) =>
-              onFiltersChange({ ...filters, religiousLevel: values })
-            }
-            dict={dict}
-          />
-        </div>
-
-        {/* City (Single Select remains for simplicity per prompt request, can be upgraded too) */}
-        <div className="space-y-3">
-          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-emerald-600" />
-            {dict.cityLabel}
-          </Label>
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
-            <Select
-              value={filters.cities?.[0] || ''}
-              onValueChange={(value) => {
-                const newValue = value === 'all' ? undefined : value;
-                onFiltersChange({
-                  ...filters,
-                  cities: newValue ? [newValue] : [],
-                });
-              }}
-            >
-              <SelectTrigger className="w-full border-0 bg-transparent focus:ring-2 focus:ring-emerald-200 rounded-xl">
-                <SelectValue placeholder={dict.placeholders.selectCity} />
-              </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl">
-                <SelectItem value="all" className="hover:bg-emerald-50">
-                  {dict.options.all}
-                </SelectItem>
-                {POPULAR_CITIES.map((c) => (
-                  <SelectItem key={c} value={c} className="hover:bg-emerald-50">
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* שינוי 2: סקשן Marital Status ב-GenderFilterPanel */}
-        {/* Marital Status */}
-        <div className="space-y-3">
-          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
-            <User className="w-5 h-5 text-violet-600" />
-            {dict.maritalStatusLabel || 'מצב משפחתי'}
-          </Label>
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
-            <Select
-              value={filters.maritalStatus || ''}
-              onValueChange={(value) => {
-                const newValue = value === 'all' ? undefined : value;
-                onFiltersChange({
-                  ...filters,
-                  maritalStatus: newValue,
-                });
-              }}
-            >
-              <SelectTrigger className="w-full border-0 bg-transparent focus:ring-2 focus:ring-violet-200 rounded-xl">
-                <SelectValue
-                  placeholder={
-                    dict.placeholders?.selectMaritalStatus || 'בחר מצב משפחתי'
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl">
-                <SelectItem value="all" className="hover:bg-violet-50">
-                  {dict.options?.all || 'הכל'}
-                </SelectItem>
-                {MARITAL_STATUS_OPTIONS.map((ms) => (
-                  <SelectItem
-                    key={ms.value}
-                    value={ms.value}
-                    className="hover:bg-violet-50"
-                  >
-                    {ms.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Languages */}
-        <div className="space-y-3">
-          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-teal-600" />
-            {dict.languageLabel || 'שפות'}
-          </Label>
-          <LanguageMultiSelect
-            selectedValues={filters.languages || []}
-            onChange={(values) =>
-              onFiltersChange({ ...filters, languages: values })
-            }
-            dict={dict}
-          />
-        </div>
-
-        {/* Consolidated Status Toggles */}
-        <div className="space-y-4 pt-4 border-t border-gray-200/50">
-          {[
-            {
-              key: 'isVerified',
-              label: dict.verifiedOnlyLabel,
-              icon: <Shield className="w-4 h-4" />,
-              gradient: 'from-emerald-500 to-green-500',
-            },
-            {
-              key: 'hasReferences',
-              label: dict.withRecommendationsLabel,
-              icon: <Award className="w-4 h-4" />,
-              gradient: 'from-amber-500 to-orange-500',
-            },
-            {
-              key: 'isProfileComplete',
-              label: dict.fullProfileLabel,
-              icon: <Star className="w-4 h-4" />,
-              gradient: 'from-purple-500 to-indigo-500',
-            },
-            // Added Logic for Availability and Active Days
-            {
-              key: 'availabilityStatus',
-              label: 'פנויים בלבד', // Hardcoded or needs dict update
-              icon: <Heart className="w-4 h-4" />,
-              gradient: 'from-pink-500 to-rose-500',
-              value: filters.availabilityStatus === 'AVAILABLE',
-              onChange: (checked: boolean) =>
-                onFiltersChange({
-                  ...filters,
-                  availabilityStatus: checked ? 'AVAILABLE' : undefined,
-                }),
-            },
-            {
-              key: 'lastActiveDays',
-              label: 'פעילים לאחרונה (7 ימים)', // Hardcoded or needs dict update
-              icon: <Activity className="w-4 h-4" />,
-              gradient: 'from-blue-500 to-cyan-500',
-              value: filters.lastActiveDays === 7,
-              onChange: (checked: boolean) =>
-                onFiltersChange({
-                  ...filters,
-                  lastActiveDays: checked ? 7 : undefined,
-                }),
-            },
-          ].map((item) => (
-            <div
-              key={item.key}
-              className="flex items-center justify-between p-3 bg-white/60 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100/50 hover:bg-white/80 transition-all duration-300"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    'p-2 rounded-lg bg-gradient-to-r text-white',
-                    item.gradient
-                  )}
-                >
-                  {item.icon}
-                </div>
-                <span className="font-medium text-gray-800 text-sm">
-                  {item.label}
-                </span>
-              </div>
-              <Switch
-                checked={
-                  item.value !== undefined
-                    ? item.value
-                    : (filters?.[
-                        item.key as keyof typeof filters
-                      ] as boolean) || false
-                }
-                onCheckedChange={
-                  item.onChange
-                    ? item.onChange
-                    : (checked) =>
-                        onFiltersChange({
-                          ...filters,
-                          [item.key]: checked || undefined,
-                        })
-                }
-                className="data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-emerald-500 data-[state=checked]:to-green-500"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-};
 
 // Main Component
 const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -955,25 +143,23 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           count++;
         if (filters.cities && filters.cities.length > 0) count++;
         if (filters.religiousLevel && filters.religiousLevel.length > 0)
-          count++; // Updated for array
+          count++;
         if (filters.languages && filters.languages.length > 0) count++;
-
         if (
           filters.heightRange &&
           (filters.heightRange.min !== defaultFilters.heightRange?.min ||
             filters.heightRange.max !== defaultFilters.heightRange?.max)
         )
           count++;
-
-        // Status counts now part of basic panel generally
         if (filters.availabilityStatus) count++;
         if (filters.isVerified) count++;
         if (filters.hasReferences) count++;
         if (filters.lastActiveDays) count++;
         if (filters.isProfileComplete) count++;
-        // שינוי 4: הוספת ספירת maritalStatus
         if (filters.maritalStatus) count++;
-
+        if (filters.bodyType && filters.bodyType.length > 0) count++;
+        if (filters.appearanceTone && filters.appearanceTone.length > 0) count++;
+        if (filters.ethnicBackground && filters.ethnicBackground.length > 0) count++;
         break;
     }
     return count;
@@ -991,6 +177,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-br from-blue-200/20 to-cyan-200/20 rounded-full blur-2xl"></div>
       </div>
       <div className="relative">
+        {/* Header */}
         {!compactMode && (
           <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6">
             <div className="flex items-center justify-between">
@@ -1042,9 +229,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 </TooltipProvider>
               </div>
             </div>
-            {/* REMOVED POPULAR FILTERS GRID AS REQUESTED */}
           </div>
         )}
+
+        {/* Save Preset Panel */}
         <AnimatePresence>
           {showSavePreset && !compactMode && (
             <motion.div
@@ -1077,6 +265,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Separate Filtering Toggle */}
         <div className="p-6 bg-gradient-to-r from-indigo-50/50 via-purple-50/30 to-pink-50/50 border-b border-purple-100/50">
           <motion.div
             className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50"
@@ -1106,6 +296,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
           </motion.div>
         </div>
+
+        {/* Main Content */}
         <div className="p-6">
           {separateFiltering ? (
             <div className="space-y-6">
@@ -1290,7 +482,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     )}
                   </FilterSection>
 
-                  {/* Religious Level (Multi-Select) */}
+                  {/* Religious Level */}
                   <FilterSection
                     title={dict.religiousLevelLabel}
                     icon={<Scroll className="w-5 h-5" />}
@@ -1307,7 +499,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     />
                   </FilterSection>
 
-                  {/* Languages (Multi-Select) */}
+                  {/* Languages */}
                   <FilterSection
                     title={dict.languageLabel || 'שפות'}
                     icon={<Zap className="w-5 h-5" />}
@@ -1498,7 +690,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     </div>
                   </FilterSection>
 
-                  {/* City Selection */}
+                  {/* City */}
                   <FilterSection
                     title={dict.cityLabel}
                     icon={<MapPin className="w-5 h-5" />}
@@ -1541,7 +733,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     </div>
                   </FilterSection>
 
-                  {/* שינוי 3: סקשן Marital Status ב-Main Panel (טאב basic) */}
                   {/* Marital Status */}
                   <FilterSection
                     title={dict.maritalStatusLabel || 'מצב משפחתי'}
@@ -1599,7 +790,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     </div>
                   </FilterSection>
 
-                  {/* Consolidated Status Section (Moved from header/advanced) */}
+                  {/* Status Toggles */}
                   <FilterSection
                     title="סטטוס וסינונים נוספים"
                     icon={<Activity className="w-5 h-5" />}
@@ -1741,6 +932,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </Tabs>
           )}
         </div>
+
+        {/* Footer Buttons */}
         <div className="px-6 pb-6">
           <div className="flex justify-between items-center pt-6 border-t border-gray-200/50">
             <Button

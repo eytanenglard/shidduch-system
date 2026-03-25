@@ -70,7 +70,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
               variant="outline"
               size="sm"
               className={cn(
-                'h-7 px-2.5 border-0 shadow-xl hover:scale-105 transition-all duration-200 text-white text-xs font-medium gap-1.5',
+                'h-7 min-h-[44px] px-2.5 border-0 shadow-xl hover:scale-105 transition-all duration-200 text-white text-xs font-medium gap-1.5',
                 isVectorResult
                   ? 'bg-blue-500 hover:bg-blue-600'
                   : 'bg-purple-500 hover:bg-purple-600'
@@ -95,7 +95,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
               asChild
               variant="outline"
               size="icon"
-              className="h-7 w-7 bg-white/95 shadow-xl border-0 hover:bg-white hover:scale-105 transition-all duration-200"
+              className="h-7 w-7 min-h-[44px] min-w-[44px] bg-white/95 shadow-xl border-0 hover:bg-white hover:scale-105 transition-all duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               <a href={`mailto:${candidate.email}`}>
@@ -117,7 +117,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
               <Button
                 variant="outline"
                 size="icon"
-                className="h-7 w-7 bg-white/95 shadow-xl border-0 hover:bg-white hover:scale-105 transition-all duration-200"
+                className="h-7 w-7 min-h-[44px] min-w-[44px] bg-white/95 shadow-xl border-0 hover:bg-white hover:scale-105 transition-all duration-200"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="h-3 w-3 text-gray-600" />
@@ -176,7 +176,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
               variant="outline"
               size="icon"
               className={cn(
-                'h-7 w-7 shadow-xl border-0 hover:scale-105 transition-all duration-200',
+                'h-7 w-7 min-h-[44px] min-w-[44px] shadow-xl border-0 hover:scale-105 transition-all duration-200',
                 isAiTarget
                   ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white hover:from-emerald-600 hover:to-green-600'
                   : 'bg-white/95 hover:bg-white text-gray-600'

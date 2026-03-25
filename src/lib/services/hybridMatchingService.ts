@@ -163,7 +163,8 @@ export interface ExtendedMetrics {
   urbanScore: number | null;
   appearancePickiness: number | null;
   spiritualDepth: number | null;
-  
+  ethnicBackground: string | null;
+
   // מדדים חדשים
   socioEconomicLevel: number | null;
   jobSeniorityLevel: number | null;
@@ -264,6 +265,11 @@ interface RawCandidate {
   parentStatus: string | null;
   hasChildrenFromPrevious: boolean | null;
   smokingStatus: string | null;
+
+  // Appearance
+  bodyType: string | null;
+  appearanceTone: string | null;
+  groomingStyle: string | null;
 
   // Background info
   nativeLanguage: string | null;
@@ -965,6 +971,9 @@ async function tier1SqlFilter(
       p."aliyaCountry",
       p."aliyaYear",
       p.origin,
+      p."bodyType",
+      p."appearanceTone",
+      p."groomingStyle",
       p."preferredAgeMin",
       p."preferredAgeMax",
       p."updatedAt" as "profileUpdatedAt",
@@ -978,12 +987,13 @@ async function tier1SqlFilter(
       pm."urbanScore",
       pm."appearancePickiness",
       pm."spiritualDepth",
-      
+      pm."ethnicBackground",
+
       -- New Metrics
       pm."socioEconomicLevel",
       pm."jobSeniorityLevel",
       pm."educationLevelScore",
-      
+
       -- Inferred Values
       pm."inferredAge",
       pm."inferredCity",
@@ -992,7 +1002,7 @@ async function tier1SqlFilter(
       pm."inferredPreferredAgeMax",
       pm."inferredParentStatus",
       pm."inferredEducationLevel",
-      
+
       -- AI Summaries
       pm."aiPersonalitySummary",
       pm."aiSeekingSummary",
@@ -1102,6 +1112,9 @@ async function tier1SqlFilter(
     aliyaCountry: c.aliyaCountry,
     aliyaYear: c.aliyaYear,
     origin: c.origin,
+    bodyType: c.bodyType || null,
+    appearanceTone: c.appearanceTone || null,
+    groomingStyle: c.groomingStyle || null,
     preferredAgeMin: c.preferredAgeMin,
     preferredAgeMax: c.preferredAgeMax,
     smokingStatus: c.smokingStatus || null,
@@ -1123,6 +1136,7 @@ async function tier1SqlFilter(
       urbanScore: c.urbanScore,
       appearancePickiness: c.appearancePickiness,
       spiritualDepth: c.spiritualDepth,
+      ethnicBackground: c.ethnicBackground || null,
       socioEconomicLevel: c.socioEconomicLevel,
       jobSeniorityLevel: c.jobSeniorityLevel,
       educationLevelScore: c.educationLevelScore,
@@ -1388,6 +1402,9 @@ async function tier3AIFirstPass(
     city: string | null;
     religiousLevel: string | null;
     occupation: string | null;
+    bodyType: string | null;
+    appearanceTone: string | null;
+    groomingStyle: string | null;
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   },
@@ -1517,6 +1534,9 @@ function generateEnhancedFirstPassPrompt(
     city: string | null;
     religiousLevel: string | null;
     occupation: string | null;
+    bodyType: string | null;
+    appearanceTone: string | null;
+    groomingStyle: string | null;
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   },
@@ -1578,6 +1598,8 @@ ${targetProfile.metrics.aiMatchmakerGuidelines || 'אין הנחיות מיוח�
 השכלה: ${targetProfile.metrics.educationLevelScore || 'N/A'}/10
 אנרגיה חברתית: ${targetProfile.metrics.socialEnergy || 'N/A'}/100
 כיוון קריירה: ${targetProfile.metrics.careerOrientation || 'N/A'}/100
+רקע עדתי: ${targetProfile.metrics.ethnicBackground || 'לא צוין'}
+גזרה: ${targetProfile.bodyType || 'לא צוין'} | גוון מראה: ${targetProfile.appearanceTone || 'לא צוין'} | סגנון הופעה: ${targetProfile.groomingStyle || 'לא צוין'}
 `;
 
   const candidatesText = candidates.map((c, idx) => {
@@ -1608,6 +1630,7 @@ ${c.metrics.aiInferredDealBreakers?.join(', ') || 'לא צוין'}
 === מדדים ===
 כלכלי: ${c.metrics.socioEconomicLevel || 'N/A'} | השכלה: ${c.metrics.educationLevelScore || 'N/A'} | ותק: ${c.metrics.jobSeniorityLevel || 'N/A'}
 חברתי: ${c.metrics.socialEnergy || 'N/A'} | קריירה: ${c.metrics.careerOrientation || 'N/A'}
+${c.bodyType ? `גזרה: ${c.bodyType}` : ''}${c.appearanceTone ? ` | גוון מראה: ${c.appearanceTone}` : ''}${c.groomingStyle ? ` | סגנון הופעה: ${c.groomingStyle}` : ''}${c.metrics.ethnicBackground ? ` | עדה: ${c.metrics.ethnicBackground}` : ''}
 
 ${c.tagMatchDetails ? `\n=== התאמת תגים (Soul Fingerprint) ===\n${c.tagMatchDetails}\nציון תגים: ${c.tagScore ?? 'N/A'}` : ''}
 ${c.violatesUserDealBreakers ? '⚠️ מפר/ה Deal Breaker של המחפש/ת!' : ''}
@@ -1732,6 +1755,9 @@ async function tier4AIDeepAnalysis(
     religiousLevel: string | null;
     occupation: string | null;
     about: string | null;
+    bodyType: string | null;
+    appearanceTone: string | null;
+    groomingStyle: string | null;
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   },
@@ -1864,6 +1890,9 @@ function generateEnhancedDeepAnalysisPrompt(
     religiousLevel: string | null;
     occupation: string | null;
     about: string | null;
+    bodyType: string | null;
+    appearanceTone: string | null;
+    groomingStyle: string | null;
     backgroundProfile: BackgroundProfile;
     metrics: ExtendedMetrics;
   },
@@ -2162,6 +2191,7 @@ export async function hybridScanForVirtualUser(
     urbanScore: null,
     appearancePickiness: null,
     spiritualDepth: null,
+    ethnicBackground: null,
     socioEconomicLevel: null,
     jobSeniorityLevel: null,
     educationLevelScore: null,
@@ -2219,6 +2249,9 @@ export async function hybridScanForVirtualUser(
       p."aliyaCountry",
       p."aliyaYear",
       p.origin,
+      p."bodyType",
+      p."appearanceTone",
+      p."groomingStyle",
       p."preferredAgeMin",
       p."preferredAgeMax",
       p."updatedAt" as "profileUpdatedAt",
@@ -2229,6 +2262,7 @@ export async function hybridScanForVirtualUser(
       pm."urbanScore",
       pm."appearancePickiness",
       pm."spiritualDepth",
+      pm."ethnicBackground",
       pm."socioEconomicLevel",
       pm."jobSeniorityLevel",
       pm."educationLevelScore",
@@ -2291,6 +2325,9 @@ export async function hybridScanForVirtualUser(
     aliyaCountry: c.aliyaCountry,
     aliyaYear: c.aliyaYear,
     origin: c.origin,
+    bodyType: c.bodyType || null,
+    appearanceTone: c.appearanceTone || null,
+    groomingStyle: c.groomingStyle || null,
     preferredAgeMin: c.preferredAgeMin,
     preferredAgeMax: c.preferredAgeMax,
     smokingStatus: c.smokingStatus || null,
@@ -2305,6 +2342,7 @@ export async function hybridScanForVirtualUser(
       urbanScore: c.urbanScore,
       appearancePickiness: c.appearancePickiness,
       spiritualDepth: c.spiritualDepth,
+      ethnicBackground: c.ethnicBackground || null,
       socioEconomicLevel: c.socioEconomicLevel,
       jobSeniorityLevel: c.jobSeniorityLevel,
       educationLevelScore: c.educationLevelScore,
@@ -2360,6 +2398,9 @@ export async function hybridScanForVirtualUser(
         city: virtualProfile.inferredCity,
         religiousLevel: religiousLevel,
         occupation: virtualProfile.inferredOccupation,
+        bodyType: null,
+        appearanceTone: null,
+        groomingStyle: null,
         backgroundProfile: virtualBackgroundProfile,
         metrics: virtualMetrics,
       },
@@ -2388,6 +2429,9 @@ export async function hybridScanForVirtualUser(
         religiousLevel: religiousLevel,
         occupation: virtualProfile.inferredOccupation,
         about: virtualProfile.displaySummary,
+        bodyType: null,
+        appearanceTone: null,
+        groomingStyle: null,
         backgroundProfile: virtualBackgroundProfile,
         metrics: virtualMetrics,
       }
@@ -2829,6 +2873,9 @@ export async function hybridScan(
         city: profile.city || metrics.inferredCity,
         religiousLevel: profile.religiousLevel || metrics.inferredReligiousLevel,
         occupation: profile.occupation,
+        bodyType: profile.bodyType || null,
+        appearanceTone: profile.appearanceTone || null,
+        groomingStyle: profile.groomingStyle || null,
         backgroundProfile: userBackgroundProfile,
         metrics: metrics,
       },
@@ -2882,6 +2929,9 @@ export async function hybridScan(
         religiousLevel: profile.religiousLevel || metrics.inferredReligiousLevel,
         occupation: profile.occupation,
         about: profile.about,
+        bodyType: profile.bodyType || null,
+        appearanceTone: profile.appearanceTone || null,
+        groomingStyle: profile.groomingStyle || null,
         backgroundProfile: userBackgroundProfile,
         metrics: metrics,
       },

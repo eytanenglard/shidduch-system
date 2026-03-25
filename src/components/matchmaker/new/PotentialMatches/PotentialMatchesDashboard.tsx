@@ -307,7 +307,6 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           setQuestionnaireData(questionnaireJson.questionnaireResponse);
         }
       } catch (err) {
-        console.error('Failed to load full profile:', err);
         toast.error('שגיאה בטעינת פרופיל המועמד');
       } finally {
         setIsLoadingProfile(false);

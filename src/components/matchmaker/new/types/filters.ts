@@ -50,6 +50,9 @@ export interface FilterState {
   hasReferences?: boolean;
   lastActiveDays?: number;
   isProfileComplete?: boolean;
+  bodyType?: string[];
+  appearanceTone?: string[];
+  ethnicBackground?: string[];
 }
 
 // הגדרת אפשרות פילטר
@@ -145,6 +148,9 @@ ageRange: undefined,     // היה: { min: 18, max: 130}
   hasReferences: undefined,
   lastActiveDays: undefined,
   isProfileComplete: undefined,
+  bodyType: [],
+  appearanceTone: [],
+  ethnicBackground: [],
   searchQuery: '',
   savedFilterId: undefined
 };

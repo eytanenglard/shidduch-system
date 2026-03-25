@@ -17,6 +17,7 @@ import type {
   CandidateAction,
   MobileView,
 } from '../types/candidates';
+import type { CandidateWithAiData } from '../types/shared';
 import type { QuestionnaireResponse } from '@/types/next-auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -71,30 +72,7 @@ interface CreateSuggestionData {
   secondPartyLanguage?: 'he' | 'en';
 }
 
-interface ScoreBreakdown {
-  religious: number;
-  careerFamily: number;
-  lifestyle: number;
-  ambition: number;
-  communication: number;
-  values: number;
-}
 
-type CandidateWithAiData = Candidate & {
-  aiScore?: number;
-  aiReasoning?: string;
-  aiRank?: number;
-  aiFirstPassScore?: number;
-  aiScoreBreakdown?: ScoreBreakdown;
-  aiBackgroundMultiplier?: number;
-  aiBackgroundCompatibility?:
-    | 'excellent'
-    | 'good'
-    | 'possible'
-    | 'problematic'
-    | 'not_recommended';
-  aiSimilarity?: number;
-};
 
 interface CandidatesListProps {
   candidates: CandidateWithAiData[];
@@ -499,8 +477,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               viewMode === 'list' && !isMobile
                 ? 'flex flex-row-reverse gap-4 h-32'
                 : '',
-              isMobile && mobileView === 'double' ? 'transform scale-90' : '',
-              isMobile && mobileView === 'single' ? 'transform scale-95' : ''
+              isMobile && mobileView === 'double' ? 'text-sm [&_.px-4]:px-2 [&_.pt-3]:pt-2 [&_.pb-2]:pb-1' : '',
+              isMobile && mobileView === 'single' ? 'text-sm' : ''
             )}
             highlightTerm={highlightTerm}
             aiScore={candidate.aiScore}
@@ -518,7 +496,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             dict={dict.candidatesManager.list.minimalCard}
           />
           <button
-            className="absolute top-2 left-2 bg-primary text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            className="absolute top-2 left-2 bg-primary text-white min-h-[44px] min-w-[44px] p-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center"
             onClick={(e) => {
               e.stopPropagation();
               handleAction('edit', candidate);
@@ -646,9 +624,19 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         </div>
       )}
 
+      {/* Screen reader announcement for list updates */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {candidates.length > 0
+          ? `מציג ${candidates.length} מועמדים`
+          : 'אין מועמדים להצגה'}
+      </div>
+
       <div
         ref={containerRef}
         {...keyboardContainerProps}
+        role="grid"
+        aria-label="רשימת מועמדים"
+        aria-rowcount={candidates.length}
         className={cn('outline-none', className || '')}
       >
         {viewMode === 'list' || (isMobile && mobileView === 'single') ? (

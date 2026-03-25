@@ -7,14 +7,42 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Sparkles, ArrowRight } from 'lucide-react';
 import type { CtaDict } from '@/types/dictionary';
+import type { Session } from 'next-auth';
 
 // --- Type Definition for Component Props ---
 interface CTAProps {
   dict: CtaDict;
   locale: 'he' | 'en';
+  session?: Session | null;
 }
 
-const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
+const CTASection: React.FC<CTAProps> = ({ dict, locale, session }) => {
+  const isLoggedIn = !!session?.user;
+  const isCompleted = !!session?.user?.questionnaireCompleted;
+
+  const ctaHref = isCompleted
+    ? `/${locale}/profile`
+    : isLoggedIn
+      ? `/${locale}/questionnaire`
+      : '/auth/register';
+
+  const ctaButton = isCompleted
+    ? (dict.buttonCompleted || dict.button)
+    : isLoggedIn
+      ? (dict.buttonLoggedIn || dict.button)
+      : dict.button;
+
+  const ctaHighlight = isCompleted
+    ? (dict.title_highlightCompleted || dict.title_highlight)
+    : isLoggedIn
+      ? (dict.title_highlightLoggedIn || dict.title_highlight)
+      : dict.title_highlight;
+
+  const ctaSubtitle = isCompleted
+    ? (dict.subtitleCompleted || dict.subtitle)
+    : isLoggedIn
+      ? (dict.subtitleLoggedIn || dict.subtitle)
+      : dict.subtitle;
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
@@ -116,7 +144,7 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
             {/* Updated Title Gradient */}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500">
               {' '}
-              {dict.title_highlight}
+              {ctaHighlight}
             </span>
           </motion.h2>
 
@@ -124,11 +152,11 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
             className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto"
             variants={textVariants}
           >
-            {dict.subtitle}
+            {ctaSubtitle}
           </motion.p>
 
           <motion.div variants={buttonVariants}>
-            <Link href="/auth/register">
+            <Link href={ctaHref}>
               <motion.div whileHover={{ scale: 1.05 }}>
                 <Button
                   size="lg"
@@ -136,7 +164,7 @@ const CTASection: React.FC<CTAProps> = ({ dict, locale }) => {
                   className="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl group"
                 >
                   <span className="relative z-10 flex items-center">
-                    {dict.button}
+                    {ctaButton}
                     {locale === 'he' ? (
                       <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
                     ) : (

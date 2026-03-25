@@ -9,9 +9,7 @@ import type { User as SessionUserType } from '@/types/next-auth';
 
 // Child Components
 import { ProfileChecklist } from './ProfileChecklist';
-import { AIProfileAdvisorDialog } from './AIProfileAdvisorDialog';
 import { NeshmaInsightButton } from './NeshmaInsightButton';
-import SoulFingerprintCTA from '@/components/soul-fingerprint/SoulFingerprintCTA';
 import HeartMapNudgeBanner from '@/components/profile/HeartMapNudgeBanner';
 import { Lock, Eye } from 'lucide-react';
 
@@ -134,25 +132,6 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
       })
       .catch(() => {});
   }, [profileData?.gender]);
-
-  // Calculate questionnaire completion percentage
-  const questionnaireCompletionPercentage = useMemo(() => {
-    if (!questionnaireResponse) return 0;
-    const QUESTION_COUNTS: Record<string, number> = {
-      PERSONALITY: 25, VALUES: 23, RELATIONSHIP: 22, PARTNER: 19, RELIGION: 20,
-    };
-    const WORLD_KEYS = ['personality', 'values', 'relationship', 'partner', 'religion'] as const;
-    const totalQuestions = Object.values(QUESTION_COUNTS).reduce((s, c) => s + c, 0);
-
-    let totalAnswered = 0;
-    for (const key of WORLD_KEYS) {
-      const answersField = `${key}Answers` as keyof typeof questionnaireResponse;
-      const answers = questionnaireResponse[answersField];
-      if (Array.isArray(answers)) totalAnswered += answers.length;
-    }
-
-    return totalQuestions > 0 ? Math.round((totalAnswered / totalQuestions) * 100) : 0;
-  }, [questionnaireResponse]);
 
   // Determine which profile fields are synced from the questionnaire (source of truth)
   const questionnaireSyncedFields = useMemo<QuestionnaireSyncedFields>(() => {
@@ -632,16 +611,8 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 sfCompleted={sfCompleted}
                 sfProgress={sfProgress}
               />
-              <div className="my-6 md:my-8 flex justify-center">
-                <AIProfileAdvisorDialog
-                  userId={user.id}
-                  dict={dict.dashboard.aiAdvisor}
-                  analysisDict={dict.dashboard.analysisResult}
-                  locale={locale}
-                />
-              </div>
-
-              {/* Neshama Insight Button - Fully localized via dictionary */}
+              {/* Neshama Insight Button — unified AI report + tips */}
+              <div id="neshama-insight-btn">
               <NeshmaInsightButton
                 userId={user.id}
                 locale={locale}
@@ -649,24 +620,10 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                 lastGeneratedAt={user.neshamaInsightLastGeneratedAt}
                 generatedCount={user.neshamaInsightGeneratedCount || 0}
                 dict={dict.dashboard.neshmaInsightButton}
-                userRole={user.role} // <--- הוספנו את השורה הזו
+                userRole={user.role}
               />
-
-              {/* Soul Fingerprint CTA */}
-              <div className="my-6 md:my-8">
-                <SoulFingerprintCTA
-                  isCompleted={sfCompleted}
-                  completionPercentage={questionnaireCompletionPercentage}
-                  locale={locale}
-                  t={(key: string) => {
-                    const labels: Record<string, string> = locale === 'he'
-                      ? { 'welcome.badge': 'חדש', 'welcome.title': 'מפת הנשמה שלך', 'welcome.subtitle': '10 דקות שישנו הכל', 'welcome.time': 'כ-8-10 דקות', 'completion.edit': 'ערוך/י את מפת הנשמה', 'completion.subtitle': 'הפרופיל הייחודי שלך מוכן' }
-                      : { 'welcome.badge': 'New', 'welcome.title': 'Your Soul Map', 'welcome.subtitle': '10 minutes that change everything', 'welcome.time': 'About 8-10 minutes', 'completion.edit': 'Edit your Soul Map', 'completion.subtitle': 'Your unique profile is ready' };
-                    return labels[key] || key;
-                  }}
-                  isRTL={locale === 'he'}
-                />
               </div>
+
             </>
           )}
 
@@ -813,13 +770,11 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     locale={locale}
                     questionnaireSyncedFields={questionnaireSyncedFields}
                     onNavigateToQuestionnaire={handleNavigateToQuestionnaire}
-                    questionnaireAnswers={questionnaireResponse ? {
-                      personality: questionnaireResponse.personalityAnswers as unknown[],
-                      values: questionnaireResponse.valuesAnswers as unknown[],
-                      relationship: questionnaireResponse.relationshipAnswers as unknown[],
-                      partner: questionnaireResponse.partnerAnswers as unknown[],
-                      religion: questionnaireResponse.religionAnswers as unknown[],
-                    } : null}
+                    neshamaInsightTldr={(user?.neshamaInsightData as Record<string, unknown> | null)?.tldr as string | undefined}
+                    onScrollToInsight={() => {
+                      // Scroll to the NeshmaInsight button area at top of dashboard
+                      document.getElementById('neshama-insight-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }}
                   />
                 ) : (
                   <p className="text-center text-gray-500 py-10">

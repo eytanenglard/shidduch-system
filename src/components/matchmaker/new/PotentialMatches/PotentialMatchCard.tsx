@@ -953,7 +953,7 @@ const PotentialMatchCard: React.FC<PotentialMatchCardProps> = ({
       await rejectionFeedback.submit(data);
       onDismiss(match.id);
     } catch (error) {
-      console.error('Failed to submit feedback', error);
+      // Error handled silently - dismissal still proceeds
     }
   };
 

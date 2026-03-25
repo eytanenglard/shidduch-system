@@ -446,6 +446,11 @@ export default function MatchmakerDashboard({
       });
     }
 
+    // סינון לפי הצעות אוטומטיות
+    if (filters.isAutoSuggestion === true) {
+      result = result.filter((s) => s.isAutoSuggestion === true);
+    }
+
     return result;
   }, [suggestions, searchQuery, filters, hiddenCandidateIds]);
 

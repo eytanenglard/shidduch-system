@@ -41,7 +41,17 @@
       "lockedTitle": "Full Picture - Locked",
       "lockedDescription": "Complete your profile to 100% to unlock (Currently: {{percentage}}%)",
       "alreadyGeneratedToday": "Full Picture generated today - Available again tomorrow",
-      "minimizedButtonText": "Full Picture"
+      "minimizedButtonText": "Full Picture",
+      "profileTips": {
+        "sectionTitle": "Profile Improvement Tips",
+        "personalitySummary": "Personality Summary",
+        "lookingForSummary": "What I'm Looking For",
+        "completenessTitle": "Profile Completeness",
+        "tipsTitle": "Tips for Improvement",
+        "statusComplete": "Complete",
+        "statusPartial": "Partial",
+        "statusMissing": "Missing"
+      }
     },
     "checklist": {
       "welcome": "Hi {{firstName}}, Welcome!",
@@ -150,48 +160,6 @@
         "foundationComplete": "Foundation complete! You can start receiving suggestions",
         "enrichmentTitle": "Profile Enrichment",
         "enrichmentSubtitle": "The more you fill in, the more accurate your matches will be"
-      }
-    },
-    "aiAdvisor": {
-      "triggerButton": "Our AI is Here to Help - Want Profile Tips?",
-      "dialogTitle": "Personal Recommendations from NeshamaTech's AI",
-      "dialogDescription": "Our AI analyzes your profile and suggests ways to improve it - so you can find the right match.",
-      "closeButton": "Close",
-      "loadingTitle": "Our AI is working on it...",
-      "loadingDescription": "Reading your profile and preparing tailored recommendations.",
-      "errorAlertTitle": "Something went wrong",
-      "errorAlertDescription": "We couldn't complete the analysis. Try again in a moment.",
-      "retryButton": "Try Again",
-      "initialState": "Click to get recommendations from our AI",
-      "toast": {
-        "errorTitle": "Error",
-        "errorDescription": "An error occurred: {{error}}"
-      }
-    },
-    "analysisResult": {
-      "tabs": {
-        "summary": "Summary",
-        "completeness": "Completeness",
-        "tips": "Tips"
-      },
-      "summary": {
-        "myPersonalityTitle": "Your Personality",
-        "myPersonalityDescription": "Analysis based on your questionnaire.",
-        "lookingForTitle": "What You're Looking For",
-        "lookingForDescription": "Summary of your preferences."
-      },
-      "completeness": {
-        "title": "Completeness Score",
-        "description": "How ready is your profile for matchmaking?",
-        "status": {
-          "complete": "Excellent",
-          "partial": "Partial",
-          "missing": "Essential Info Missing"
-        }
-      },
-      "tips": {
-        "title": "System Recommendations",
-        "description": "Things worth paying attention to."
       }
     }
   },
@@ -486,32 +454,12 @@
         "hobbiesEmpty": "No hobbies selected."
       },
       "questionnaireSyncBadge": "Synced from questionnaire",
-      "questionnaireInsights": {
-        "title": "Soul Map Insights",
-        "loveLanguages": "Love Languages",
-        "loveLanguageOptions": {
-          "words": "Words of Affirmation",
-          "quality_time": "Quality Time",
-          "touch": "Physical Touch",
-          "service": "Acts of Service",
-          "gifts": "Receiving Gifts"
-        },
-        "communicationStyle": "Communication Style",
-        "communicationOptions": {
-          "direct": "Direct",
-          "empathetic": "Empathetic",
-          "logical": "Logical",
-          "humorous": "Humorous",
-          "emotional": "Emotional"
-        },
-        "togetherness": "Independence vs. Togetherness",
-        "togethernessLabels": {
-          "independent": "Independent",
-          "balanced": "Balanced",
-          "together": "Together"
-        },
-        "childrenEducation": "Children's Education Vision",
-        "editInQuestionnaire": "Edit in Soul Map questionnaire"
+      "soulMapSummary": {
+        "title": "My Soul Map",
+        "viewFullReport": "View Full Report",
+        "noReportTitle": "Your full picture awaits",
+        "noReportDescription": "Generate your Soul Insight report to see a personal summary",
+        "generateButton": "Generate Report"
       },
       "appearance": {
         "title": "Appearance & Style",
@@ -717,6 +665,14 @@
         "NATURAL": "Natural Look",
         "SPORTY_CASUAL": "Sporty/Casual",
         "TRENDY": "Trendy & Fashionable"
+      },
+      "ethnicBackground": {
+        "ASHKENAZI": "Ashkenazi",
+        "SEPHARDI": "Sephardi / Mizrachi",
+        "YEMENITE": "Yemenite",
+        "ETHIOPIAN": "Ethiopian",
+        "MIXED": "Mixed",
+        "OTHER": "Other"
       }
     },
     "charCount": "/ {{count}}+ characters"
@@ -913,7 +869,9 @@
         "appearanceToneLegend": "Preferred Appearance Tone",
         "appearanceToneEmpty": "No appearance tone preferences selected.",
         "groomingStyleLegend": "Preferred Grooming Style",
-        "groomingStyleEmpty": "No grooming style preferences selected."
+        "groomingStyleEmpty": "No grooming style preferences selected.",
+        "ethnicBackgroundLegend": "Preferred Ethnic Background",
+        "ethnicBackgroundEmpty": "No ethnic background preferences selected."
       }
     },
     "options": {
@@ -1110,6 +1068,14 @@
         "NATURAL": "Natural Look",
         "SPORTY_CASUAL": "Sporty/Casual",
         "TRENDY": "Trendy & Fashionable"
+      },
+      "ethnicBackground": {
+        "ASHKENAZI": "Ashkenazi",
+        "SEPHARDI": "Sephardi / Mizrachi",
+        "YEMENITE": "Yemenite",
+        "ETHIOPIAN": "Ethiopian",
+        "MIXED": "Mixed",
+        "OTHER": "Other"
       }
     }
   },
@@ -1725,6 +1691,14 @@
         "NATURAL": "Natural Look",
         "SPORTY_CASUAL": "Sporty/Casual",
         "TRENDY": "Trendy & Fashionable"
+      },
+      "ethnicBackground": {
+        "ASHKENAZI": "Ashkenazi",
+        "SEPHARDI": "Sephardi / Mizrachi",
+        "YEMENITE": "Yemenite",
+        "ETHIOPIAN": "Ethiopian",
+        "MIXED": "Mixed",
+        "OTHER": "Other"
       }
     },
     "charCount": "/ {{count}}+ characters"

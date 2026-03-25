@@ -11,6 +11,8 @@ import {
   Shield,
   Wind,
   UserCheck,
+  Palette,
+  Sparkles,
 } from 'lucide-react';
 import { getReligiousLabel, highlightText } from '../MinimalCard.utils';
 import type { CandidateWithAiData, MinimalCardDict } from '../MinimalCard.types';
@@ -24,6 +26,8 @@ interface InfoSectionProps {
   headCoveringLabel: string | null;
   smokingLabel: string | null;
   bodyTypeLabel: string | null;
+  appearanceToneLabel: string | null;
+  groomingStyleLabel: string | null;
   isCompact: boolean;
   term: string;
   dict: MinimalCardDict;
@@ -50,6 +54,8 @@ const InfoSection: React.FC<InfoSectionProps> = ({
   headCoveringLabel,
   smokingLabel,
   bodyTypeLabel,
+  appearanceToneLabel,
+  groomingStyleLabel,
   isCompact,
   term,
   dict,
@@ -155,6 +161,20 @@ const InfoSection: React.FC<InfoSectionProps> = ({
           {heightBodyText && (
             <Row icon={<Ruler className="w-3.5 h-3.5 text-gray-400" />}>
               {heightBodyText}
+            </Row>
+          )}
+
+          {/* Appearance tone */}
+          {appearanceToneLabel && (
+            <Row icon={<Palette className="w-3.5 h-3.5 text-purple-400" />}>
+              {hl(appearanceToneLabel)}
+            </Row>
+          )}
+
+          {/* Grooming style */}
+          {groomingStyleLabel && (
+            <Row icon={<Sparkles className="w-3.5 h-3.5 text-pink-400" />}>
+              {hl(groomingStyleLabel)}
             </Row>
           )}
 

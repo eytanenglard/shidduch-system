@@ -32,12 +32,15 @@ import {
   CheckCircle2,
   HelpCircle,
   Download,
+  Lightbulb,
+  AlertCircle,
+  XCircle,
   type LucideIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { NeshamaInsightReport } from '@/types/neshamaInsight';
+import type { NeshamaInsightReport, ProfileTips } from '@/types/neshamaInsight';
 
 // =====================================================
 // Types
@@ -202,7 +205,7 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
     if (isPrivileged) return true;
     if (!localLastGeneratedAt) return true;
     const diffMs = Date.now() - new Date(localLastGeneratedAt).getTime();
-    return diffMs / (1000 * 60 * 60) >= 24;
+    return diffMs / (1000 * 60 * 60) >= 168; // 7 days
   }, [isPrivileged, localLastGeneratedAt]);
 
   const canGenerate = isProfileComplete && canGenerateToday();
@@ -239,8 +242,8 @@ export const NeshmaInsightButton: React.FC<NeshmaInsightButtonProps> = ({
         toast.error(
           dict.alreadyGeneratedToday ||
           (isHe
-            ? 'ניתן ליצור את התמונה המלאה פעם אחת ב-24 שעות'
-            : 'You can generate your Full Picture once every 24 hours')
+            ? 'ניתן ליצור את התמונה המלאה פעם אחת בשבוע'
+            : 'You can generate your Full Picture once a week')
         );
       }
       return;
@@ -815,12 +818,23 @@ const InsightReportView: React.FC<{
           </motion.div>
         )}
 
+        {/* Profile Tips */}
+        {report.profileTips && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.76 }}
+          >
+            <ProfileTipsCard tips={report.profileTips} locale={locale} />
+          </motion.div>
+        )}
+
         {/* Closing */}
         {report.closingWords && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.75 }}
+            transition={{ duration: 0.5, delay: 0.84 }}
           >
             <div className="bg-gradient-to-br from-teal-50/80 to-emerald-50/50 rounded-xl p-5 border border-teal-100/60 text-center">
               <Sunrise className="w-5 h-5 text-amber-500 mx-auto mb-3" />
@@ -965,6 +979,106 @@ const ActionStepsCard: React.FC<{
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+};
+
+// =====================================================
+// Profile Tips Card
+// =====================================================
+
+const ProfileTipsCard: React.FC<{
+  tips: ProfileTips;
+  locale: 'he' | 'en';
+}> = ({ tips, locale }) => {
+  const isHe = locale === 'he';
+
+  const statusConfig = {
+    COMPLETE: { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', label: isHe ? 'מלא' : 'Complete' },
+    PARTIAL: { icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50', label: isHe ? 'חלקי' : 'Partial' },
+    MISSING: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', label: isHe ? 'חסר' : 'Missing' },
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="h-1 bg-gradient-to-r from-indigo-400 to-violet-500" />
+      <div className="p-5">
+        {/* Header */}
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="p-1.5 rounded-lg bg-indigo-100">
+            <Lightbulb className="w-4 h-4 text-indigo-600" />
+          </div>
+          <h3 className="text-[15px] font-bold text-indigo-800">
+            {isHe ? 'המלצות לשיפור הפרופיל' : 'Profile Improvement Tips'}
+          </h3>
+        </div>
+
+        {/* Personality & Looking For Summaries */}
+        {(tips.personalitySummary || tips.lookingForSummary) && (
+          <div className="space-y-3 mb-4">
+            {tips.personalitySummary && (
+              <div className="bg-indigo-50/60 rounded-lg p-3">
+                <span className="text-xs font-semibold text-indigo-700 block mb-1">
+                  {isHe ? 'סיכום אישיות' : 'Personality Summary'}
+                </span>
+                <p className="text-gray-700 text-sm leading-relaxed">{tips.personalitySummary}</p>
+              </div>
+            )}
+            {tips.lookingForSummary && (
+              <div className="bg-violet-50/60 rounded-lg p-3">
+                <span className="text-xs font-semibold text-violet-700 block mb-1">
+                  {isHe ? 'מה אני מחפש/ת' : 'What I\'m Looking For'}
+                </span>
+                <p className="text-gray-700 text-sm leading-relaxed">{tips.lookingForSummary}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Completeness Report */}
+        {tips.completenessReport && tips.completenessReport.length > 0 && (
+          <div className="mb-4">
+            <span className="text-xs font-semibold text-gray-600 block mb-2">
+              {isHe ? 'שלמות הפרופיל' : 'Profile Completeness'}
+            </span>
+            <div className="space-y-2">
+              {tips.completenessReport.map((item, i) => {
+                const config = statusConfig[item.status] || statusConfig.MISSING;
+                const StatusIcon = config.icon;
+                return (
+                  <div key={i} className={cn('flex items-start gap-2.5 p-2.5 rounded-lg', config.bg)}>
+                    <StatusIcon className={cn('w-4 h-4 mt-0.5 flex-shrink-0', config.color)} />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-gray-800">{item.area}</span>
+                      <p className="text-xs text-gray-600 mt-0.5">{item.feedback}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Actionable Tips */}
+        {tips.actionableTips && tips.actionableTips.length > 0 && (
+          <div>
+            <span className="text-xs font-semibold text-gray-600 block mb-2">
+              {isHe ? 'טיפים לשיפור' : 'Tips for Improvement'}
+            </span>
+            <div className="space-y-2">
+              {tips.actionableTips.map((tip, i) => (
+                <div key={i} className="flex items-start gap-2.5 bg-amber-50/60 p-3 rounded-lg">
+                  <Lightbulb className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-xs font-semibold text-amber-700">{tip.area}</span>
+                    <p className="text-sm text-gray-700 mt-0.5">{tip.tip}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

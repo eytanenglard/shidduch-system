@@ -262,6 +262,7 @@ export interface SuggestionFilters {
   searchTerm?: string;
   userId?: string;
   sortBy?: SortByOption;
+  isAutoSuggestion?: boolean;
 }
 
 // =============================================================================

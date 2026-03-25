@@ -48,8 +48,16 @@ export type HeroSectionDict = {
   typewriterText: string;
   ctaButton: string;
   ctaButtonShort: string;
+  ctaButtonLoggedIn?: string;
+  ctaButtonLoggedInShort?: string;
+  ctaButtonCompleted?: string;
+  ctaButtonCompletedShort?: string;
   secondaryButton: string;
   secondaryButtonShort: string;
+  secondaryButtonLoggedIn?: string;
+  secondaryButtonLoggedInShort?: string;
+  secondaryButtonCompleted?: string;
+  secondaryButtonCompletedShort?: string;
 
   principlesHeader: {
     title: string;
@@ -262,6 +270,7 @@ export type HeartMapCTADict = {
     time: string;
     noSignup: string;
   };
+  discoveries: string[];
   cta: string;
   mobileNote: string;
 };
@@ -269,8 +278,14 @@ export type HeartMapCTADict = {
 export type CtaDict = {
   title_part1: string;
   title_highlight: string;
+  title_highlightLoggedIn?: string;
+  title_highlightCompleted?: string;
   subtitle: string;
+  subtitleLoggedIn?: string;
+  subtitleCompleted?: string;
   button: string;
+  buttonLoggedIn?: string;
+  buttonCompleted?: string;
 };
 
 // --- Footer Section ---
@@ -1989,6 +2004,16 @@ export type NeshamaInsightButtonDict = {
   lockedDescription: string;
   alreadyGeneratedToday: string;
   minimizedButtonText: string;
+  profileTips?: {
+    sectionTitle: string;
+    personalitySummary: string;
+    lookingForSummary: string;
+    completenessTitle: string;
+    tipsTitle: string;
+    statusComplete: string;
+    statusPartial: string;
+    statusMissing: string;
+  };
 };
 
 export type UnifiedProfileDashboardDict = {
@@ -2023,8 +2048,6 @@ export type UnifiedProfileDashboardDict = {
     preview: string;
   };
   checklist: ProfileChecklistDict;
-  aiAdvisor: AIAdvisorDialogDict;
-  analysisResult: AnalysisResultDisplayDict;
   neshmaInsightButton: NeshamaInsightButtonDict;
 };
 
@@ -2123,6 +2146,8 @@ export type PreferencesSectionDict = {
       appearanceToneEmpty: string;
       groomingStyleLegend: string;
       groomingStyleEmpty: string;
+      ethnicBackgroundLegend: string;
+      ethnicBackgroundEmpty: string;
     };
   };
   options: {
@@ -2145,6 +2170,7 @@ export type PreferencesSectionDict = {
     bodyType: { [key: string]: string };
     appearanceTone: { [key: string]: string };
     groomingStyle: { [key: string]: string };
+    ethnicBackground: { [key: string]: string };
   };
 };
 
@@ -2362,20 +2388,12 @@ export type ProfileSectionDict = {
       hobbiesEmpty: string;
     };
     questionnaireSyncBadge?: string;
-    questionnaireInsights?: {
+    soulMapSummary?: {
       title: string;
-      loveLanguages: string;
-      loveLanguageOptions?: Record<string, string>;
-      communicationStyle: string;
-      communicationOptions?: Record<string, string>;
-      togetherness: string;
-      togethernessLabels?: {
-        independent: string;
-        balanced: string;
-        together: string;
-      };
-      childrenEducation: string;
-      editInQuestionnaire: string;
+      viewFullReport: string;
+      noReportTitle: string;
+      noReportDescription: string;
+      generateButton: string;
     };
     appearance: {
       title: string;
@@ -3404,6 +3422,10 @@ export interface NeshmaInsightDict {
   cta: {
     button: string;
     subtitle: string;
+    buttonContinue?: string;
+    subtitleContinue?: string;
+    buttonCompleted?: string;
+    subtitleCompleted?: string;
   };
   postConversationTransition: {
     line1: string;

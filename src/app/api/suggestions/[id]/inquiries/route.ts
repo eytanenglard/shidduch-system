@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { InquiryStatus, UserRole } from "@prisma/client";
 import type { Session } from "next-auth";
+import { sendPushToUser } from "@/lib/pushNotifications";
 
 type AuthSession = Session | null;
 
@@ -112,7 +113,22 @@ export async function POST(
       return newInquiry;
     });
     
-    // TODO: Add notification to matchmaker about the new question
+    // Notify matchmaker about the new question (non-blocking)
+    try {
+      const fromUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+      });
+      const fromName = fromUser ? `${fromUser.firstName} ${fromUser.lastName}` : 'משתמש';
+      await sendPushToUser(suggestion.matchmakerId, {
+        title: '❓ שאלה חדשה על הצעה',
+        body: `${fromName} שואל/ת שאלה לגבי ההצעה. לחץ/י לצפייה ולמענה.`,
+        data: { type: 'NEW_INQUIRY', suggestionId: params.id },
+        sound: 'default',
+      });
+    } catch (notifErr) {
+      console.error('[inquiries] Failed to notify matchmaker (non-fatal):', notifErr);
+    }
 
     return NextResponse.json({ success: true, inquiry });
   } catch (error) {
@@ -178,7 +194,17 @@ export async function PATCH(
       return inquiry;
     });
     
-    // TODO: Add notification to the user who asked the question
+    // Notify the user who asked the question (non-blocking)
+    try {
+      await sendPushToUser(inquiryToUpdate.fromUserId, {
+        title: '💬 התקבלה תשובה לשאלתך',
+        body: 'השדכן/ית ענה/תה על השאלה שלך לגבי ההצעה. לחץ/י לצפייה.',
+        data: { type: 'INQUIRY_ANSWERED', suggestionId: params.id },
+        sound: 'default',
+      });
+    } catch (notifErr) {
+      console.error('[inquiries] Failed to notify user about answer (non-fatal):', notifErr);
+    }
 
     return NextResponse.json({ success: true, inquiry: updatedInquiry });
   } catch (error) {

@@ -163,7 +163,6 @@ const VirtualUserDialog: React.FC<VirtualUserDialogProps> = ({
       toast.success('הפרופיל נוצר בהצלחה!');
 
     } catch (error) {
-      console.error('Error creating virtual profile:', error);
       toast.error('שגיאה ביצירת הפרופיל. נסה שוב.');
     } finally {
       setIsLoading(false);
@@ -204,7 +203,6 @@ const VirtualUserDialog: React.FC<VirtualUserDialogProps> = ({
       handleClose();
 
     } catch (error) {
-      console.error('Error confirming profile:', error);
       toast.error('שגיאה בשמירת הפרופיל');
     } finally {
       setIsLoading(false);

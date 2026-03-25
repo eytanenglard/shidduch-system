@@ -562,7 +562,7 @@ export default function DailySuggestionsDashboard() {
       const data = await response.json();
       setPersonalSearchResults(data.users || []);
     } catch (err) {
-      console.error('Search error:', err);
+      // Error handled silently - results cleared
       setPersonalSearchResults([]);
     } finally {
       setIsSearching(false);

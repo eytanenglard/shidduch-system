@@ -41,6 +41,9 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={false}
+          loading="lazy"
+          placeholder="blur"
+          blurDataURL={`${getRelativeCloudinaryPath(mainImage.url).replace('/upload/', '/upload/w_40,q_10,e_blur:200/')}`}
           className={cn(
             'object-cover transition-all duration-500',
             imageLoaded ? 'opacity-100' : 'opacity-0',

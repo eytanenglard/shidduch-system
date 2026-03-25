@@ -286,7 +286,6 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({
       setStep('review');
       toast.success(`זוהו ${data.candidates?.length || 0} מועמדים`);
     } catch (err) {
-      console.error('Analyze error:', err);
       toast.error(`שגיאה: ${(err as Error).message}`);
       setStep('upload');
     }
@@ -351,7 +350,6 @@ export const BulkImportDialog: React.FC<BulkImportDialogProps> = ({
       setStep('done');
       toast.success(`נוצרו ${result.summary.created} מועמדים!`);
     } catch (err) {
-      console.error('Import error:', err);
       toast.error(`שגיאה: ${(err as Error).message}`);
       setStep('review');
     }

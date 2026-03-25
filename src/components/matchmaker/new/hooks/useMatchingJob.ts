@@ -216,7 +216,7 @@ export function useMatchingJob(options: UseMatchingJobOptions = {}) {
 
     } catch (error) {
       // טיפול בשגיאות רשת או שגיאות בתוך ה-Poll עצמו
-      console.error('[useMatchingJob] Poll error:', error);
+      // Error handled silently - polling continues on transient failures
       // הערה: בדרך כלל לא עוצרים פולינג על שגיאת רשת בודדת כדי להיות חסינים לנפילות רגעיות,
       // אבל אם השגיאה חוזרת על עצמה, הלוגיקה תמשיך לרוץ עד שהמשתמש יבטל או שהדף ייסגר.
     }
@@ -371,7 +371,7 @@ const startPolling = useCallback((jobId: string, method: SearchMethod) => {
           method: 'DELETE'
         });
       } catch (error) {
-        console.error('[useMatchingJob] Cancel error:', error);
+        // Error handled silently - cancel is best-effort
       }
     }
 

@@ -96,6 +96,9 @@ function buildQueryParams(
   if (filters.religiousLevel?.length) params.set('religiousLevel', filters.religiousLevel.join(','));
   if (filters.languages?.length) params.set('languages', filters.languages.join(','));
   if (filters.occupations?.length) params.set('occupations', filters.occupations.join(','));
+  if (filters.bodyType?.length) params.set('bodyType', filters.bodyType.join(','));
+  if (filters.appearanceTone?.length) params.set('appearanceTone', filters.appearanceTone.join(','));
+  if (filters.ethnicBackground?.length) params.set('ethnicBackground', filters.ethnicBackground.join(','));
 
   // Single-value filters
   if (filters.educationLevel) params.set('educationLevel', filters.educationLevel);
@@ -205,6 +208,15 @@ function applyGenderSubFilters(
 
       if (subFilters.educationLevel && candidate.profile.education !== subFilters.educationLevel) return false;
       if (subFilters.maritalStatus && candidate.profile.maritalStatus !== subFilters.maritalStatus) return false;
+
+      if (subFilters.bodyType?.length && !(subFilters.bodyType as string[]).includes((candidate.profile as any).bodyType)) return false;
+      if (subFilters.appearanceTone?.length && !(subFilters.appearanceTone as string[]).includes((candidate.profile as any).appearanceTone)) return false;
+      if (subFilters.ethnicBackground?.length) {
+        const origin = ((candidate.profile as any).origin || '') as string;
+        const hasMatch = (subFilters.ethnicBackground as string[]).some((eb) => origin.includes(eb));
+        if (!hasMatch) return false;
+      }
+
       if (subFilters.isVerified !== undefined && candidate.isVerified !== subFilters.isVerified) return false;
 
       if (subFilters.lastActiveDays && candidate.profile.lastActive) {
@@ -273,6 +285,27 @@ export const useCandidates = (
   const isInitialMount = useRef(true);
 
   // =========================================================================
+  // Build gender-specific filters for separate filtering mode
+  // =========================================================================
+  const buildGenderQueryParams = useCallback((
+    gender: 'MALE' | 'FEMALE',
+    genderFilters: Partial<CandidatesFilter> | undefined,
+    genderSearchQuery: string | undefined,
+    currentSorting: { field: string; direction: 'asc' | 'desc' },
+    page: number,
+    pageSize: number
+  ): URLSearchParams => {
+    // Merge gender-specific filters with base filters (excluding gender/search overrides)
+    const mergedFilters: CandidatesFilter = {
+      ...genderFilters,
+      gender,
+      searchQuery: genderSearchQuery || undefined,
+      separateFiltering: false, // Don't pass this to API
+    };
+    return buildQueryParams(mergedFilters, currentSorting, { page, pageSize });
+  }, []);
+
+  // =========================================================================
   // Fetch candidates from server with filters
   // =========================================================================
   const fetchCandidates = useCallback(async (
@@ -293,52 +326,117 @@ export const useCandidates = (
       const currentSorting = overrideSorting || sorting;
       const currentPage = overridePage || pagination.page;
 
-      const params = buildQueryParams(currentFilters, currentSorting, {
-        page: currentPage,
-        pageSize: pagination.pageSize,
-      });
+      // === Separate filtering: dual API calls ===
+      if (currentFilters.separateFiltering) {
+        const maleParams = buildGenderQueryParams(
+          'MALE',
+          currentFilters.maleFilters,
+          currentFilters.maleSearchQuery,
+          currentSorting,
+          currentPage,
+          pagination.pageSize
+        );
+        const femaleParams = buildGenderQueryParams(
+          'FEMALE',
+          currentFilters.femaleFilters,
+          currentFilters.femaleSearchQuery,
+          currentSorting,
+          currentPage,
+          pagination.pageSize
+        );
 
-      const response = await fetch(`/api/matchmaker/candidates?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
+        const [maleRes, femaleRes] = await Promise.all([
+          fetch(`/api/matchmaker/candidates?${maleParams.toString()}`),
+          fetch(`/api/matchmaker/candidates?${femaleParams.toString()}`),
+        ]);
 
-      const data = await response.json();
+        if (!maleRes.ok || !femaleRes.ok) {
+          throw new Error('Failed to fetch candidates');
+        }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to load candidates');
-      }
+        const [maleData, femaleData] = await Promise.all([
+          maleRes.json(),
+          femaleRes.json(),
+        ]);
 
-      if (append) {
-        // Infinite scroll — append new results, dedup by id
-        setCandidates((prev) => {
-          const existingIds = new Set(prev.map((c) => c.id));
-          const newCandidates = (data.clients as Candidate[]).filter(
-            (c) => !existingIds.has(c.id)
-          );
-          return [...prev, ...newCandidates];
-        });
-      } else {
-        // Fresh load (filter/sort change) — replace
-        setCandidates(data.clients);
-      }
+        if (!maleData.success || !femaleData.success) {
+          throw new Error(maleData.error || femaleData.error || 'Failed to load candidates');
+        }
 
-      if (data.pagination) {
+        const allCandidates = [
+          ...(maleData.clients as Candidate[]),
+          ...(femaleData.clients as Candidate[]),
+        ];
+
+        if (append) {
+          setCandidates((prev) => {
+            const existingIds = new Set(prev.map((c) => c.id));
+            const newCandidates = allCandidates.filter((c) => !existingIds.has(c.id));
+            return [...prev, ...newCandidates];
+          });
+        } else {
+          setCandidates(allCandidates);
+        }
+
+        // Use combined total for pagination
+        const totalMale = maleData.pagination?.total ?? 0;
+        const totalFemale = femaleData.pagination?.total ?? 0;
         setPagination((prev) => ({
           ...prev,
-          page: data.pagination.page,
-          total: data.pagination.total,
-          totalPages: data.pagination.totalPages,
+          page: currentPage,
+          total: totalMale + totalFemale,
+          totalPages: Math.max(
+            maleData.pagination?.totalPages ?? 0,
+            femaleData.pagination?.totalPages ?? 0
+          ),
         }));
+      } else {
+        // === Standard filtering: single API call ===
+        const params = buildQueryParams(currentFilters, currentSorting, {
+          page: currentPage,
+          pageSize: pagination.pageSize,
+        });
+
+        const response = await fetch(`/api/matchmaker/candidates?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to load candidates');
+        }
+
+        if (append) {
+          setCandidates((prev) => {
+            const existingIds = new Set(prev.map((c) => c.id));
+            const newCandidates = (data.clients as Candidate[]).filter(
+              (c) => !existingIds.has(c.id)
+            );
+            return [...prev, ...newCandidates];
+          });
+        } else {
+          setCandidates(data.clients);
+        }
+
+        if (data.pagination) {
+          setPagination((prev) => ({
+            ...prev,
+            page: data.pagination.page,
+            total: data.pagination.total,
+            totalPages: data.pagination.totalPages,
+          }));
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      console.error('Error fetching candidates:', err);
+      // Error handled - error state is set above
     } finally {
       setLoading(false);
       setIsLoadingMore(false);
     }
-  }, [filters, sorting, pagination.page, pagination.pageSize]);
+  }, [filters, sorting, pagination.page, pagination.pageSize, buildGenderQueryParams]);
 
   // =========================================================================
   // Load next page (infinite scroll)
@@ -390,21 +488,15 @@ export const useCandidates = (
 
   const filteredCandidates = candidates;
 
+  // In separate filtering mode, server already filtered per-gender
+  // In unified mode, just split by gender from the combined result
   const maleCandidates = useMemo(() => {
-    const males = candidates.filter((c) => c.profile.gender === 'MALE');
-    if (filters.separateFiltering) {
-      return applyGenderSubFilters(males, filters.maleFilters, filters.maleSearchQuery);
-    }
-    return males;
-  }, [candidates, filters.separateFiltering, filters.maleFilters, filters.maleSearchQuery]);
+    return candidates.filter((c) => c.profile.gender === 'MALE');
+  }, [candidates]);
 
   const femaleCandidates = useMemo(() => {
-    const females = candidates.filter((c) => c.profile.gender === 'FEMALE');
-    if (filters.separateFiltering) {
-      return applyGenderSubFilters(females, filters.femaleFilters, filters.femaleSearchQuery);
-    }
-    return females;
-  }, [candidates, filters.separateFiltering, filters.femaleFilters, filters.femaleSearchQuery]);
+    return candidates.filter((c) => c.profile.gender === 'FEMALE');
+  }, [candidates]);
 
   // =========================================================================
   // Search results
@@ -525,7 +617,7 @@ export const useCandidates = (
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error('Error exporting candidates:', error);
+      // Error propagated via throw below
       throw new Error('Failed to export candidates');
     }
   }, []);
@@ -548,7 +640,7 @@ export const useCandidates = (
       // Refresh current page
       await fetchCandidates();
     } catch (error) {
-      console.error('Error updating candidate:', error);
+      // Error propagated via throw below
       throw error;
     }
   }, [fetchCandidates]);

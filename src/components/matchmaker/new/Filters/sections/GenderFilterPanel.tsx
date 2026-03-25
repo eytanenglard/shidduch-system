@@ -17,6 +17,8 @@ import {
   Target,
   User,
   Zap,
+  Palette,
+  Globe,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -36,7 +38,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { AGE_RANGE, HEIGHT_RANGE, POPULAR_CITIES } from '../../constants/filterOptions';
+import { AGE_RANGE, HEIGHT_RANGE, POPULAR_CITIES, BODY_TYPE_OPTIONS, APPEARANCE_TONE_OPTIONS, ETHNIC_BACKGROUND_OPTIONS } from '../../constants/filterOptions';
 import { MARITAL_STATUS_OPTIONS } from './filterConstants';
 import SafeNumberInput from './SafeNumberInput';
 import ReligiousMultiSelect from './ReligiousMultiSelect';
@@ -393,6 +395,101 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
             }
             dict={dict}
           />
+        </div>
+
+        {/* ── Appearance Filters ────────────────────────────────────── */}
+
+        {/* Body Type */}
+        <div className="space-y-3">
+          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <Ruler className="w-5 h-5 text-rose-500" />
+            גזרה
+          </Label>
+          <div className="flex flex-wrap gap-1.5">
+            {BODY_TYPE_OPTIONS.map((opt) => {
+              const selected = (filters.bodyType || []).includes(opt.value);
+              return (
+                <Button
+                  key={opt.value}
+                  type="button"
+                  variant={selected ? 'default' : 'outline'}
+                  size="sm"
+                  className="text-xs rounded-full"
+                  onClick={() => {
+                    const current = filters.bodyType || [];
+                    const updated = selected
+                      ? current.filter((v) => v !== opt.value)
+                      : [...current, opt.value];
+                    onFiltersChange({ ...filters, bodyType: updated });
+                  }}
+                >
+                  {opt.label}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Appearance Tone */}
+        <div className="space-y-3">
+          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <Palette className="w-5 h-5 text-purple-500" />
+            גוון מראה
+          </Label>
+          <div className="flex flex-wrap gap-1.5">
+            {APPEARANCE_TONE_OPTIONS.map((opt) => {
+              const selected = (filters.appearanceTone || []).includes(opt.value);
+              return (
+                <Button
+                  key={opt.value}
+                  type="button"
+                  variant={selected ? 'default' : 'outline'}
+                  size="sm"
+                  className="text-xs rounded-full"
+                  onClick={() => {
+                    const current = filters.appearanceTone || [];
+                    const updated = selected
+                      ? current.filter((v) => v !== opt.value)
+                      : [...current, opt.value];
+                    onFiltersChange({ ...filters, appearanceTone: updated });
+                  }}
+                >
+                  {opt.label}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Ethnic Background */}
+        <div className="space-y-3">
+          <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <Globe className="w-5 h-5 text-amber-600" />
+            רקע עדתי
+          </Label>
+          <div className="flex flex-wrap gap-1.5">
+            {ETHNIC_BACKGROUND_OPTIONS.map((opt) => {
+              const selected = (filters.ethnicBackground || []).includes(opt.value);
+              return (
+                <Button
+                  key={opt.value}
+                  type="button"
+                  variant={selected ? 'default' : 'outline'}
+                  size="sm"
+                  className="text-xs rounded-full"
+                  onClick={() => {
+                    const current = filters.ethnicBackground || [];
+                    const updated = selected
+                      ? current.filter((v) => v !== opt.value)
+                      : [...current, opt.value];
+                    onFiltersChange({ ...filters, ethnicBackground: updated });
+                  }}
+                >
+                  {opt.label}
+                </Button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Consolidated Status Toggles */}

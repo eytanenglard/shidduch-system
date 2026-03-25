@@ -10,6 +10,8 @@ import {
   KIPPAH_LABELS,
   HEAD_COVERING_LABELS,
   BODY_TYPE_LABELS,
+  APPEARANCE_TONE_LABELS,
+  GROOMING_STYLE_LABELS,
   SMOKING_LABELS,
 } from './MinimalCard.constants';
 import { calculateAge, formatLanguages } from './MinimalCard.utils';
@@ -155,6 +157,8 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
     : (HEAD_COVERING_LABELS[(candidate.profile as any).headCovering] ?? null);
   const smokingLabel = SMOKING_LABELS[(candidate.profile as any).smokingStatus] ?? null;
   const bodyTypeLabel = BODY_TYPE_LABELS[(candidate.profile as any).bodyType] ?? null;
+  const appearanceToneLabel = APPEARANCE_TONE_LABELS[(candidate.profile as any).appearanceTone] ?? null;
+  const groomingStyleLabel = GROOMING_STYLE_LABELS[(candidate.profile as any).groomingStyle] ?? null;
 
   const maritalLabel = useMemo(() => {
     const ms = candidate.profile.maritalStatus as string | null;
@@ -203,5 +207,7 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
     headCoveringLabel,
     smokingLabel,
     bodyTypeLabel,
+    appearanceToneLabel,
+    groomingStyleLabel,
   };
 }

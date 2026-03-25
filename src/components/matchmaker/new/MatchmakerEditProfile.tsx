@@ -634,7 +634,6 @@ const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollR
         throw new Error(data.error || 'Failed to load profile data');
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
       toast.error(dict.toasts.loadError);
     } finally {
       setIsLoading(false);
@@ -706,7 +705,6 @@ const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollR
       });
       setHasChanges(false);
     } catch (error) {
-      console.error('Error updating profile:', error);
       toast.error(
         `${dict.toasts.updateError}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         { duration: 5000 }
@@ -735,7 +733,6 @@ const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollR
       setInsightText(data.insight);
       setIsInsightDialogOpen(true);
     } catch (error: any) {
-      console.error('Error generating insight:', error);
       toast.error(locale === 'he' ? 'שגיאה ביצירת הדוח' : 'Error generating report');
     } finally {
       setIsGeneratingInsight(false);
@@ -774,7 +771,6 @@ const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollR
           : dict.toasts.uploadSuccessSingle
       );
     } catch (error) {
-      console.error('Error uploading images:', error);
       toast.error(
         `${dict.toasts.uploadError}: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -795,7 +791,6 @@ const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollR
       setImages((prev) => prev.map((img) => ({ ...img, isMain: img.id === imageId })));
       toast.success(dict.toasts.setMainSuccess);
     } catch (error) {
-      console.error('Error setting main image:', error);
       toast.error(dict.toasts.setMainError);
     }
   };
@@ -832,7 +827,6 @@ const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollR
         { position: 'top-center' }
       );
     } catch (error) {
-      console.error('Error deleting image(s):', error);
       toast.error(error instanceof Error ? error.message : dict.toasts.deleteImageError);
     } finally {
       setIsUploading(false);
@@ -865,7 +859,6 @@ const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollR
       setIsDeleteCandidateDialogOpen(false);
       onClose();
     } catch (error) {
-      console.error('Error deleting candidate:', error);
       toast.error(
         `${dict.toasts.deleteCandidateError}: ${error instanceof Error ? error.message : 'Unknown error'}`,
         { duration: 5000 }
@@ -892,7 +885,6 @@ const direction: 'rtl' | 'ltr' = locale === 'he' ? 'rtl' : 'ltr';  const scrollR
       toast.success(dict.toasts.sendInviteSuccess);
       setIsSetupInviteOpen(false);
     } catch (error) {
-      console.error('Error sending setup invite:', error);
       toast.error(error instanceof Error ? error.message : dict.toasts.sendInviteErrorGeneral);
     } finally {
       setIsSendingInvite(false);

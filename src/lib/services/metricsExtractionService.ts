@@ -28,6 +28,16 @@ import {
   calculateUrbanScore,
   religiousLevelToScore,
 } from "@/types/profileMetrics";
+import { z } from "zod";
+
+// ═══════════════════════════════════════════════════════════════
+// APPEARANCE VALIDATION SCHEMAS
+// ═══════════════════════════════════════════════════════════════
+
+const BodyTypeSchema = z.enum(['VERY_SLIM', 'SLIM', 'SLIM_MEDIUM', 'MEDIUM', 'MEDIUM_FULL', 'FULL', 'ATHLETIC']);
+const AppearanceToneSchema = z.enum(['VERY_FAIR', 'FAIR', 'MEDIUM', 'MEDITERRANEAN', 'DARK', 'VERY_DARK']);
+const EthnicBackgroundSchema = z.enum(['ASHKENAZI', 'SEPHARDI', 'YEMENITE', 'ETHIOPIAN', 'MIXED', 'OTHER']);
+const GroomingStyleSchema = z.enum(['VERY_POLISHED', 'CLASSIC_NEAT', 'NATURAL', 'SPORTY_CASUAL', 'TRENDY']);
 
 // ═══════════════════════════════════════════════════════════════
 // MAIN EXTRACTION FUNCTION
@@ -152,6 +162,50 @@ export async function extractMetricsFromProfile(
         profileUpdateData.about = selfPortrayal.trim();
       }
     }
+
+    // Body type (self) — validated against Prisma enum
+    const bodyTypeAnswer = findAnswer(personalityAnswers, 'personality_body_type_self');
+    if (bodyTypeAnswer && typeof bodyTypeAnswer === 'string') {
+      const parsed = BodyTypeSchema.safeParse(bodyTypeAnswer);
+      if (parsed.success) {
+        profileUpdateData.bodyType = parsed.data;
+      }
+    }
+
+    // Appearance tone (self) — validated against Prisma enum
+    const appearanceToneAnswer = findAnswer(personalityAnswers, 'personality_appearance_tone_self');
+    if (appearanceToneAnswer && typeof appearanceToneAnswer === 'string') {
+      const parsed = AppearanceToneSchema.safeParse(appearanceToneAnswer);
+      if (parsed.success) {
+        profileUpdateData.appearanceTone = parsed.data;
+      }
+    }
+
+    // Ethnic background (self) — also updates origin for backward compatibility
+    const ethnicBgAnswer = findAnswer(personalityAnswers, 'personality_ethnic_background_self');
+    if (ethnicBgAnswer && Array.isArray(ethnicBgAnswer) && ethnicBgAnswer.length > 0) {
+      const validEthnicBgs = ethnicBgAnswer.filter((v: string) => EthnicBackgroundSchema.safeParse(v).success);
+      if (validEthnicBgs.length > 0) {
+        const originMap: Record<string, string> = {
+          'ASHKENAZI': 'אשכנזי',
+          'SEPHARDI': 'ספרדי',
+          'YEMENITE': 'תימני',
+          'ETHIOPIAN': 'אתיופי',
+          'MIXED': 'מעורב',
+          'OTHER': 'אחר',
+        };
+        profileUpdateData.origin = validEthnicBgs.map((v: string) => originMap[v] || v).join(', ');
+      }
+    }
+
+    // Grooming style (self) — validated against Prisma enum
+    const groomingStyleAnswer = findAnswer(personalityAnswers, 'personality_grooming_style_self');
+    if (groomingStyleAnswer && typeof groomingStyleAnswer === 'string') {
+      const parsed = GroomingStyleSchema.safeParse(groomingStyleAnswer);
+      if (parsed.success) {
+        profileUpdateData.groomingStyle = parsed.data;
+      }
+    }
   }
 
   // Smoking preference (partner)
@@ -159,6 +213,42 @@ export async function extractMetricsFromProfile(
     const smokingPrefAnswer = findAnswer(partnerAnswersForSync, 'partner_smoking_preference');
     if (smokingPrefAnswer && typeof smokingPrefAnswer === 'string') {
       profileUpdateData.preferredSmokingStatus = smokingPrefAnswer;
+    }
+
+    // Preferred body types — validated, filter out "open_to_all"
+    const prefBodyTypeAnswer = findAnswer(partnerAnswersForSync, 'partner_body_type_preference');
+    if (prefBodyTypeAnswer && Array.isArray(prefBodyTypeAnswer)) {
+      const filtered = prefBodyTypeAnswer
+        .filter((v: string) => v !== 'open_to_all')
+        .filter((v: string) => BodyTypeSchema.safeParse(v).success);
+      profileUpdateData.preferredBodyTypes = filtered.length > 0 ? filtered : [];
+    }
+
+    // Preferred appearance tones — validated, filter out "open_to_all"
+    const prefAppearanceToneAnswer = findAnswer(partnerAnswersForSync, 'partner_appearance_tone_preference');
+    if (prefAppearanceToneAnswer && Array.isArray(prefAppearanceToneAnswer)) {
+      const filtered = prefAppearanceToneAnswer
+        .filter((v: string) => v !== 'open_to_all')
+        .filter((v: string) => AppearanceToneSchema.safeParse(v).success);
+      profileUpdateData.preferredAppearanceTones = filtered.length > 0 ? filtered : [];
+    }
+
+    // Preferred ethnic backgrounds — validated, filter out "open_to_all"
+    const prefEthnicBgAnswer = findAnswer(partnerAnswersForSync, 'partner_ethnic_background_preference');
+    if (prefEthnicBgAnswer && Array.isArray(prefEthnicBgAnswer)) {
+      const filtered = prefEthnicBgAnswer
+        .filter((v: string) => v !== 'open_to_all')
+        .filter((v: string) => EthnicBackgroundSchema.safeParse(v).success);
+      profileUpdateData.preferredEthnicBackgrounds = filtered.length > 0 ? filtered : [];
+    }
+
+    // Preferred grooming styles — validated, filter out "open_to_all"
+    const prefGroomingAnswer = findAnswer(partnerAnswersForSync, 'partner_grooming_style_preference');
+    if (prefGroomingAnswer && Array.isArray(prefGroomingAnswer)) {
+      const filtered = prefGroomingAnswer
+        .filter((v: string) => v !== 'open_to_all')
+        .filter((v: string) => GroomingStyleSchema.safeParse(v).success);
+      profileUpdateData.preferredGroomingStyles = filtered.length > 0 ? filtered : [];
     }
 
     // Preferred character traits — extract top 3 from budget allocation
@@ -289,7 +379,23 @@ function calculateDirectMetrics(input: MetricsExtractionInput): DirectMetricsRes
   }
 
   // --- עדה/מוצא ---
-  if (input.profile.origin) {
+  // Prefer direct questionnaire answer over text-based origin inference
+  const personalityForEthnic = input.questionnaireAnswers?.personality;
+  const ethnicDirectAnswer = personalityForEthnic ? findAnswer(personalityForEthnic, 'personality_ethnic_background_self') : null;
+  if (ethnicDirectAnswer && Array.isArray(ethnicDirectAnswer) && ethnicDirectAnswer.length > 0) {
+    // Use first selection as primary ethnic background
+    const validValues = ['ASHKENAZI', 'SEPHARDI', 'MIXED', 'ETHIOPIAN', 'YEMENITE', 'OTHER'];
+    const primaryEthnic = ethnicDirectAnswer.find((v: string) => validValues.includes(v));
+    if (primaryEthnic) {
+      metrics.ethnicBackground = primaryEthnic as EthnicBackground;
+      explanations.ethnicBackground = {
+        value: 0,
+        confidence: 95,
+        source: 'questionnaire',
+        reasoning: `Direct answer from questionnaire: ${ethnicDirectAnswer.join(', ')}`,
+      };
+    }
+  } else if (input.profile.origin) {
     metrics.ethnicBackground = mapOriginToEthnicity(input.profile.origin);
     explanations.ethnicBackground = {
       value: 0,

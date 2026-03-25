@@ -313,6 +313,7 @@ model Profile {
   preferredBodyTypes          BodyType[]         @default([])
   preferredAppearanceTones    AppearanceTone[]   @default([])
   preferredGroomingStyles     GroomingStyle[]    @default([])
+  preferredEthnicBackgrounds  EthnicBackground[] @default([])
 
   metrics                     ProfileMetrics?
   isProfileVisible            Boolean            @default(true)

@@ -93,8 +93,16 @@
     "typewriterText": "In a world of endless swipes and superficial profiles, we believe in a different path. Our journey begins with a unique questionnaire designed to understand you deeply. This allows us to present matches that are more than just a picture and a bio—they are a complete story, empowering you to make a decision from a place of true connection.",
    "ctaButton": "Sign Up",
     "ctaButtonShort": "Sign Up",
+    "ctaButtonLoggedIn": "Continue Your Journey",
+    "ctaButtonLoggedInShort": "Continue",
+    "ctaButtonCompleted": "My Dashboard",
+    "ctaButtonCompletedShort": "Dashboard",
     "secondaryButton": "To the Questionnaire",
-     "secondaryButtonShort": "Questionnaire",
+    "secondaryButtonShort": "Questionnaire",
+    "secondaryButtonLoggedIn": "Continue Questionnaire",
+    "secondaryButtonLoggedInShort": "Continue",
+    "secondaryButtonCompleted": "View Insights",
+    "secondaryButtonCompletedShort": "Insights",
     "synergy": {
       "techTools": "Tech",
       "personalGuidance": "Touch"
@@ -122,7 +130,7 @@
       { "value": "200+", "label": "Questions in Soul Fingerprint" },
       { "value": "5", "label": "Content Worlds" },
       { "value": "100%", "label": "Full Privacy" },
-      { "value": "24/7", "label": "Personal Support" }
+      { "value": "AI+", "label": "Smart Matching + Personal Guidance" }
     ]
   },
   "valueProposition": {
@@ -407,14 +415,26 @@
       "time": "Only 10 minutes",
       "noSignup": "No registration"
     },
-    "cta": "Start now",
+    "discoveries": [
+      "Your Communication Style",
+      "Your Core Values",
+      "Your Relationship Strengths",
+      "Your Personality Type"
+    ],
+    "cta": "Discover Your Heart Map",
     "mobileNote": "Discover who's waiting for you →"
   },
   "cta": {
     "title_part1": "Your Journey to a Relationship",
     "title_highlight": "Starts Here",
+    "title_highlightLoggedIn": "Continues",
+    "title_highlightCompleted": "Is Underway",
     "subtitle": "If our personal, respectful, and in-depth approach speaks to you, you may have found your home. The first step is simple, discreet, and without obligation.",
-    "button": "Start Your Journey"
+    "subtitleLoggedIn": "You've already started - let's continue together toward the relationship that truly suits you.",
+    "subtitleCompleted": "Questionnaire completed! Our system is now working for you. View your personal insights.",
+    "button": "Start Your Journey",
+    "buttonLoggedIn": "Continue My Journey",
+    "buttonCompleted": "View My Insights"
   },
   "footer": {
     "description": "Combining advanced technology and personal guidance to create meaningful, long-lasting relationships.",
@@ -763,7 +783,11 @@
     "transitionCTA": "So what do you do with these insights? 👇",
     "cta": {
       "button": "I want to see my Full Picture",
-      "subtitle": "Start now and discover the path to the relationship you've always wanted."
+      "subtitle": "Start now and discover the path to the relationship you've always wanted.",
+      "buttonContinue": "Continue My Journey",
+      "subtitleContinue": "You've already started - let's complete your Full Picture.",
+      "buttonCompleted": "View My Insights",
+      "subtitleCompleted": "Questionnaire completed! Discover your personal insights."
     },
     "placeholder": "Message...",
     "progressLabels": [

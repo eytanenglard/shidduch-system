@@ -159,7 +159,7 @@ function RejectionFeedbackModal({
 
       handleClose();
     } catch (err) {
-      console.error('Failed to submit rejection feedback:', err);
+      // Error handled silently
     } finally {
       setSubmitting(false);
     }

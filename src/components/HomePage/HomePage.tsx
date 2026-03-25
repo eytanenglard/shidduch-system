@@ -169,7 +169,9 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
       <SocialProofBar dict={dict.socialProof} />
       <ValuePropositionSection dict={dict.valueProposition} />
 
-      <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} />
+      <HeartMapCTASection dict={dict.heartMapCTA} locale={locale} />
+
+      <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} session={session} />
 
       <OurMethodSection dict={dict.ourMethod} />
 
@@ -181,13 +183,11 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
         locale={locale}
       />
 
-      <HeartMapCTASection dict={dict.heartMapCTA} locale={locale} />
-
       <MatchmakerTeamSection dict={dict.matchmakerTeam} />
       <SuccessStoriesSection dict={dict.successStories} locale={locale} />
       <FAQSection dict={dict.faq} locale={locale} />
       <PrivacyAssuranceSection dict={dict.privacyAssurance} locale={locale} />
-      <CTASection dict={dict.cta} locale={locale} />
+      <CTASection dict={dict.cta} locale={locale} session={session} />
       <FooterSection dict={dict.footer} />
 
       <ChatWidget dict={dict.chatWidget} />

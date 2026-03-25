@@ -77,7 +77,6 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
           }
         } catch (error) {
           toast.error(dict.toasts.loadError);
-          console.error(error);
           onClose();
         } finally {
           setIsLoading(false);
@@ -108,7 +107,6 @@ export const ProfileFeedbackDialog: React.FC<ProfileFeedbackDialogProps> = ({
       onClose();
     } catch (error) {
       toast.error(dict.toasts.sendError);
-      console.error(error);
     } finally {
       setIsSending(false);
     }

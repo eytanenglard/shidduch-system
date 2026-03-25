@@ -1,6 +1,20 @@
 // src/types/neshamaInsight.ts
 // Type definitions for the structured Neshama Insight (Full Picture) report
 
+export interface ProfileTips {
+  personalitySummary: string;
+  lookingForSummary: string;
+  completenessReport: Array<{
+    area: string;
+    status: 'COMPLETE' | 'PARTIAL' | 'MISSING';
+    feedback: string;
+  }>;
+  actionableTips: Array<{
+    area: string;
+    tip: string;
+  }>;
+}
+
 export interface NeshamaInsightReport {
   tldr: string;
   opening: string;
@@ -16,6 +30,8 @@ export interface NeshamaInsightReport {
   recommendedDate: string;
   actionSteps: string[];
   closingWords: string;
+  // Profile improvement tips (added in unified report)
+  profileTips?: ProfileTips;
 }
 
 // Section metadata for UI rendering

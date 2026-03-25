@@ -97,11 +97,34 @@ export const HEAD_COVERING_LABELS: Record<string, string> = {
 // ── Body type labels ─────────────────────────────────────────────────────────
 
 export const BODY_TYPE_LABELS: Record<string, string> = {
-  SLIM: 'גוף רזה',
-  ATHLETIC: 'גוף ספורטיבי',
-  AVERAGE: 'גוף ממוצע',
-  HEAVIER: 'גוף מלא',
-  CURVY: 'גוף עקומות',
+  VERY_SLIM: 'רזה מאוד',
+  SLIM: 'רזה',
+  SLIM_MEDIUM: 'רזה-בינוני/ת',
+  MEDIUM: 'בינוני/ת',
+  MEDIUM_FULL: 'בינוני/ת-מלא/ה',
+  FULL: 'מלא/ה',
+  ATHLETIC: 'ספורטיבי/ת',
+};
+
+// ── Appearance tone labels ──────────────────────────────────────────────────
+
+export const APPEARANCE_TONE_LABELS: Record<string, string> = {
+  VERY_FAIR: 'בהיר/ה מאוד',
+  FAIR: 'בהיר/ה',
+  MEDIUM: 'בינוני/ת',
+  MEDITERRANEAN: 'שחום/ה מדיטרני/ת',
+  DARK: 'שחום/ה',
+  VERY_DARK: 'כהה מאוד',
+};
+
+// ── Grooming style labels ────────────────────────────────────────────────────
+
+export const GROOMING_STYLE_LABELS: Record<string, string> = {
+  VERY_POLISHED: 'מטופח/ת מאוד',
+  CLASSIC_NEAT: 'קלאסי/ת ומסודר/ת',
+  NATURAL: 'טבעי/ת',
+  SPORTY_CASUAL: 'ספורטיבי/ת-קז\'ואל',
+  TRENDY: 'טרנדי/ת',
 };
 
 // ── Smoking labels ───────────────────────────────────────────────────────────

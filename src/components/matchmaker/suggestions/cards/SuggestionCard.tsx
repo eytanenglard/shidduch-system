@@ -1478,15 +1478,23 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 </p>
               </div>
             </div>
-            <Badge
-              className={cn(
-                'text-[10px] px-2 py-0.5 rounded-full border-0',
-                statusInfo.bgColor,
-                statusInfo.color
+            <div className="flex flex-col items-end gap-1">
+              <Badge
+                className={cn(
+                  'text-[10px] px-2 py-0.5 rounded-full border-0',
+                  statusInfo.bgColor,
+                  statusInfo.color
+                )}
+              >
+                {statusText.shortLabel}
+              </Badge>
+              {suggestion.isAutoSuggestion && (
+                <Badge className="text-[8px] px-1.5 py-0 bg-cyan-50 text-cyan-700 border border-cyan-200">
+                  <Sparkles className="w-2 h-2 ml-0.5" />
+                  אוטומטית
+                </Badge>
               )}
-            >
-              {statusText.shortLabel}
-            </Badge>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -1541,6 +1549,12 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 {suggestion.priority === 'HIGH' && (
                   <Badge className="text-[9px] px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 font-medium">
                     {priorityText.label}
+                  </Badge>
+                )}
+                {suggestion.isAutoSuggestion && (
+                  <Badge className="text-[9px] px-2 py-0.5 bg-cyan-50 text-cyan-700 border border-cyan-200 font-medium">
+                    <Sparkles className="w-2.5 h-2.5 ml-1" />
+                    הצעה אוטומטית
                   </Badge>
                 )}
               </div>

@@ -447,11 +447,47 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({
-  // #13: session removed from destructuring — unused in JSX
+  session,
   isVisible,
   dict,
   locale,
 }) => {
+  const isLoggedIn = !!session?.user;
+  const isCompleted = !!session?.user?.questionnaireCompleted;
+
+  const primaryHref = isCompleted
+    ? `/${locale}/profile`
+    : isLoggedIn
+      ? `/${locale}/questionnaire`
+      : `/${locale}/auth/register`;
+
+  const primaryText = isCompleted
+    ? (dict.ctaButtonCompleted || dict.ctaButton)
+    : isLoggedIn
+      ? (dict.ctaButtonLoggedIn || dict.ctaButton)
+      : dict.ctaButton;
+
+  const primaryTextShort = isCompleted
+    ? (dict.ctaButtonCompletedShort || dict.ctaButtonShort)
+    : isLoggedIn
+      ? (dict.ctaButtonLoggedInShort || dict.ctaButtonShort)
+      : dict.ctaButtonShort;
+
+  const secondaryHref = isCompleted
+    ? `/${locale}/profile`
+    : `/${locale}/heart-map`;
+
+  const secondaryText = isCompleted
+    ? (dict.secondaryButtonCompleted || dict.secondaryButton)
+    : isLoggedIn
+      ? (dict.secondaryButtonLoggedIn || dict.secondaryButton)
+      : dict.secondaryButton;
+
+  const secondaryTextShort = isCompleted
+    ? (dict.secondaryButtonCompletedShort || dict.secondaryButtonShort)
+    : isLoggedIn
+      ? (dict.secondaryButtonLoggedInShort || dict.secondaryButtonShort)
+      : dict.secondaryButtonShort;
   return (
     <motion.section
       className="relative min-h-screen pt-12 pb-16 md:pt-16 md:pb-20 overflow-hidden flex flex-col items-center justify-center w-full px-4 sm:px-6 lg:px-8"
@@ -680,12 +716,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         >
           {/* #1: Solid CTA button */}
           <Link
-            href={`/${locale}/auth/register`}
+            href={primaryHref}
             className="group relative inline-flex items-center justify-center text-base md:text-lg px-8 py-4 bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 font-semibold"
           >
-            <span className="hidden md:inline">{dict.ctaButton}</span>
+            <span className="hidden md:inline">{primaryText}</span>
             <span className="md:hidden">
-              {dict.ctaButtonShort || dict.ctaButton}
+              {primaryTextShort}
             </span>
             {locale === 'he' ? (
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
@@ -696,14 +732,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* #20: Secondary button with Lightbulb icon */}
           <Link
-            href={`/${locale}/heart-map`}
+            href={secondaryHref}
             id="onboarding-target-questionnaire-button"
             className="group inline-flex items-center justify-center text-base md:text-lg px-8 py-4 border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 rounded-full transition-all duration-300 font-medium"
           >
             <Lightbulb className="h-5 w-5 me-2 text-teal-500 group-hover:text-teal-600 transition-colors" />
-            <span className="hidden md:inline">{dict.secondaryButton}</span>
+            <span className="hidden md:inline">{secondaryText}</span>
             <span className="md:hidden">
-              {dict.secondaryButtonShort || dict.secondaryButton}
+              {secondaryTextShort}
             </span>
           </Link>
         </motion.div>

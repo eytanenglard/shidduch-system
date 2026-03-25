@@ -43,6 +43,9 @@ const FilterSection: React.FC<FilterSectionProps> = ({
       >
         <CollapsibleTrigger asChild>
           <motion.div
+            role="button"
+            aria-expanded={isOpen}
+            aria-label={`${title} פילטרים`}
             className={cn(
               'flex items-center justify-between p-4 cursor-pointer transition-all duration-300',
               'bg-gradient-to-r',

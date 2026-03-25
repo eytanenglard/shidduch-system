@@ -104,6 +104,34 @@ export const AVAILABILITY_STATUS_OPTIONS = [
   }
 ];
 
+export const BODY_TYPE_OPTIONS = [
+  { value: 'VERY_SLIM', label: 'רזה מאוד' },
+  { value: 'SLIM', label: 'רזה' },
+  { value: 'SLIM_MEDIUM', label: 'רזה-בינוני/ת' },
+  { value: 'MEDIUM', label: 'בינוני/ת' },
+  { value: 'MEDIUM_FULL', label: 'בינוני/ת-מלא/ה' },
+  { value: 'FULL', label: 'מלא/ה' },
+  { value: 'ATHLETIC', label: 'ספורטיבי/ת' },
+];
+
+export const APPEARANCE_TONE_OPTIONS = [
+  { value: 'VERY_FAIR', label: 'בהיר/ה מאוד' },
+  { value: 'FAIR', label: 'בהיר/ה' },
+  { value: 'MEDIUM', label: 'בינוני/ת' },
+  { value: 'MEDITERRANEAN', label: 'שחום/ה מדיטרני/ת' },
+  { value: 'DARK', label: 'שחום/ה' },
+  { value: 'VERY_DARK', label: 'כהה מאוד' },
+];
+
+export const ETHNIC_BACKGROUND_OPTIONS = [
+  { value: 'ASHKENAZI', label: 'אשכנזי/ה' },
+  { value: 'SEPHARDI', label: 'ספרדי/ה-מזרחי/ה' },
+  { value: 'YEMENITE', label: 'תימני/ה' },
+  { value: 'ETHIOPIAN', label: 'אתיופי/ה' },
+  { value: 'MIXED', label: 'מעורב/ת' },
+  { value: 'OTHER', label: 'אחר' },
+];
+
 export const SORT_OPTIONS = [
   { 
     value: 'lastActive',
@@ -228,7 +256,7 @@ export const FILTER_CATEGORIES = [
   {
     id: 'advanced',
     label: 'פילטרים מתקדמים',
-    filters: ['heightRange', 'occupations', 'education', 'maritalStatus']
+    filters: ['heightRange', 'occupations', 'education', 'maritalStatus', 'bodyType', 'appearanceTone', 'ethnicBackground']
   },
   {
     id: 'status',

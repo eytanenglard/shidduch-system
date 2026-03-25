@@ -57,6 +57,7 @@ interface ProfileWithMetrics {
   preferredBodyTypes?: string[];
   preferredAppearanceTones?: string[];
   preferredGroomingStyles?: string[];
+  preferredEthnicBackgrounds?: string[];
   preferredAgeMin?: number;
   preferredAgeMax?: number;
   preferredHeightMin?: number;
@@ -258,6 +259,7 @@ async function fetchProfileWithMetrics(profileId: string): Promise<ProfileWithMe
     preferredBodyTypes: profile.preferredBodyTypes?.length ? profile.preferredBodyTypes : undefined,
     preferredAppearanceTones: profile.preferredAppearanceTones?.length ? profile.preferredAppearanceTones : undefined,
     preferredGroomingStyles: profile.preferredGroomingStyles?.length ? profile.preferredGroomingStyles : undefined,
+    preferredEthnicBackgrounds: profile.preferredEthnicBackgrounds?.length ? profile.preferredEthnicBackgrounds : undefined,
     preferredAgeMin: profile.preferredAgeMin || metrics?.inferredPreferredAgeMin || undefined,
     preferredAgeMax: profile.preferredAgeMax || metrics?.inferredPreferredAgeMax || undefined,
     preferredHeightMin: profile.preferredHeightMin || undefined,
@@ -423,8 +425,15 @@ function calculateSoftPenalties(
     }
   }
 
-  // אי התאמה אתנית
-  if (seeker.metrics?.ethnicBackground && candidate.metrics?.ethnicBackground) {
+  // אי התאמה אתנית — prefer explicit preference over generic comparison
+  if (seeker.preferredEthnicBackgrounds?.length && candidate.metrics?.ethnicBackground) {
+    if (!seeker.preferredEthnicBackgrounds.includes(candidate.metrics.ethnicBackground as string)) {
+      const pickiness = seeker.metrics?.appearancePickiness || 50;
+      const penalty = Math.round(5 + (pickiness / 100) * 10); // 5-15 points based on pickiness
+      applied.push({ type: 'ETHNIC_PREFERENCE_MISMATCH', penalty });
+    }
+  } else if (seeker.metrics?.ethnicBackground && candidate.metrics?.ethnicBackground) {
+    // Fallback: generic ethnic distance penalty
     const ethnicPenalty = calculateEthnicPenalty(
       seeker.metrics.ethnicBackground as EthnicBackground,
       candidate.metrics.ethnicBackground as EthnicBackground
@@ -496,7 +505,9 @@ function calculateSoftPenalties(
   // אי התאמת סגנון טיפוח
   if (seeker.preferredGroomingStyles?.length && candidate.groomingStyle) {
     if (!seeker.preferredGroomingStyles.includes(candidate.groomingStyle)) {
-      applied.push({ type: 'GROOMING_STYLE_MISMATCH', penalty: 5 });
+      const pickiness = seeker.metrics?.appearancePickiness || 50;
+      const penalty = Math.round(5 + (pickiness / 100) * 10);
+      applied.push({ type: 'GROOMING_STYLE_MISMATCH', penalty });
     }
   }
 

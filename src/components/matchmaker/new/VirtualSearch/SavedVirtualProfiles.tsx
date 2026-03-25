@@ -126,7 +126,6 @@ const SavedVirtualProfiles: React.FC<SavedVirtualProfilesProps> = ({
         throw new Error(data.message);
       }
     } catch (error) {
-      console.error('Error loading virtual profiles:', error);
       toast.error('שגיאה בטעינת הפרופילים');
     } finally {
       setIsLoading(false);
@@ -159,7 +158,7 @@ const SavedVirtualProfiles: React.FC<SavedVirtualProfilesProps> = ({
         );
       }
     } catch (error) {
-      console.error('Error toggling star:', error);
+      // Error handled silently
     }
   };
 
@@ -178,7 +177,6 @@ const SavedVirtualProfiles: React.FC<SavedVirtualProfilesProps> = ({
         throw new Error('Failed to delete');
       }
     } catch (error) {
-      console.error('Error deleting profile:', error);
       toast.error('שגיאה במחיקת הפרופיל');
     } finally {
       setDeletingId(null);

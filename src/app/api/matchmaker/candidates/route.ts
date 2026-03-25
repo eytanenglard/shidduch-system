@@ -172,6 +172,9 @@ export async function GET(request: NextRequest) {
     const availabilityStatus = searchParams.get('availabilityStatus');
     const userStatus = searchParams.get('userStatus');
     const source = searchParams.get('source');
+    const bodyTypes = parseCommaSeparated(searchParams.get('bodyType'));
+    const appearanceTones = parseCommaSeparated(searchParams.get('appearanceTone'));
+    const ethnicBackgrounds = parseCommaSeparated(searchParams.get('ethnicBackground'));
     const isVerified = searchParams.get('isVerified');
     const isProfileComplete = searchParams.get('isProfileComplete');
     const lastActiveDays = searchParams.get('lastActiveDays')
@@ -309,6 +312,35 @@ export async function GET(request: NextRequest) {
     if (availabilityStatus) {
       profileWhere.availabilityStatus =
         availabilityStatus as Prisma.EnumAvailabilityStatusFilter;
+    }
+
+    // Body type filter
+    if (bodyTypes.length > 0) {
+      profileWhere.bodyType = { in: bodyTypes as any };
+    }
+
+    // Appearance tone filter
+    if (appearanceTones.length > 0) {
+      profileWhere.appearanceTone = { in: appearanceTones as any };
+    }
+
+    // Ethnic background filter (origin-based text matching)
+    if (ethnicBackgrounds.length > 0) {
+      const originMap: Record<string, string> = {
+        'ASHKENAZI': 'אשכנזי',
+        'SEPHARDI': 'ספרדי',
+        'YEMENITE': 'תימני',
+        'ETHIOPIAN': 'אתיופי',
+        'MIXED': 'מעורב',
+        'OTHER': 'אחר',
+      };
+      const originTerms = ethnicBackgrounds.map((eb) => originMap[eb] || eb);
+      profileWhere.OR = [
+        ...(profileWhere.OR || []),
+        ...originTerms.map((term) => ({
+          origin: { contains: term, mode: 'insensitive' as const },
+        })),
+      ];
     }
 
     // Last active within N days

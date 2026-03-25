@@ -339,7 +339,7 @@ const DialogBody: React.FC<AiMatchAnalysisDialogProps> = ({
             throw new Error(data.error || 'Failed to fetch analysis');
           }
         } catch (e) {
-          console.error(`Failed to get analysis for ${activeComparisonId}:`, e);
+          // Error handled silently - UI shows error state
           setAnalyses((prev) => ({ ...prev, [activeComparisonId]: 'error' }));
         }
       };

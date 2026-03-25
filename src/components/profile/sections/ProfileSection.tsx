@@ -43,9 +43,10 @@ interface ProfileSectionProps {
   questionnaireSyncedFields?: QuestionnaireSyncedFields;
   /** Navigate user to the questionnaire tab to edit synced fields */
   onNavigateToQuestionnaire?: () => void;
-  /** Questionnaire answers for the insights card */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  questionnaireAnswers?: Record<string, any[]> | null;
+  /** AI-generated tldr from Neshama Insight report */
+  neshamaInsightTldr?: string | null;
+  /** Scroll to the NeshmaInsight button area */
+  onScrollToInsight?: () => void;
 }
 
 const initializeProfileData = (profileData: UserProfile): Partial<UserProfile> => {
@@ -128,7 +129,8 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
   locale,
   questionnaireSyncedFields,
   onNavigateToQuestionnaire,
-  questionnaireAnswers,
+  neshamaInsightTldr,
+  onScrollToInsight,
 }) => {
   const {
     formData,
@@ -340,10 +342,10 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({
           <div className="space-y-4">
             <StoryAndMoreCard {...cardProps} />
             <QuestionnaireInsightsCard
-              questionnaireAnswers={questionnaireAnswers}
+              neshamaInsightTldr={neshamaInsightTldr}
               dict={dict}
               direction={direction}
-              onNavigateToQuestionnaire={onNavigateToQuestionnaire}
+              onScrollToInsight={onScrollToInsight}
             />
             <EducationCareerCard
               {...cardProps}

@@ -35,6 +35,13 @@ import type {
   CandidateAction,
   MobileView,
 } from '../types/candidates';
+import type {
+  AiMatch,
+  AiMatchMeta,
+  CandidateWithAiData,
+  ScoreBreakdown,
+} from '../types/shared';
+import { toBackgroundCompatibility } from '../types/shared';
 import type { FilterState } from '../types/filters';
 import SearchBar from '../Filters/SearchBar';
 import { toast } from 'sonner';
@@ -51,63 +58,7 @@ import {
   type MatchResult,
 } from '@/app/[locale]/contexts/MatchingJobContext';
 
-// ============================================================================
-// TYPES & INTERFACES
-// ============================================================================
 
-type BackgroundCompatibility =
-  | 'excellent'
-  | 'good'
-  | 'possible'
-  | 'problematic'
-  | 'not_recommended';
-
-interface ScoreBreakdown {
-  religious: number;
-  careerFamily: number;
-  lifestyle: number;
-  ambition: number;
-  communication: number;
-  values: number;
-}
-
-interface AiMatch {
-  userId: string;
-  firstName?: string;
-  lastName?: string;
-  score?: number;
-  firstPassScore?: number;
-  finalScore?: number;
-  scoreBreakdown?: ScoreBreakdown;
-  reasoning?: string;
-  shortReasoning?: string;
-  detailedReasoning?: string;
-  rank?: number;
-  backgroundMultiplier?: number;
-  backgroundCompatibility?: BackgroundCompatibility;
-  similarity?: number;
-}
-
-interface AiMatchMeta {
-  fromCache: boolean;
-  savedAt?: string;
-  isStale?: boolean;
-  algorithmVersion: string;
-  totalCandidatesScanned?: number;
-  durationMs?: number;
-}
-
-type CandidateWithAiData = Candidate & {
-  aiScore?: number;
-  aiReasoning?: string;
-  aiMatch?: AiMatch;
-  aiRank?: number;
-  aiFirstPassScore?: number;
-  aiScoreBreakdown?: ScoreBreakdown;
-  aiBackgroundMultiplier?: number;
-  aiBackgroundCompatibility?: BackgroundCompatibility;
-  aiSimilarity?: number;
-};
 
 interface SplitViewProps {
   isQuickViewEnabled: boolean;
@@ -989,25 +940,7 @@ const EmptyStateComponent: React.FC<{
   );
 };
 
-// ============================================================================
-// HELPER FUNCTION
-// ============================================================================
 
-function toBackgroundCompatibility(
-  value: string | undefined
-): BackgroundCompatibility | undefined {
-  const validValues: BackgroundCompatibility[] = [
-    'excellent',
-    'good',
-    'possible',
-    'problematic',
-    'not_recommended',
-  ];
-  if (value && validValues.includes(value as BackgroundCompatibility)) {
-    return value as BackgroundCompatibility;
-  }
-  return undefined;
-}
 
 // ============================================================================
 // MAIN COMPONENT

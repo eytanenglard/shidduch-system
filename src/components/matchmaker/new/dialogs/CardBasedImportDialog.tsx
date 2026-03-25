@@ -541,7 +541,7 @@ export const CardBasedImportDialog: React.FC<CardBasedImportDialogProps> = ({
         });
         toast.success('פרופיל AI מוכן!');
       } catch (err) {
-        console.error('[PrepareAI] Failed:', err);
+        // Error handled - card status updated to 'error'
         updateCard(cardId, {
           aiPrepStatus: 'error',
           aiPrepError: (err as Error).message,

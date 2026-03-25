@@ -259,14 +259,6 @@ const MethodTabContent: React.FC<{
   isCurrentMethod: boolean;
 }> = ({ method, isCurrentMethod }) => {
   
-  // Debug log לבדיקה
-  console.log(`[MethodTabContent] ${method.key}:`, {
-    score: method.score,
-    hasReasoning: !!method.reasoning,
-    hasBreakdown: !!method.scoreBreakdown,
-    breakdown: method.scoreBreakdown
-  });
-
   return (
     <div className="space-y-4">
       {/* Header with score and time */}
@@ -362,7 +354,7 @@ const AllReasoningsDisplay: React.FC<AllReasoningsDisplayProps> = ({
           setLoadedReasoning(data.reasoning);
         }
       } catch (err) {
-        console.error('Failed to load reasoning:', err);
+        // Error handled silently
       } finally {
         setIsLoadingReasoning(false);
       }

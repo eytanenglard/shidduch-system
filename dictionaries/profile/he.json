@@ -41,7 +41,17 @@
       "lockedTitle": "התמונה המלאה - נעולה",
       "lockedDescription": "השלם את הפרופיל ל-100% כדי לפתוח (כרגע: {{percentage}}%)",
       "alreadyGeneratedToday": "התמונה המלאה נוצרה היום - זמינה מחדש מחר",
-      "minimizedButtonText": "התמונה המלאה"
+      "minimizedButtonText": "התמונה המלאה",
+      "profileTips": {
+        "sectionTitle": "המלצות לשיפור הפרופיל",
+        "personalitySummary": "סיכום אישיות",
+        "lookingForSummary": "מה אני מחפש/ת",
+        "completenessTitle": "שלמות הפרופיל",
+        "tipsTitle": "טיפים לשיפור",
+        "statusComplete": "מלא",
+        "statusPartial": "חלקי",
+        "statusMissing": "חסר"
+      }
     },
     "checklist": {
       "welcome": "היי {{firstName}}, ברוך הבא!",
@@ -151,89 +161,6 @@
         "enrichmentTitle": "העשרת הפרופיל",
         "enrichmentSubtitle": "ככל שתמלאו יותר, ההצעות יהיו מדויקות יותר"
       }
-    },
-    "aiAdvisor": {
-      "triggerButton": "ה-AI שלנו כאן לעזור - רוצה טיפים לפרופיל?",
-      "dialogTitle": "המלצות אישיות מה-AI של NeshamaTech",
-      "dialogDescription": "ה-AI שלנו מנתח את הפרופיל ומציע דרכים לשפר אותו - כדי שתמצא את ההתאמה הנכונה.",
-      "closeButton": "סגור",
-      "loadingTitle": "ה-AI שלנו עובד על זה...",
-      "loadingDescription": "קוראים את הפרופיל ומכינים המלצות מותאמות.",
-      "errorAlertTitle": "משהו השתבש",
-      "errorAlertDescription": "לא הצלחנו להשלים את הניתוח. נסה שוב עוד מעט.",
-      "retryButton": "נסה שוב",
-      "initialState": "לחץ לקבלת המלצות מה-AI שלנו",
-      "toast": {
-        "errorTitle": "שגיאה",
-        "errorDescription": "אירעה תקלה: {{error}}"
-      }
-    },
-    "analysisResult": {
-      "tabs": {
-        "summary": "סיכום",
-        "completeness": "שלמות הפרופיל",
-        "tips": "טיפים לשיפור"
-      },
-      "summary": {
-        "myPersonalityTitle": "האישיות שלך",
-        "myPersonalityDescription": "ניתוח מבוסס על השאלון שמילאת.",
-        "lookingForTitle": "מה את/ה מחפש/ת",
-        "lookingForDescription": "סיכום ההעדפות שלך."
-      },
-      "completeness": {
-        "title": "מדד שלמות",
-        "description": "עד כמה הפרופיל שלך מוכן לשידוך?",
-        "status": {
-          "complete": "מצוין",
-          "partial": "חלקי",
-          "missing": "חסר מידע מהותי"
-        }
-      },
-      "tips": {
-        "title": "המלצות המערכת",
-        "description": "דברים שכדאי לשים לב אליהם."
-      }
-    }
-  },
-  "aiAdvisor": {
-    "triggerButton": "קבל ניתוח וטיפים לשיפור הפרופיל",
-    "dialogTitle": "יועץ הפרופיל החכם שלך",
-    "dialogDescription": "ניתוח מבוסס AI שיעזור לך להציג את עצמך בצורה הטובה ביותר ולמצוא התאמות מדויקות יותר.",
-    "closeButton": "סגור",
-    "loadingTitle": "ה-AI שלנו מנתח את הפרופיל שלך...",
-    "loadingDescription": "זה עשוי לקחת מספר שניות. תודה על סבלנותך.",
-    "errorTitle": "אופס, משהו השתבש",
-    "errorAlertTitle": "אופס, משהו השתבש",
-    "errorAlertDescription": "לא הצלחנו להשלים את ניתוח הפרופיל כרגע.",
-    "retryButton": "נסה שוב",
-    "initialState": "לחץ על הכפתור כדי להתחיל את הניתוח.",
-    "toastErrorTitle": "שגיאה בתהליך הניתוח",
-    "toastErrorDescription": "שגיאה בקבלת ניתוח הפרופיל: {{error}}"
-  },
-  "analysisResult": {
-    "tabs": {
-      "summary": "סיכום",
-      "completeness": "השלמת פרופיל",
-      "tips": "טיפים לשיפור"
-    },
-    "summary": {
-      "myPersonalityTitle": "מי אני? (סיכום AI)",
-      "myPersonalityDescription": "כך ה-AI מבין את האישיות שלך על סמך מה שסיפרת.",
-      "lookingForTitle": "את מי אני מחפש/ת? (סיכום AI)",
-      "lookingForDescription": "סיכום ההעדפות שלך לבן/בת הזוג האידיאלי/ת."
-    },
-    "completeness": {
-      "title": "דוח השלמת פרופיל",
-      "description": "סקירה של החלקים שהושלמו בפרופיל שלך ואלו שעדיין דורשים התייחסות.",
-      "status": {
-        "complete": "הושלם",
-        "partial": "חלקי",
-        "missing": "חסר"
-      }
-    },
-    "tips": {
-      "title": "המלצות וטיפים לשיפור",
-      "description": "הצעות קונקרטיות שיעזרו לך לשדרג את הפרופיל ולמשוך התאמות טובות יותר."
     }
   },
   "photosSection": {
@@ -489,7 +416,9 @@
         "appearanceToneLegend": "טון מראה מועדף",
         "appearanceToneEmpty": "לא נבחרו העדפות טון מראה.",
         "groomingStyleLegend": "סגנון טיפוח מועדף",
-        "groomingStyleEmpty": "לא נבחרו העדפות סגנון."
+        "groomingStyleEmpty": "לא נבחרו העדפות סגנון.",
+        "ethnicBackgroundLegend": "רקע עדתי מועדף",
+        "ethnicBackgroundEmpty": "לא נבחרו העדפות רקע עדתי."
       }
     },
     "options": {
@@ -686,6 +615,14 @@
         "NATURAL": "נטורל / יופי טבעי",
         "SPORTY_CASUAL": "ספורטיבי/ת וקז'ואל",
         "TRENDY": "אופנתי/ת וטרנדי/ת"
+      },
+      "ethnicBackground": {
+        "ASHKENAZI": "אשכנזי/ה",
+        "SEPHARDI": "ספרדי/ה-מזרחי/ה",
+        "YEMENITE": "תימני/ה",
+        "ETHIOPIAN": "אתיופי/ה",
+        "MIXED": "מעורב/ת",
+        "OTHER": "אחר"
       }
     }
   },
@@ -1153,6 +1090,14 @@
         "NATURAL": "נטורל / יופי טבעי",
         "SPORTY_CASUAL": "ספורטיבי/ת וקז'ואל",
         "TRENDY": "אופנתי/ת וטרנדי/ת"
+      },
+      "ethnicBackground": {
+        "ASHKENAZI": "אשכנזי/ה",
+        "SEPHARDI": "ספרדי/ה-מזרחי/ה",
+        "YEMENITE": "תימני/ה",
+        "ETHIOPIAN": "אתיופי/ה",
+        "MIXED": "מעורב/ת",
+        "OTHER": "אחר"
       }
     },
     "charCount": "/ {{count}}+ תווים"
@@ -1769,6 +1714,14 @@
         "NATURAL": "נטורל / יופי טבעי",
         "SPORTY_CASUAL": "ספורטיבי/ת וקז'ואל",
         "TRENDY": "אופנתי/ת וטרנדי/ת"
+      },
+      "ethnicBackground": {
+        "ASHKENAZI": "אשכנזי/ה",
+        "SEPHARDI": "ספרדי/ה-מזרחי/ה",
+        "YEMENITE": "תימני/ה",
+        "ETHIOPIAN": "אתיופי/ה",
+        "MIXED": "מעורב/ת",
+        "OTHER": "אחר"
       }
     },
     "charCount": "/ {{count}}+ תווים"

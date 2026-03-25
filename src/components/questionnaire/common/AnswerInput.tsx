@@ -523,9 +523,17 @@ export default function AnswerInput({
                           setTimeout(() => setError(null), 2500);
                           return;
                         }
-                        const newValues = isSelected
-                          ? selectedValues.filter((v) => v !== option.value)
-                          : [...selectedValues, option.value];
+                        let newValues: string[];
+                        if (isSelected) {
+                          // Deselecting
+                          newValues = selectedValues.filter((v) => v !== option.value);
+                        } else if (option.value === 'open_to_all') {
+                          // Selecting "open to all" → clear everything else
+                          newValues = ['open_to_all'];
+                        } else {
+                          // Selecting a specific option → remove "open_to_all" if present
+                          newValues = [...selectedValues.filter((v) => v !== 'open_to_all'), option.value];
+                        }
                         handleValueChange(newValues);
                       }}
                     >

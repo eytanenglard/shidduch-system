@@ -293,13 +293,11 @@ export function usePotentialMatches(options: {
     
     try {
       setIsReconnecting(true);
-      console.log('[usePotentialMatches] Checking for active scan...');
-      
+
       const response = await fetch(`${API_BASE_SCAN}?checkActive=true`);
       const data = await response.json();
-      
+
       if (data.success && data.hasActiveScan && data.scan) {
-        console.log('[usePotentialMatches] Found active scan:', data.scan.id);
         
         // Set scanning state
         setIsScanning(true);
@@ -332,11 +330,9 @@ export function usePotentialMatches(options: {
         toast.info('מתחבר לסריקה פעילה...', {
           description: `נמצאה סריקה שרצה ברקע`,
         });
-      } else {
-        console.log('[usePotentialMatches] No active scan found');
       }
     } catch (err) {
-      console.error('[usePotentialMatches] Error checking for active scan:', err);
+      // Error handled silently
     } finally {
       setIsReconnecting(false);
       setHasCheckedForActiveScan(true);
@@ -763,7 +759,7 @@ export function usePotentialMatches(options: {
           }
         }
       } catch (err) {
-        console.error('Polling error:', err);
+        // Error handled silently - polling will retry
       }
     };
     
@@ -791,7 +787,7 @@ export function usePotentialMatches(options: {
           evtSource.close();
         }
       } catch (e) {
-        console.error('SSE Parse Error', e);
+        // Error handled silently - SSE parse failure
       }
     };
 
@@ -903,7 +899,7 @@ export function usePotentialMatches(options: {
       toast.info('הסריקה בוטלה');
       return true;
     } catch (err) {
-      console.error('Cancel error:', err);
+      // Error handled silently
       return false;
     }
   }, [activeScanId]);
