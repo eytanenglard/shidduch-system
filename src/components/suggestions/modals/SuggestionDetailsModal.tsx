@@ -1,1289 +1,195 @@
 // src/components/suggestions/modals/SuggestionDetailsModal.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
-
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import {
-  XCircle,
-  MessageCircle,
-  X,
-  Loader2,
-  Sparkles,
-  User,
-  Info,
-  Heart,
-  Quote,
-  ArrowLeft,
-  ChevronUp,
-  GitCompareArrows,
-  Calendar,
-  ArrowRight,
-  Lightbulb,
-  Puzzle,
-  Telescope,
-  ChevronDown,
-  Maximize,
-  Minimize,
-  AlertTriangle,
-  Bot,
-  PartyPopper,
-  Wand2,
-  TrendingUp,
-  Network,
-  Compass,
-  Bookmark,
-  Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { getInitials, cn, getRelativeCloudinaryPath } from '@/lib/utils';
-import type { QuestionnaireResponse } from '@/types/next-auth';
-import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 
-import { ProfileCard } from '@/components/profile';
-import MiniTimeline from '../timeline/MiniTimeline';
-import SuggestionChat from '@/components/messages/SuggestionChat';
-import AiChatPanel from '../chat/AiChatPanel';
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
-import { UserAiAnalysisDialog } from '../dialogs/UserAiAnalysisDialog';
-import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
-import type {
-  SuggestionsDictionary,
-  ProfileCardDict,
-} from '@/types/dictionary';
+import { useSuggestionModal } from './hooks/useSuggestionModal';
+import ModalShell from './components/ModalShell';
+import TabHeader from './components/TabHeader';
+import PresentationTab from './components/PresentationTab';
+import ProfileTab from './components/ProfileTab';
+import CompatibilityTab from './components/CompatibilityTab';
+import DetailsTab from './components/DetailsTab';
+import QuickActionsBar from './components/QuickActionsBar';
+import type { SuggestionDetailsModalProps } from './types/modal.types';
 
-interface SuggestionDetailsModalProps {
-  suggestion: ExtendedMatchSuggestion | null;
-  userId: string;
-  isOpen: boolean;
-  onClose: () => void;
-  onActionRequest: (
-    suggestion: ExtendedMatchSuggestion,
-    action: 'approve' | 'decline' | 'interested'
-  ) => void;
-  onRefresh?: () => void;
-  locale: 'he' | 'en';
-  questionnaire: QuestionnaireResponse | null;
-  isDemo?: boolean;
-  demoAnalysisData?: AiSuggestionAnalysisResult | null;
-  initialTab?: string;
-  isUserInActiveProcess?: boolean;
-  dict: {
-    suggestions: SuggestionsDictionary;
-    profileCard: ProfileCardDict;
-  };
-}
+const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) => {
+  const {
+    suggestion,
+    locale,
+    isOpen,
+    onClose,
+    questionnaire,
+    isDemo = false,
+    demoAnalysisData = null,
+    isUserInActiveProcess = false,
+    dict,
+  } = props;
 
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkDevice = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-    return () => window.removeEventListener('resize', checkDevice);
-  }, []);
-  return isMobile;
-};
-
-const useFullscreenModal = (isOpen: boolean) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const toggleFullscreen = useCallback(() => {
-    setIsTransitioning(true);
-    setIsFullscreen((prev) => !prev);
-    setTimeout(() => setIsTransitioning(false), 300);
-  }, []);
-  useEffect(() => {
-    if (!isOpen) {
-      setIsFullscreen(false);
-      setIsTransitioning(false);
-    }
-  }, [isOpen]);
-  return { isFullscreen, isTransitioning, toggleFullscreen };
-};
-
-// --- Hero Section ---
-const EnhancedHeroSection: React.FC<{
-  matchmaker: { firstName: string; lastName: string } | undefined;
-  targetParty: ExtendedMatchSuggestion['secondParty'];
-  personalNote?: string | null;
-  matchingReason?: string | null;
-  locale: 'he' | 'en';
-  onViewProfile: () => void;
-  onStartConversation: () => void;
-  dict: SuggestionsDictionary['modal']['header'];
-}> = ({
-  matchmaker,
-  targetParty,
-  personalNote,
-  matchingReason,
-  onViewProfile,
-  onStartConversation,
-  dict,
-  locale,
-}) => {
-  const matchmakerDisplay = {
-    firstName: matchmaker?.firstName ?? '',
-    lastName: matchmaker?.lastName ?? '',
-  };
-  const age = targetParty.profile?.birthDate
-    ? new Date().getFullYear() -
-      new Date(targetParty.profile.birthDate).getFullYear()
-    : null;
-  const mainImage = targetParty.images?.find((img) => img.isMain)?.url;
-
-  return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/30 to-orange-50/30 overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute top-10 right-10 w-72 h-72 bg-gradient-to-br from-teal-200/40 to-emerald-200/40 rounded-full blur-3xl animate-float"></div>
-        <div
-          className="absolute bottom-10 left-10 w-64 h-64 bg-gradient-to-br from-orange-200/40 to-amber-200/40 rounded-full blur-2xl animate-float"
-          style={{ animationDelay: '2s' }}
-        ></div>
-        <div
-          className="absolute top-1/2 right-1/4 w-48 h-48 bg-gradient-to-br from-rose-200/30 to-pink-200/30 rounded-full blur-2xl animate-float"
-          style={{ animationDelay: '4s' }}
-        ></div>
-      </div>
-
-      <div className="relative z-10 p-4 md:p-8 lg:p-12">
-        <div className="text-center mb-8 lg:mb-12">
-          <div className="inline-flex items-center gap-2 mb-6 p-3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-teal-100 animate-fade-in-up">
-            <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
-              <AvatarFallback className="bg-gradient-to-br from-teal-500 to-emerald-600 text-white text-sm font-bold">
-                {getInitials(
-                  `${matchmakerDisplay.firstName} ${matchmakerDisplay.lastName}`
-                )}
-              </AvatarFallback>
-            </Avatar>
-            <div className={cn(locale === 'he' ? 'text-right' : 'text-left')}>
-              <p className="text-xs font-medium text-teal-600 mb-1">
-                {dict.suggestedBy}
-              </p>
-              <p className="text-lg font-bold text-gray-800">
-                {matchmakerDisplay.firstName} {matchmakerDisplay.lastName}
-              </p>
-            </div>
-          </div>
-          <div className="max-w-4xl mx-auto mb-8">
-            <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-6 leading-tight animate-fade-in-up"
-              style={{ animationDelay: '0.5s' }}
-            >
-              {dict.title}
-            </h1>
-            <p
-              className="text-xl md:text-2xl text-gray-700 leading-relaxed font-medium animate-fade-in-up"
-              style={{ animationDelay: '1s' }}
-            >
-              {dict.subtitleLine1}
-              <br />
-              {dict.subtitleLine2}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
-          <div
-            className="relative group animate-fade-in-up"
-            style={{ animationDelay: '1.5s' }}
-          >
-            <div className="absolute -inset-4 bg-gradient-to-r from-teal-400/50 via-orange-400/50 to-rose-400/50 rounded-3xl blur-lg opacity-70 group-hover:opacity-100 transition-opacity animate-pulse"></div>
-            <Card className="relative overflow-hidden shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
-              <div className="relative h-96 lg:h-[600px]">
-                {mainImage ? (
-                  <Image
-                    src={getRelativeCloudinaryPath(mainImage)}
-                    alt={`Image of ${targetParty.firstName}`}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-teal-100 via-white to-orange-100 flex items-center justify-center">
-                    <User className="w-24 h-24 text-teal-400" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 right-0 left-0 p-6">
-                  <div className="bg-white/95 backdrop-blur-lg rounded-2xl p-6 shadow-2xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h2 className="text-4xl font-bold text-gray-900 mb-2 tracking-tight">
-                          {targetParty.firstName}
-                        </h2>
-                        {age && (
-                          <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-lg text-lg px-4 py-2">
-                            <Calendar
-                              className={cn(
-                                'w-4 h-4',
-                                locale === 'he' ? 'ml-2' : 'mr-2'
-                              )}
-                            />
-                            {dict.ageInYears.replace('{{age}}', age.toString())}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="text-center">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg mb-2">
-                          <Telescope className="w-8 h-8 text-white" />
-                        </div>
-                        <Button
-                          onClick={onViewProfile}
-                          className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-xl rounded-full px-6 py-3 font-bold text-base"
-                        >
-                          {dict.discoverMore}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <div
-            className="space-y-8 animate-fade-in-up"
-            style={{ animationDelay: '2s' }}
-          >
-            <Card className="border-0 shadow-2xl bg-gradient-to-br from-teal-50 via-white to-orange-50 overflow-hidden">
-              <CardContent className="p-8 relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-200/30 to-orange-200/30 rounded-full blur-2xl"></div>
-                <div className="relative z-10">
-                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-rose-500 bg-clip-text text-transparent mb-4 leading-tight text-center">
-                    {dict.matchStoryTitle}
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                    <Button
-                      onClick={onViewProfile}
-                      size="lg"
-                      className="bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-xl rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
-                    >
-                      <User
-                        className={cn(
-                          'w-5 h-5',
-                          locale === 'he' ? 'ml-2' : 'mr-2'
-                        )}
-                      />
-                      {dict.viewFullProfile}
-                      {locale === 'he' ? (
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                      ) : (
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      )}
-                    </Button>
-                    <Button
-                      onClick={onStartConversation}
-                      variant="outline"
-                      size="lg"
-                      className="border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 shadow-lg rounded-xl h-14 font-bold text-base transform hover:scale-105 transition-all"
-                    >
-                      <MessageCircle
-                        className={cn(
-                          'w-5 h-5',
-                          locale === 'he' ? 'ml-2' : 'mr-2'
-                        )}
-                      />
-                      {dict.iHaveQuestions}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {(personalNote || matchingReason) && (
-              <Card className="border-0 shadow-xl bg-gradient-to-br from-orange-50 via-white to-teal-50 overflow-hidden">
-                <CardContent
-                  className="p-6 relative"
-                  dir={locale === 'he' ? 'rtl' : 'ltr'}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="p-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg flex-shrink-0">
-                      <Lightbulb className="w-7 h-7" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-orange-800 text-xl mb-4">
-                        {dict.matchmakerInsight}
-                      </h3>
-                      {personalNote && (
-                        <div className="mb-4 p-4 bg-white/70 rounded-xl shadow-inner border border-orange-100">
-                          <div className="flex items-start gap-2">
-                            <Quote className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
-                            <div>
-                              <h4 className="font-semibold text-orange-700 mb-2">
-                                {dict.whyYou}
-                              </h4>
-                              <p className="text-orange-800 leading-relaxed italic font-medium">
-                                &quot;{personalNote}&quot;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {matchingReason && (
-                        <div className="p-4 bg-white/70 rounded-xl shadow-inner border border-teal-100">
-                          <div className="flex items-start gap-2">
-                            <Puzzle className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0" />
-                            <div>
-                              <h4 className="font-semibold text-teal-700 mb-2">
-                                {dict.ourConnection}
-                              </h4>
-                              <p className="text-teal-800 leading-relaxed font-medium">
-                                &quot;{matchingReason}&quot;
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Quick Actions ---
-const EnhancedQuickActions: React.FC<{
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-  status: string;
-  isFirstParty: boolean;
-  isUserInActiveProcess: boolean;
-  isSubmitting: boolean;
-  onApprove: () => void;
-  onDecline: () => void;
-  onInterested: () => void;
-  onAskQuestion: () => void;
-  onWithdraw?: (type: 'grace_period' | 'before_second_party') => void;
-  approvedAt?: Date | string | null;
-  secondPartySent?: Date | string | null;
-  locale: 'he' | 'en';
-  dict: SuggestionsDictionary['modal']['actions'];
-}> = ({
-  isExpanded,
-  onToggleExpand,
-  status,
-  isFirstParty,
-  isUserInActiveProcess,
-  isSubmitting,
-  onApprove,
-  onDecline,
-  onInterested,
-  onAskQuestion,
-  onWithdraw,
-  approvedAt,
-  secondPartySent,
-  dict,
-  locale,
-}) => {
-  const isHe = locale === 'he';
-  const [withdrawCountdown, setWithdrawCountdown] = useState<number | null>(null);
-  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
-
-  // Grace period countdown timer
-  useEffect(() => {
-    if (status !== 'FIRST_PARTY_APPROVED' || !isFirstParty || !approvedAt || secondPartySent) {
-      setWithdrawCountdown(null);
-      return;
-    }
-
-    const GRACE_PERIOD_MS = 5 * 60 * 1000;
-    const approvedTime = new Date(approvedAt).getTime();
-
-    const updateCountdown = () => {
-      const remaining = GRACE_PERIOD_MS - (Date.now() - approvedTime);
-      if (remaining <= 0) {
-        setWithdrawCountdown(0);
-      } else {
-        setWithdrawCountdown(Math.ceil(remaining / 1000));
-      }
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
-  }, [status, isFirstParty, approvedAt, secondPartySent]);
-
-  // Determine which button layout to render — mirrors MinimalSuggestionCard logic
-  const renderButtons = () => {
-    // CASE: First party pending decision
-    if (status === 'PENDING_FIRST_PARTY' && isFirstParty) {
-      if (isUserInActiveProcess) {
-        // Only save-for-later + decline (can't approve while in active process)
-        return (
-          <div className="space-y-3">
-            <Button
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-xl rounded-2xl h-14 font-bold text-base"
-              disabled={isSubmitting}
-              onClick={onInterested}
-            >
-              <Bookmark className={cn('w-5 h-5', isHe ? 'ml-3' : 'mr-3')} />
-              {dict.interested}
-            </Button>
-            <div className="flex items-start gap-2 px-3 py-2.5 bg-amber-50 rounded-xl border border-amber-200">
-              <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-amber-800 leading-relaxed">
-                {dict.activeProcessExplanation}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-2xl h-12 font-bold text-base"
-              disabled={isSubmitting}
-              onClick={onDecline}
-            >
-              <XCircle className={cn('w-5 h-5', isHe ? 'ml-3' : 'mr-3')} />
-              {dict.decline}
-            </Button>
-          </div>
-        );
-      }
-      // Approve + save-for-later + decline
-      return (
-        <div className="space-y-3">
-          <Button
-            className="relative w-full bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white shadow-2xl rounded-2xl h-16 font-bold text-lg"
-            disabled={isSubmitting}
-            onClick={onApprove}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className={cn('w-6 h-6 animate-spin', isHe ? 'ml-3' : 'mr-3')} />
-                {dict.sending}
-              </>
-            ) : (
-              <>
-                <Heart className={cn('w-6 h-6 animate-pulse', isHe ? 'ml-3' : 'mr-3')} />
-                {dict.approve}
-                <Sparkles className={cn('w-5 h-5', isHe ? 'mr-2' : 'ml-2')} />
-              </>
-            )}
-          </Button>
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              className="w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200 rounded-2xl h-12 font-medium text-sm"
-              disabled={isSubmitting}
-              onClick={onInterested}
-            >
-              <Bookmark className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
-              {dict.interested}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-2xl h-12 font-medium text-sm"
-              disabled={isSubmitting}
-              onClick={onDecline}
-            >
-              <XCircle className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
-              {dict.decline}
-            </Button>
-          </div>
-          <p className="text-center text-sm text-gray-600 leading-relaxed">
-            <span className="font-semibold text-teal-600">💡</span>{' '}
-            {dict.reminder}
-          </p>
-        </div>
-      );
-    }
-
-    // CASE: Second party pending decision
-    if (status === 'PENDING_SECOND_PARTY' && !isFirstParty) {
-      return (
-        <div className="space-y-3">
-          <Button
-            className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-2xl rounded-2xl h-16 font-bold text-lg"
-            disabled={isSubmitting}
-            onClick={onApprove}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className={cn('w-6 h-6 animate-spin', isHe ? 'ml-3' : 'mr-3')} />
-                {dict.sending}
-              </>
-            ) : (
-              <>
-                <Heart className={cn('w-6 h-6 animate-pulse', isHe ? 'ml-3' : 'mr-3')} />
-                {dict.approve}
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-2xl h-12 font-bold"
-            disabled={isSubmitting}
-            onClick={onDecline}
-          >
-            <XCircle className={cn('w-5 h-5', isHe ? 'ml-3' : 'mr-3')} />
-            {dict.decline}
-          </Button>
-        </div>
-      );
-    }
-
-    // CASE: Saved in interested/waitlist — activate or remove
-    if (status === 'FIRST_PARTY_INTERESTED' && isFirstParty) {
-      return (
-        <div className="space-y-3">
-          {!isUserInActiveProcess && (
-            <Button
-              className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-2xl rounded-2xl h-14 font-bold text-base"
-              disabled={isSubmitting}
-              onClick={onApprove}
-            >
-              <Heart className={cn('w-5 h-5', isHe ? 'ml-3' : 'mr-3')} />
-              {dict.activateNow}
-            </Button>
-          )}
-          {isUserInActiveProcess && (
-            <div className="flex items-start gap-2 px-3 py-2.5 bg-gray-50 rounded-xl border border-gray-200">
-              <Info className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {dict.activeProcessExplanation}
-              </p>
-            </div>
-          )}
-          <Button
-            variant="outline"
-            className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 rounded-2xl h-12 font-medium"
-            disabled={isSubmitting}
-            onClick={onDecline}
-          >
-            <Trash2 className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
-            {dict.removeFromList}
-          </Button>
-        </div>
-      );
-    }
-
-    // CASE: Re-offered to first party
-    if (status === 'RE_OFFERED_TO_FIRST_PARTY' && isFirstParty) {
-      return (
-        <div className="space-y-3">
-          <div className="flex items-start gap-2 px-3 py-2.5 bg-blue-50 rounded-xl border border-blue-200">
-            <Info className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-blue-700 leading-relaxed">
-              {isHe
-                ? 'הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין רלוונטית עבורך?'
-                : 'The other side is now available and approved! Is this still relevant for you?'}
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              className="w-full text-rose-600 hover:bg-rose-50 border-rose-200 rounded-2xl h-12 font-medium"
-              disabled={isSubmitting}
-              onClick={onDecline}
-            >
-              <XCircle className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
-              {dict.decline}
-            </Button>
-            <Button
-              className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg rounded-2xl h-12 font-medium"
-              disabled={isSubmitting}
-              onClick={onApprove}
-            >
-              <Heart className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
-              {dict.approve}
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    // CASE: First party approved — show withdraw option
-    if (status === 'FIRST_PARTY_APPROVED' && isFirstParty && !secondPartySent && onWithdraw) {
-      const isInGracePeriod = withdrawCountdown !== null && withdrawCountdown > 0;
-      const graceMinutes = Math.floor((withdrawCountdown || 0) / 60);
-      const graceSeconds = (withdrawCountdown || 0) % 60;
-      const wd = dict.withdraw;
-
-      return (
-        <div className="space-y-3">
-          {/* Grace period banner with countdown */}
-          {isInGracePeriod && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-amber-800">
-                    {wd.gracePeriodTitle}
-                  </p>
-                  <p className="text-xs text-amber-600">
-                    {wd.gracePeriodTimer
-                      .replace('{minutes}', String(graceMinutes))
-                      .replace('{seconds}', graceSeconds.toString().padStart(2, '0'))}
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full text-amber-700 hover:text-amber-800 hover:bg-amber-100 border-amber-300 rounded-2xl h-12 font-bold"
-                disabled={isSubmitting}
-                onClick={() => onWithdraw('grace_period')}
-              >
-                <XCircle className={cn('w-5 h-5', isHe ? 'ml-2' : 'mr-2')} />
-                {wd.undoApproval}
-              </Button>
-            </div>
-          )}
-
-          {/* After grace period — regular withdraw button */}
-          {!isInGracePeriod && (
-            <>
-              <div className="flex items-start gap-2 px-3 py-2.5 bg-teal-50 rounded-xl border border-teal-200">
-                <Info className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-teal-700 leading-relaxed">
-                  {wd.approvedInfo}
-                </p>
-              </div>
-
-              {/* Withdraw confirm dialog */}
-              {showWithdrawConfirm ? (
-                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 space-y-3">
-                  <p className="text-sm font-semibold text-rose-800 text-center">
-                    {wd.confirmTitle}
-                  </p>
-                  <p className="text-xs text-rose-600 text-center leading-relaxed">
-                    {wd.confirmMessage}
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-2xl h-10 text-sm"
-                      onClick={() => setShowWithdrawConfirm(false)}
-                      disabled={isSubmitting}
-                    >
-                      {wd.goBack}
-                    </Button>
-                    <Button
-                      className="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-2xl h-10 text-sm font-bold"
-                      disabled={isSubmitting}
-                      onClick={() => {
-                        setShowWithdrawConfirm(false);
-                        onWithdraw('before_second_party');
-                      }}
-                    >
-                      {wd.confirmButton}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Button
-                  variant="outline"
-                  className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 rounded-2xl h-11 font-medium text-sm"
-                  disabled={isSubmitting}
-                  onClick={() => setShowWithdrawConfirm(true)}
-                >
-                  <XCircle className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
-                  {wd.cancelApproval}
-                </Button>
-              )}
-            </>
-          )}
-        </div>
-      );
-    }
-
-    // CASE: All other statuses — only ask matchmaker
-    return (
-      <Button
-        variant="outline"
-        onClick={onAskQuestion}
-        disabled={isSubmitting}
-        className="w-full border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 rounded-2xl h-14 font-bold text-base shadow-lg"
-      >
-        <MessageCircle className={cn('w-6 h-6', isHe ? 'ml-3' : 'mr-3')} />
-        {dict.ask}
-      </Button>
-    );
-  };
-
-  // Always show "ask matchmaker" as an extra option when action buttons are shown
-  const showAskExtra =
-    status === 'PENDING_FIRST_PARTY' ||
-    status === 'PENDING_SECOND_PARTY' ||
-    status === 'FIRST_PARTY_INTERESTED' ||
-    status === 'RE_OFFERED_TO_FIRST_PARTY';
-
-  return (
-    <div
-      className={cn(
-        'flex-shrink-0 bg-gradient-to-r from-white via-teal-50/50 to-orange-50/50 backdrop-blur-sm border-t border-teal-100 transition-all duration-500 ease-in-out relative z-10',
-        isExpanded ? 'p-4 md:p-6' : 'py-3 px-4 md:px-6'
-      )}
-    >
-      <div className="max-w-4xl mx-auto relative z-10">
-        <div
-          className="flex justify-between items-center cursor-pointer group"
-          onClick={onToggleExpand}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
-              <PartyPopper className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-base font-bold text-teal-800">
-                {isExpanded ? dict.titleExpanded : dict.titleCollapsed}
-              </p>
-              {isExpanded && (
-                <p className="text-sm text-gray-600 mt-1">{dict.subtitle}</p>
-              )}
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full h-10 w-10 text-teal-600 hover:bg-teal-100/50 group-hover:scale-110 transition-all"
-          >
-            {isExpanded ? (
-              <ChevronDown className="w-5 h-5" />
-            ) : (
-              <ChevronUp className="w-5 h-5" />
-            )}
-          </Button>
-        </div>
-        {isExpanded && (
-          <div className="mt-4 animate-in fade-in-50 slide-in-from-bottom-4 duration-500 space-y-3">
-            {renderButtons()}
-            {showAskExtra && (
-              <Button
-                variant="outline"
-                onClick={onAskQuestion}
-                disabled={isSubmitting}
-                className="w-full border-2 border-teal-200 text-teal-700 bg-white/50 hover:bg-white hover:border-teal-300 rounded-2xl h-12 font-medium shadow-sm"
-              >
-                <MessageCircle className={cn('w-5 h-5', isHe ? 'ml-2' : 'mr-2')} />
-                {dict.ask}
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// --- Tabs ---
-const EnhancedTabsSection: React.FC<{
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  onClose: () => void;
-  isFullscreen: boolean;
-  onToggleFullscreen: () => void;
-  isMobile: boolean;
-  isTransitioning?: boolean;
-  dict: SuggestionsDictionary['modal']['tabs'];
-  personName?: string;
-  personAge?: number | null;
-  statusLabel?: string;
-  statusBadgeClass?: string;
-}> = ({
-  activeTab,
-  onTabChange,
-  onClose,
-  isFullscreen,
-  onToggleFullscreen,
-  isMobile,
-  isTransitioning = false,
-  dict,
-  personName,
-  personAge,
-  statusLabel,
-  statusBadgeClass,
-}) => (
-  <div className="border-b border-teal-100 px-2 sm:px-6 pt-3 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/80 backdrop-blur-sm sticky top-0 z-20">
-    {/* Person identity row */}
-    {personName && (
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-            <Heart className="w-3.5 h-3.5 text-white" />
-          </div>
-          <div className="min-w-0">
-            <span className="text-sm font-bold text-gray-800 truncate">
-              {personName}
-              {personAge ? ` (${personAge})` : ''}
-            </span>
-          </div>
-        </div>
-        {statusLabel && (
-          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full border', statusBadgeClass || 'bg-gray-100 text-gray-600 border-gray-200')}>
-            {statusLabel}
-          </span>
-        )}
-      </div>
-    )}
-    <div className="flex items-center justify-between mb-4">
-      <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm rounded-3xl p-2 h-20 shadow-xl border-2 border-teal-100 overflow-hidden">
-        <TabsTrigger
-          value="presentation"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-400 data-[state=active]:via-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
-        >
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="hidden sm:inline">{dict.presentation}</span>
-          <span className="sm:hidden">{dict.presentationShort}</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="profile"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-teal-400 data-[state=active]:via-teal-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
-        >
-          <User className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="hidden sm:inline">{dict.profile}</span>
-          <span className="sm:hidden">{dict.profileShort}</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="compatibility"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-rose-400 data-[state=active]:via-pink-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
-        >
-          <GitCompareArrows className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="hidden sm:inline">{dict.compatibility}</span>
-          <span className="sm:hidden">{dict.compatibilityShort}</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="details"
-          className="flex flex-col items-center justify-center gap-1.5 rounded-2xl text-xs sm:text-sm data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-500 data-[state=active]:to-gray-500 data-[state=active]:text-white data-[state=active]:shadow-xl font-bold"
-        >
-          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
-          <span className="hidden sm:inline">{dict.details}</span>
-          <span className="sm:hidden">{dict.detailsShort}</span>
-        </TabsTrigger>
-      </TabsList>
-      <div className="flex items-center gap-2 ml-4">
-        {!isMobile && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onToggleFullscreen}
-                  className="rounded-full h-12 w-12 text-teal-600 hover:text-teal-700 hover:bg-teal-50"
-                  disabled={isTransitioning}
-                >
-                  {isFullscreen ? (
-                    <Minimize className="w-6 h-6" />
-                  ) : (
-                    <Maximize className="w-6 h-6" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p>{isFullscreen ? dict.exitFullscreen : dict.fullscreen}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="rounded-full h-12 w-12 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-        >
-          <X className="w-6 h-6" />
-        </Button>
-      </div>
-    </div>
-  </div>
-);
-
-// --- Main Component ---
-const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = ({
-  suggestion,
-  userId,
-  locale,
-  isOpen,
-  onClose,
-  onActionRequest,
-  onRefresh,
-  questionnaire,
-  isDemo = false,
-  demoAnalysisData = null,
-  initialTab,
-  isUserInActiveProcess = false,
-  dict,
-}) => {
-  const [activeTab, setActiveTab] = useState('presentation');
-  const [showAskDialog, setShowAskDialog] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isQuestionnaireLoading, setIsQuestionnaireLoading] = useState(false);
-  const [isActionsExpanded, setIsActionsExpanded] = useState(false);
-
-  const isMobile = useIsMobile();
-  const { isFullscreen, isTransitioning, toggleFullscreen } =
-    useFullscreenModal(isOpen);
-  const searchParams = useSearchParams();
-  const isHe = locale === 'he';
-
-  useEffect(() => {
-    if (isOpen && (isMobile || isFullscreen)) {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    };
-  }, [isOpen, isMobile, isFullscreen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      if (initialTab) {
-        setActiveTab(initialTab);
-      } else {
-        const view = searchParams.get('view');
-        setActiveTab(view === 'chat' ? 'details' : 'presentation');
-      }
-      setIsActionsExpanded(false);
-    }
-  }, [isOpen, searchParams, suggestion?.id, initialTab]);
-
-  const isFirstParty = suggestion?.firstPartyId === userId;
-  const targetParty = suggestion
-    ? isFirstParty
-      ? suggestion.secondParty
-      : suggestion.firstParty
-    : null;
-
-  const profileWithUser = useMemo(() => {
-    if (!targetParty || !targetParty.profile) {
-      return null;
-    }
-    return {
-      ...targetParty.profile,
-      user: {
-        firstName: targetParty.firstName,
-        lastName: targetParty.lastName,
-      },
-    };
-  }, [targetParty]);
-
-  const handleSendQuestion = async (question: string) => {
-    if (!suggestion) return;
-    setIsSubmitting(true);
-    try {
-      await fetch(`/api/suggestions/${suggestion.id}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: question }),
-      });
-      toast.success(
-        isHe ? 'ההודעה נשלחה בהצלחה!' : 'Message sent successfully!',
-        {
-          description: isHe
-            ? 'השדכן/ית יקבל/תקבל את ההודעה שלך בקרוב'
-            : 'Your matchmaker will receive your message soon',
-        }
-      );
-      setShowAskDialog(false);
-    } catch (error) {
-      toast.error(isHe ? 'שגיאה בשליחת ההודעה' : 'Error sending message');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const state = useSuggestionModal(props);
+  const {
+    activeTab,
+    setActiveTab,
+    showAskDialog,
+    setShowAskDialog,
+    isSubmitting,
+    isQuestionnaireLoading,
+    isActionsExpanded,
+    setIsActionsExpanded,
+    isMobile,
+    isFullscreen,
+    isTransitioning,
+    toggleFullscreen,
+    isFirstParty,
+    targetParty,
+    profileWithUser,
+    handleApprove,
+    handleDecline,
+    handleInterested,
+    handleWithdraw,
+    handleSendQuestion,
+  } = state;
 
   if (!suggestion || !targetParty || !profileWithUser) return null;
 
-  const handleApprove = () => {
-    onActionRequest(suggestion, 'approve');
-    onClose();
-  };
-  const handleDecline = () => {
-    onActionRequest(suggestion, 'decline');
-    onClose();
-  };
-  const handleInterested = () => {
-    onActionRequest(suggestion, 'interested');
-    onClose();
-  };
-
-  const handleWithdraw = async (type: 'grace_period' | 'before_second_party') => {
-    try {
-      const response = await fetch(`/api/suggestions/${suggestion.id}/withdraw`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (errorData.gracePeriodExpired) {
-          toast.error(locale === 'he' ? 'חלון הביטול נסגר' : 'Grace period expired');
-          return;
-        }
-        throw new Error(errorData.error || 'Failed to withdraw');
-      }
-
-      const data = await response.json();
-      toast.success(data.message);
-      onRefresh?.();
-      onClose();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : locale === 'he' ? 'שגיאה בביטול' : 'Error withdrawing';
-      toast.error(errorMessage);
-    }
-  };
-
-  const getModalClasses = () => {
-    const baseClasses =
-      'p-0 shadow-2xl border-0 bg-white overflow-hidden z-[50] flex flex-col transition-all duration-300 ease-in-out';
-    if (isMobile) {
-      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !transform-none`;
-    } else if (isFullscreen) {
-      return `${baseClasses} !w-screen !h-screen !max-w-none !max-h-none !rounded-none !fixed !inset-0 !m-0 !translate-x-0 !translate-y-0 !transform-none`;
-    } else {
-      return `${baseClasses} md:max-w-7xl md:w-[95vw] md:h-[95vh] md:rounded-3xl`;
-    }
-  };
+  const targetAge = targetParty.profile?.birthDate
+    ? new Date().getFullYear() - new Date(targetParty.profile.birthDate).getFullYear()
+    : null;
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent
-          className={cn(getModalClasses())}
-          dir={locale === 'he' ? 'rtl' : 'ltr'}
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          data-fullscreen={isFullscreen}
-          data-mobile={isMobile}
-        >
-          <ScrollArea className="flex-grow min-h-0 modal-scroll">
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="h-full"
+      <ModalShell
+        isOpen={isOpen}
+        onClose={onClose}
+        locale={locale}
+        isMobile={isMobile}
+        isFullscreen={isFullscreen}
+        isTransitioning={isTransitioning}
+      >
+        <ScrollArea className="flex-grow min-h-0 modal-scroll">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="h-full"
+          >
+            <TabHeader
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onClose={onClose}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={toggleFullscreen}
+              isMobile={isMobile}
+              isTransitioning={isTransitioning}
+              dict={dict.suggestions.modal.tabs}
+              personName={targetParty.firstName}
+              personAge={targetAge}
+            />
+
+            {/* TAB: Presentation */}
+            <TabsContent
+              value="presentation"
+              className="mt-0 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
             >
-              <EnhancedTabsSection
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                onClose={onClose}
-                isFullscreen={isFullscreen}
-                personName={targetParty?.firstName ?? undefined}
-                personAge={
-                  targetParty?.profile?.birthDate
-                    ? new Date().getFullYear() -
-                      new Date(targetParty.profile.birthDate).getFullYear()
-                    : null
+              <PresentationTab
+                matchmaker={suggestion.matchmaker}
+                targetParty={targetParty}
+                locale={locale}
+                personalNote={
+                  isFirstParty
+                    ? suggestion.firstPartyNotes
+                    : suggestion.secondPartyNotes
                 }
-                onToggleFullscreen={toggleFullscreen}
-                isMobile={isMobile}
-                isTransitioning={isTransitioning}
-                dict={dict.suggestions.modal.tabs}
+                matchingReason={suggestion.matchingReason}
+                onViewProfile={() => setActiveTab('profile')}
+                onStartConversation={() => setActiveTab('details')}
+                dict={dict.suggestions.modal.header}
               />
+            </TabsContent>
 
-              {/* TAB: Presentation */}
-              <TabsContent value="presentation" className="mt-0 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200">
-                <EnhancedHeroSection
-                  matchmaker={suggestion.matchmaker}
-                  targetParty={targetParty}
-                  locale={locale}
-                  personalNote={
-                    isFirstParty
-                      ? suggestion.firstPartyNotes
-                      : suggestion.secondPartyNotes
-                  }
-                  matchingReason={suggestion.matchingReason}
-                  onViewProfile={() => setActiveTab('profile')}
-                  onStartConversation={() => setActiveTab('details')}
-                  dict={dict.suggestions.modal.header}
-                />
-              </TabsContent>
+            {/* TAB: Profile */}
+            <TabsContent
+              value="profile"
+              className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
+              dir={locale === 'he' ? 'rtl' : 'ltr'}
+            >
+              <ProfileTab
+                profileWithUser={profileWithUser}
+                isQuestionnaireLoading={isQuestionnaireLoading}
+                targetParty={targetParty}
+                questionnaire={questionnaire}
+                locale={locale}
+                onNavigateToDetails={() => setActiveTab('details')}
+                dict={{
+                  modal: dict.suggestions.modal,
+                  profileCard: dict.profileCard,
+                }}
+              />
+            </TabsContent>
 
-              {/* TAB: Profile */}
-              <TabsContent
-                value="profile"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-teal-50 text-start data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
-                dir={locale === 'he' ? 'rtl' : 'ltr'}
-              >
-                {isQuestionnaireLoading ? (
-                  <div className="flex justify-center items-center h-64">
-                    <div className="text-center">
-                      <Loader2 className="w-12 h-12 animate-spin text-teal-600 mx-auto mb-4" />
-                      <p className="text-lg font-semibold text-gray-700">
-                        {dict.suggestions.modal.profile.loading}
-                      </p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        {dict.suggestions.modal.profile.loadingDescription}
-                      </p>
-                    </div>
-                  </div>
-                ) : profileWithUser ? (
-                  <ProfileCard
-                    profile={profileWithUser}
-                    isProfileComplete={targetParty.isProfileComplete}
-                    images={targetParty.images}
-                    questionnaire={questionnaire}
-                    viewMode="candidate"
-                    dict={dict.profileCard}
-                    locale={locale}
-                  />
-                ) : (
-                  <div className="text-center p-12">
-                    <div className="w-24 h-24 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-6">
-                      <AlertTriangle className="w-12 h-12 text-rose-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                      {dict.suggestions.modal.profile.errorTitle}
-                    </h3>
-                    <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
-                      {dict.suggestions.modal.profile.errorDescription}
-                    </p>
-                    <Button
-                      onClick={() => setActiveTab('details')}
-                      className="mt-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
-                    >
-                      <MessageCircle className="w-4 h-4 ml-2" />
-                      {dict.suggestions.modal.profile.contactMatchmaker}
-                    </Button>
-                  </div>
-                )}
-              </TabsContent>
+            {/* TAB: Compatibility / AI Analysis */}
+            <TabsContent
+              value="compatibility"
+              className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-rose-50 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
+            >
+              <CompatibilityTab
+                targetPartyId={targetParty.id}
+                isDemo={isDemo}
+                demoAnalysisData={demoAnalysisData}
+                currentUserName={
+                  isFirstParty
+                    ? (suggestion.firstParty?.firstName ?? '')
+                    : (suggestion.secondParty?.firstName ?? '')
+                }
+                suggestedUserName={targetParty.firstName}
+                locale={locale}
+                dict={{
+                  aiAnalysisCta: dict.suggestions.modal.aiAnalysisCta,
+                  aiAnalysis: dict.suggestions.aiAnalysis,
+                }}
+              />
+            </TabsContent>
 
-              {/* TAB: Compatibility / AI Analysis */}
-              <TabsContent
-                value="compatibility"
-                className="mt-0 p-4 md:p-6 bg-gradient-to-br from-slate-50 via-white to-rose-50 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
-              >
-                <div className="flex flex-col items-center justify-center h-full min-h-[600px] text-center space-y-8 p-6">
-                  <div className="relative">
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center mx-auto shadow-2xl">
-                      <Bot className="w-16 h-16 text-teal-600" />
-                    </div>
-                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-orange-400 to-amber-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                      <Wand2 className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                  <div className="space-y-4 max-w-2xl">
-                    <h3 className="text-3xl font-bold text-gray-800">
-                      {dict.suggestions.modal.aiAnalysisCta.title}
-                    </h3>
-                    <p className="text-xl text-gray-600 leading-relaxed">
-                      {dict.suggestions.modal.aiAnalysisCta.description}
-                    </p>
-                    <div className="flex items-center justify-center gap-4 text-sm text-gray-500 font-medium">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-emerald-500" />
-                        <span>
-                          {dict.suggestions.modal.aiAnalysisCta.feature1}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Network className="w-4 h-4 text-teal-500" />
-                        <span>
-                          {dict.suggestions.modal.aiAnalysisCta.feature2}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Compass className="w-4 h-4 text-orange-500" />
-                        <span>
-                          {dict.suggestions.modal.aiAnalysisCta.feature3}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <UserAiAnalysisDialog
-                    suggestedUserId={targetParty.id}
-                    dict={dict.suggestions.aiAnalysis}
-                    isDemo={isDemo}
-                    demoAnalysisData={demoAnalysisData}
-                    currentUserName={
-                      isFirstParty
-                        ? (suggestion.firstParty?.firstName ?? '')
-                        : (suggestion.secondParty?.firstName ?? '')
-                    }
-                    suggestedUserName={targetParty.firstName}
-                    locale={locale}
-                  />
-                </div>
-              </TabsContent>
+            {/* TAB: Details — Chat + Timeline */}
+            <TabsContent
+              value="details"
+              className="mt-0 p-4 md:p-6 bg-[#f0f2f5] min-h-[600px] data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
+            >
+              <DetailsTab
+                suggestionId={suggestion.id}
+                statusHistory={suggestion.statusHistory}
+                matchmakerFirstName={suggestion.matchmaker?.firstName || ''}
+                locale={locale}
+                dict={{
+                  timeline: dict.suggestions.timeline,
+                  modal: dict.suggestions.modal,
+                }}
+              />
+            </TabsContent>
+          </Tabs>
+        </ScrollArea>
 
-              {/* TAB: Details — Chat + Mini Timeline */}
-              <TabsContent
-                value="details"
-                className="mt-0 p-4 md:p-6 bg-[#f0f2f5] min-h-[600px] data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-2 data-[state=active]:duration-200"
-              >
-                <div className="max-w-3xl mx-auto space-y-4">
-                  {/* Mini Timeline — collapsible */}
-                  <MiniTimeline
-                    statusHistory={suggestion.statusHistory}
-                    dict={dict.suggestions.timeline}
-                    locale={locale}
-                  />
-
-                  {/* AI Chat Assistant (contextual to this suggestion) */}
-                  <AiChatPanel
-                    locale={locale as 'he' | 'en'}
-                    suggestionId={suggestion.id}
-                    title={isHe ? 'שאל/י את העוזר החכם' : 'Ask Smart Assistant'}
-                    subtitle={isHe ? 'שאל/י אותי על ההצעה הזו' : 'Ask me about this suggestion'}
-                  />
-
-                  {/* Chat with matchmaker — the main content of this tab */}
-                  <SuggestionChat
-                    suggestionId={suggestion.id}
-                    locale={locale}
-                    compact
-                    heightClass="h-[calc(60vh-120px)] min-h-[350px]"
-                    header={{
-                      title: isHe
-                        ? `שיחה עם ${suggestion.matchmaker?.firstName || 'השדכן/ית'}`
-                        : `Chat with ${suggestion.matchmaker?.firstName || 'Matchmaker'}`,
-                      subtitle: isHe
-                        ? 'שאל/י שאלות, קבל/י עדכונים'
-                        : 'Ask questions, get updates',
-                    }}
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-          </ScrollArea>
-
-          {/* Quick Actions Footer */}
-          <EnhancedQuickActions
-            isExpanded={isActionsExpanded}
-            onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
-            status={suggestion.status}
-            isFirstParty={isFirstParty}
-            isUserInActiveProcess={isUserInActiveProcess}
-            isSubmitting={isSubmitting}
-            onApprove={handleApprove}
-            onDecline={handleDecline}
-            onInterested={handleInterested}
-            onAskQuestion={() => setActiveTab('details')}
-            onWithdraw={handleWithdraw}
-            approvedAt={suggestion.firstPartyResponded}
-            secondPartySent={suggestion.secondPartySent}
-            dict={dict.suggestions.modal.actions}
-            locale={locale}
-          />
-        </DialogContent>
-      </Dialog>
+        {/* Quick Actions Footer */}
+        <QuickActionsBar
+          isExpanded={isActionsExpanded}
+          onToggleExpand={() => setIsActionsExpanded((prev) => !prev)}
+          status={suggestion.status}
+          isFirstParty={isFirstParty}
+          isUserInActiveProcess={isUserInActiveProcess}
+          isSubmitting={isSubmitting}
+          onApprove={handleApprove}
+          onDecline={handleDecline}
+          onInterested={handleInterested}
+          onAskQuestion={() => setActiveTab('details')}
+          onWithdraw={handleWithdraw}
+          approvedAt={suggestion.firstPartyResponded}
+          secondPartySent={suggestion.secondPartySent}
+          dict={dict.suggestions.modal.actions}
+          locale={locale}
+        />
+      </ModalShell>
 
       <AskMatchmakerDialog
         isOpen={showAskDialog}

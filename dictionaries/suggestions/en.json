@@ -324,6 +324,21 @@
         "confirmButton": "Yes, cancel approval",
         "goBack": "Go back",
         "cancelApproval": "Cancel approval"
+      },
+      "reOfferInfo": "The other side is now available and approved! Is this still relevant for you?",
+      "gracePeriodExpired": "Grace period expired",
+      "withdrawError": "Error withdrawing"
+    },
+    "detailsTab": {
+      "aiChatTitle": "Ask Smart Assistant",
+      "aiChatSubtitle": "Ask me about this suggestion",
+      "chatTitle": "Chat with {{name}}",
+      "chatTitleFallback": "Matchmaker",
+      "chatSubtitle": "Ask questions, get updates",
+      "toasts": {
+        "sendSuccess": "Message sent successfully!",
+        "sendSuccessDescription": "Your matchmaker will receive your message soon",
+        "sendError": "Error sending message"
       }
     },
     "profile": {

@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import ProfileCardHeader from '@/components/profile/ProfileCardHeader';
 import { Sparkles, ArrowLeft, ArrowRight } from 'lucide-react';
+import { EditableCard } from '@/components/profile/fields';
 import { ProfileSectionDict } from '@/types/dictionary';
 
 interface QuestionnaireInsightsCardProps {
@@ -33,14 +32,14 @@ const QuestionnaireInsightsCard: React.FC<QuestionnaireInsightsCardProps> = ({
   // State: Has AI report with tldr
   if (neshamaInsightTldr) {
     return (
-      <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-teal-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-teal-300/50">
-        <ProfileCardHeader
-          icon={<Sparkles className="w-4 h-4 text-teal-600" />}
-          title={soulMapDict.title}
-          gradientFrom="from-teal-50/60 to-cyan-50/60"
-          iconGradient="from-teal-500/10 to-teal-600/10"
-        />
-        <CardContent className="p-4 md:p-5">
+      <EditableCard
+        icon={<Sparkles className="w-4 h-4 text-teal-600" />}
+        title={soulMapDict.title}
+        gradientFrom="from-teal-50/60 to-cyan-50/60"
+        iconGradient="from-teal-500/10 to-teal-600/10"
+        className="border-teal-200/40 hover:border-teal-300/50"
+        contentClassName="!p-4 md:!p-5"
+      >
           <p className="text-gray-700 leading-relaxed text-sm">
             {neshamaInsightTldr}
           </p>
@@ -54,21 +53,20 @@ const QuestionnaireInsightsCard: React.FC<QuestionnaireInsightsCardProps> = ({
               <ArrowIcon className="w-3.5 h-3.5" />
             </button>
           )}
-        </CardContent>
-      </Card>
+      </EditableCard>
     );
   }
 
   // State: No report yet — CTA
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-teal-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-teal-300/50">
-      <ProfileCardHeader
-        icon={<Sparkles className="w-4 h-4 text-teal-600" />}
-        title={soulMapDict.title}
-        gradientFrom="from-teal-50/60 to-cyan-50/60"
-        iconGradient="from-teal-500/10 to-teal-600/10"
-      />
-      <CardContent className="p-4 md:p-5 text-center">
+    <EditableCard
+      icon={<Sparkles className="w-4 h-4 text-teal-600" />}
+      title={soulMapDict.title}
+      gradientFrom="from-teal-50/60 to-cyan-50/60"
+      iconGradient="from-teal-500/10 to-teal-600/10"
+      className="border-teal-200/40 hover:border-teal-300/50"
+      contentClassName="!p-4 md:!p-5 text-center"
+    >
         <p className="text-sm font-medium text-gray-700 mb-1">
           {soulMapDict.noReportTitle}
         </p>
@@ -85,8 +83,7 @@ const QuestionnaireInsightsCard: React.FC<QuestionnaireInsightsCardProps> = ({
             <ArrowIcon className="w-3.5 h-3.5" />
           </button>
         )}
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

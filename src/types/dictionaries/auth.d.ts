@@ -68,6 +68,21 @@ export type ResetPasswordDict = {
   backToSignInLink: string;
   successMessage: string;
   successRedirect: string;
+  resendCode?: string;
+  resendCodeCooldown?: string;
+  resendCodeSending?: string;
+  resendCodePrompt?: string;
+  passwordStrength?: {
+    weak: string;
+    medium: string;
+    strong: string;
+  };
+  passwordChecklist?: {
+    minLength: string;
+    uppercase: string;
+    lowercase: string;
+    number: string;
+  };
   errors: {
     missingEmail: string;
     invalidOtp: string;

@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GraduationCap } from 'lucide-react';
 import { ServiceType } from '@prisma/client';
 import { cn } from '@/lib/utils';
+import { EditableCard } from '@/components/profile/fields';
 import { PreferenceCardProps } from './types';
 import { generateOptions, renderMultiSelectBadges } from './helpers';
 
@@ -20,16 +20,12 @@ const EducationCareerCard: React.FC<PreferenceCardProps> = ({
   const serviceTypeOptions = useMemo(() => generateOptions(t.options.serviceTypes), [t.options.serviceTypes]);
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <CardHeader className="bg-gradient-to-r from-teal-50/60 to-green-50/60 border-b border-gray-200/50 px-4 py-2.5 flex items-center space-x-2 rtl:space-x-reverse">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500/10 to-teal-600/10 flex items-center justify-center flex-shrink-0">
-          <GraduationCap className="w-4 h-4 text-teal-700" />
-        </div>
-        <CardTitle className="text-base font-semibold text-gray-700">
-          {t.cards.educationAndCareer.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 md:p-4 space-y-4">
+    <EditableCard
+      icon={<GraduationCap className="w-4 h-4 text-teal-700" />}
+      title={t.cards.educationAndCareer.title}
+      gradientFrom="from-teal-50/60 to-green-50/60"
+      iconGradient="from-teal-500/10 to-teal-600/10"
+    >
         {/* Education */}
         <fieldset>
           <legend className="block mb-2 text-xs font-medium text-gray-600">
@@ -165,8 +161,7 @@ const EducationCareerCard: React.FC<PreferenceCardProps> = ({
             </div>
           )}
         </fieldset>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

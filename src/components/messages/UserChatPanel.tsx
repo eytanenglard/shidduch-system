@@ -1,39 +1,39 @@
 // src/components/messages/UserChatPanel.tsx
 //
-// ✅ OPTIMIZED:
-//   - Chat list polling pauses when a chat is open (תיקון 4)
-//   - loadChats dependency is stable (no re-render loops)
-//   - onUnreadUpdate wrapped in ref to avoid callback identity changes
+// User's main chat panel — shows chat list + direct/suggestion chat views.
+// Uses shared ChatArea, ChatInput, and hooks for consistency.
 
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useChatSSE, type SSEMessage } from '@/hooks/useChatSSE';
+import { useChatMessages } from '@/hooks/useChatMessages';
+import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
 import {
   MessageCircle,
   Loader2,
   ChevronLeft,
   ChevronRight,
-  Send,
   Inbox,
   Clock,
   User,
   Heart,
   RefreshCw,
-  Bot,
+  Search,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
 import type { Locale } from '../../../i18n-config';
 import SuggestionChat from '@/components/messages/SuggestionChat';
+import ChatArea from './ChatArea';
+import ChatInput from './ChatInput';
+import ChatSearch from './ChatSearch';
 
 // ==========================================
 // Types
@@ -51,17 +51,6 @@ interface ChatSummary {
   unreadCount: number;
   suggestionId?: string;
   status?: string;
-}
-
-interface ChatMessage {
-  id: string;
-  content: string;
-  senderId: string;
-  senderType: 'user' | 'matchmaker' | 'system';
-  senderName: string;
-  isRead: boolean;
-  createdAt: string;
-  isMine: boolean;
 }
 
 interface UserChatPanelProps {
@@ -97,37 +86,45 @@ export default function UserChatPanel({
 }: UserChatPanelProps) {
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoadingList, setIsLoadingList] = useState(true);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const isHe = locale === 'he';
 
-  // ==========================================
-  // Typing indicator state
-  // ==========================================
-  const [typingUser, setTypingUser] = useState<string | null>(null);
-  const typingClearRef = useRef<NodeJS.Timeout | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // ==========================================
-  // ✅ Stable ref for onUnreadUpdate to avoid re-creating loadChats
-  // ==========================================
+  // Stable ref for onUnreadUpdate to avoid re-creating loadChats
   const onUnreadUpdateRef = useRef(onUnreadUpdate);
   useEffect(() => {
     onUnreadUpdateRef.current = onUnreadUpdate;
   }, [onUnreadUpdate]);
 
-  // ==========================================
-  // Smart auto-scroll refs (for direct chat only)
-  // ==========================================
-  const prevMessageCountRef = useRef(0);
-  const userScrolledUpRef = useRef(false);
-
   const selectedChat = chats.find((c) => c.id === selectedChatId);
+
+  // ==========================================
+  // Direct chat — shared hooks
+  // ==========================================
+  const isDirectChatOpen = selectedChatId === 'direct';
+
+  const {
+    messages: directMessages,
+    isLoading: isLoadingDirect,
+    isSending: isSendingDirect,
+    sendMessage: sendDirectMessage,
+    addMessageFromSSE: addDirectMessageFromSSE,
+  } = useChatMessages({
+    endpoint: '/api/messages/direct',
+    enabled: isDirectChatOpen,
+    pollInterval: 12000,
+    locale,
+  });
+
+  const {
+    typingUser: directTypingUser,
+    onRemoteTyping: onDirectRemoteTyping,
+    notifyTyping: notifyDirectTyping,
+  } = useTypingIndicator({
+    conversationId: 'direct',
+    conversationType: 'direct',
+  });
 
   // ==========================================
   // SSE integration for real-time updates
@@ -136,100 +133,44 @@ export default function UserChatPanel({
 
   const handleSSENewMessage = useCallback(
     (message: SSEMessage) => {
-      // If direct chat is open and message is for it, add to messages list
-      if (
-        selectedChatId === 'direct' &&
-        message.conversationType === 'direct'
-      ) {
-        setMessages((prev) => {
-          // Deduplicate by message ID
-          if (prev.some((m) => m.id === message.id)) return prev;
-          return [
-            ...prev,
-            {
-              id: message.id,
-              content: message.content,
-              senderId: message.senderId,
-              senderType: message.senderType as 'user' | 'matchmaker' | 'system',
-              senderName: message.senderName || '',
-              isRead: false,
-              createdAt: new Date().toISOString(),
-              isMine: false,
-            },
-          ];
+      if (isDirectChatOpen && message.conversationType === 'direct') {
+        addDirectMessageFromSSE({
+          id: message.id,
+          content: message.content,
+          senderId: message.senderId,
+          senderType: message.senderType as 'user' | 'matchmaker' | 'system',
+          senderName: message.senderName || '',
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          isMine: false,
         });
       }
-      // Always refresh the chat list when a new message arrives
       loadChatsRef.current?.();
     },
-    [selectedChatId]
+    [isDirectChatOpen, addDirectMessageFromSSE]
   );
 
   const handleSSETyping = useCallback(
     (data: { conversationId: string; userId: string; userName: string }) => {
-      // Show typing indicator if we're in a direct chat
-      if (selectedChatId === 'direct') {
-        setTypingUser(data.userName);
-        if (typingClearRef.current) clearTimeout(typingClearRef.current);
-        typingClearRef.current = setTimeout(() => setTypingUser(null), 4000);
+      if (isDirectChatOpen) {
+        onDirectRemoteTyping(data);
       }
     },
-    [selectedChatId]
+    [isDirectChatOpen, onDirectRemoteTyping]
   );
 
-  useChatSSE({
+  const { isConnected, isPolling } = useChatSSE({
     streamUrl: '/api/messages/stream',
-    pollUrl:
-      selectedChatId === 'direct'
-        ? '/api/messages/direct'
-        : '/api/messages/chats',
-    pollInterval: selectedChatId === 'direct' ? 12000 : 30000,
+    pollUrl: isDirectChatOpen ? '/api/messages/direct' : '/api/messages/chats',
+    pollInterval: isDirectChatOpen ? 12000 : 30000,
     enabled: true,
     onNewMessage: handleSSENewMessage,
     onTyping: handleSSETyping,
   });
 
   // ==========================================
-  // Debounced typing notification (direct chat)
-  // ==========================================
-  const handleTypingNotify = useCallback(() => {
-    if (typingTimeoutRef.current) return; // Already sent recently
-    fetch('/api/messages/typing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        conversationId: 'direct',
-        conversationType: 'direct' as const,
-      }),
-    }).catch(() => {});
-    typingTimeoutRef.current = setTimeout(() => {
-      typingTimeoutRef.current = null;
-    }, 3000);
-  }, []);
-
-  // Cleanup typing refs on unmount
-  useEffect(() => {
-    return () => {
-      if (typingClearRef.current) clearTimeout(typingClearRef.current);
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    };
-  }, []);
-
-  // ==========================================
-  // Track if user scrolled up (for direct chat)
-  // ==========================================
-  const handleScroll = useCallback(() => {
-    if (!scrollRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-    userScrolledUpRef.current = !isAtBottom;
-  }, []);
-
-  // ==========================================
   // Load chat list
-  // ✅ No dependency on onUnreadUpdate (uses ref instead)
   // ==========================================
-
   const loadChats = useCallback(async () => {
     try {
       const res = await fetch('/api/messages/chats');
@@ -246,19 +187,16 @@ export default function UserChatPanel({
     }
   }, []);
 
-  // Keep the ref current for SSE callback
-  useEffect(() => { loadChatsRef.current = loadChats; }, [loadChats]);
+  useEffect(() => {
+    loadChatsRef.current = loadChats;
+  }, [loadChats]);
 
-  // ==========================================
-  // ✅ Visibility-aware polling for chat list
-  //    Pauses when a chat is open (selectedChatId !== null)
-  // ==========================================
+  // Visibility-aware polling for chat list (pauses when a chat is open)
   useEffect(() => {
     loadChats();
     let interval: NodeJS.Timeout | null = null;
 
     const start = () => {
-      // ✅ Don't poll the list when user is inside a specific chat
       if (selectedChatId) return;
       interval = setInterval(loadChats, 30000);
     };
@@ -285,146 +223,40 @@ export default function UserChatPanel({
   }, [loadChats, selectedChatId]);
 
   // ==========================================
-  // Load messages for direct chat only
+  // Direct chat send handler
   // ==========================================
-
-  const loadDirectMessages = useCallback(async () => {
-    if (!selectedChatId || selectedChatId !== 'direct') return;
-
-    try {
-      const res = await fetch('/api/messages/direct');
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
-      if (data.success) {
-        setMessages(data.messages || []);
-      }
-    } catch (error) {
-      console.error('Error loading direct messages:', error);
-    } finally {
-      setIsLoadingMessages(false);
-    }
-  }, [selectedChatId]);
-
-  useEffect(() => {
-    if (selectedChatId === 'direct') {
-      setIsLoadingMessages(true);
-      loadDirectMessages();
-      // Mark as read
-      fetch('/api/messages/direct', { method: 'PATCH' }).catch(console.error);
-    }
-  }, [selectedChatId, loadDirectMessages]);
-
-  // Visibility-aware polling for direct messages
-  useEffect(() => {
-    if (!selectedChatId || selectedChatId !== 'direct') return;
-
-    let interval: NodeJS.Timeout | null = null;
-    const start = () => {
-      interval = setInterval(loadDirectMessages, 12000);
-    };
-    const stop = () => {
-      if (interval) clearInterval(interval);
-      interval = null;
-    };
-
-    const onVisibility = () => {
-      if (document.hidden) {
-        stop();
-      } else {
-        loadDirectMessages();
-        start();
-      }
-    };
-
-    start();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      stop();
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [selectedChatId, loadDirectMessages]);
-
-  // Smart auto-scroll for direct chat
-  useEffect(() => {
-    if (!scrollRef.current || selectedChatId !== 'direct') return;
-
-    const isNewMessage = messages.length > prevMessageCountRef.current;
-    prevMessageCountRef.current = messages.length;
-
-    if (isNewMessage && !userScrolledUpRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, selectedChatId]);
-
-  // ==========================================
-  // Send direct message (optimistic)
-  // ==========================================
-
-  const handleSendDirect = async () => {
-    if (!newMessage.trim() || isSending || selectedChatId !== 'direct') return;
-
-    const tempId = `temp-${Date.now()}`;
-    const optimisticMsg: ChatMessage = {
-      id: tempId,
-      content: newMessage.trim(),
-      senderId: '',
-      senderType: 'user',
-      senderName: '',
-      isRead: false,
-      createdAt: new Date().toISOString(),
-      isMine: true,
-    };
-
-    setMessages((prev) => [...prev, optimisticMsg]);
+  const handleSendDirect = useCallback(async () => {
+    if (!newMessage.trim()) return;
+    const content = newMessage;
     setNewMessage('');
-    userScrolledUpRef.current = false;
+    await sendDirectMessage(content);
+  }, [newMessage, sendDirectMessage]);
 
-    setIsSending(true);
-    try {
-      const res = await fetch('/api/messages/direct', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: optimisticMsg.content }),
-      });
-
-      if (!res.ok) throw new Error('Failed to send');
-      const data = await res.json();
-
-      if (data.success && data.message) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === tempId ? data.message : m))
-        );
-      }
-    } catch (error) {
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      console.error('Send error:', error);
-      toast.error(isHe ? 'שגיאה בשליחת ההודעה' : 'Error sending message');
-    } finally {
-      setIsSending(false);
-      textareaRef.current?.focus();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendDirect();
-    }
-  };
-
+  // ==========================================
+  // Navigation
+  // ==========================================
   const openChat = (chatId: string) => {
     setSelectedChatId(chatId);
-    setMessages([]);
-    prevMessageCountRef.current = 0;
-    userScrolledUpRef.current = false;
+    setNewMessage('');
   };
 
   const closeChat = () => {
     setSelectedChatId(null);
-    setMessages([]);
-    prevMessageCountRef.current = 0;
-    userScrolledUpRef.current = false;
-    loadChats(); // Refresh unread counts
+    setNewMessage('');
+    loadChats();
+  };
+
+  const handleSearchResultClick = (
+    _messageId: string,
+    conversationId: string,
+    conversationType: 'direct' | 'suggestion'
+  ) => {
+    setIsSearchOpen(false);
+    if (conversationType === 'direct') {
+      openChat('direct');
+    } else {
+      openChat(conversationId);
+    }
   };
 
   // ==========================================
@@ -432,13 +264,10 @@ export default function UserChatPanel({
   // ==========================================
 
   if (selectedChat) {
-    // ========================================
     // Suggestion chats — use shared SuggestionChat component
-    // ========================================
     if (selectedChat.type === 'suggestion' && selectedChat.id !== 'direct') {
       return (
         <Card className="shadow-lg border-0 overflow-hidden bg-white">
-          {/* Chat Header with back button */}
           <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50/40 border-b py-3">
             <div className="flex items-center gap-3">
               <Button
@@ -474,7 +303,6 @@ export default function UserChatPanel({
             </div>
           </CardHeader>
 
-          {/* Shared SuggestionChat component — same data source as the modal */}
           <SuggestionChat
             suggestionId={selectedChat.id}
             locale={locale}
@@ -485,12 +313,9 @@ export default function UserChatPanel({
       );
     }
 
-    // ========================================
-    // Direct chat — keep inline implementation
-    // ========================================
+    // Direct chat — using shared ChatArea + ChatInput
     return (
       <Card className="shadow-lg border-0 overflow-hidden bg-white">
-        {/* Chat Header */}
         <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50/40 border-b py-3">
           <div className="flex items-center gap-3">
             <Button
@@ -527,129 +352,30 @@ export default function UserChatPanel({
           </div>
         </CardHeader>
 
-        {/* Direct Messages */}
         <CardContent className="p-0">
-          <div className="flex flex-col h-[500px]">
-            <ScrollArea
-              className="flex-1 px-4"
-              ref={scrollRef}
-              onScroll={handleScroll}
-            >
-              {isLoadingMessages ? (
-                <div className="flex items-center justify-center h-full py-12">
-                  <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center mb-4">
-                    <MessageCircle className="w-8 h-8 text-teal-400" />
-                  </div>
-                  <h3 className="font-medium text-gray-700 mb-1">
-                    {isHe ? 'אין הודעות עדיין' : 'No messages yet'}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {isHe
-                      ? 'שלח/י הודעה כדי להתחיל שיחה'
-                      : 'Send a message to start the conversation'}
-                  </p>
-                </div>
-              ) : (
-                <div className="py-4 space-y-3">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={cn(
-                        'flex',
-                        msg.isMine ? 'justify-end' : 'justify-start',
-                        msg.senderType === 'system' && 'justify-center'
-                      )}
-                    >
-                      {msg.senderType === 'system' ? (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full">
-                          <Bot className="w-3 h-3" />
-                          {msg.content}
-                        </div>
-                      ) : (
-                        <div
-                          className={cn(
-                            'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
-                            msg.isMine
-                              ? 'bg-gradient-to-br from-teal-500 to-cyan-500 text-white rounded-br-md'
-                              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md',
-                            msg.id.startsWith('temp-') && 'opacity-70'
-                          )}
-                        >
-                          {!msg.isMine && (
-                            <p
-                              className={cn(
-                                'text-xs font-semibold mb-1',
-                                msg.senderType === 'matchmaker'
-                                  ? 'text-purple-600'
-                                  : 'text-teal-600'
-                              )}
-                            >
-                              {msg.senderName}
-                            </p>
-                          )}
-                          <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                            {msg.content}
-                          </p>
-                          <p
-                            className={cn(
-                              'text-[10px] mt-1',
-                              msg.isMine ? 'text-white/70' : 'text-gray-400'
-                            )}
-                          >
-                            {format(new Date(msg.createdAt), 'HH:mm', {
-                              locale: isHe ? he : enUS,
-                            })}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
+          <ChatArea
+            messages={directMessages}
+            isLoading={isLoadingDirect}
+            locale={locale}
+            typingUser={directTypingUser}
+            isConnected={isConnected}
+            isPolling={isPolling}
+            heightClass="h-[440px]"
+            emptySubtitle={
+              isHe
+                ? 'שלח/י הודעה כדי להתחיל שיחה'
+                : 'Send a message to start the conversation'
+            }
+          />
 
-            {/* Typing indicator */}
-            {typingUser && (
-              <div className="px-4 py-1 text-xs text-gray-400 animate-pulse">
-                {isHe ? `${typingUser} מקליד/ה...` : `${typingUser} is typing...`}
-              </div>
-            )}
-
-            {/* Input */}
-            <div className="border-t bg-gray-50/50 p-3">
-              <div className="flex items-end gap-2">
-                <Textarea
-                  ref={textareaRef}
-                  value={newMessage}
-                  onChange={(e) => {
-                    setNewMessage(e.target.value);
-                    handleTypingNotify();
-                  }}
-                  onKeyDown={handleKeyDown}
-                  placeholder={isHe ? 'כתוב/י הודעה...' : 'Type a message...'}
-                  className="flex-1 min-h-[44px] max-h-32 resize-none rounded-xl border-gray-200 focus:border-teal-300 focus:ring-teal-200"
-                  rows={1}
-                  dir={isHe ? 'rtl' : 'ltr'}
-                />
-                <Button
-                  onClick={handleSendDirect}
-                  disabled={!newMessage.trim() || isSending}
-                  size="icon"
-                  className="h-11 w-11 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 shadow-md flex-shrink-0"
-                >
-                  {isSending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className={cn('w-4 h-4', isHe && '-scale-x-100')} />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
+          <ChatInput
+            value={newMessage}
+            onChange={setNewMessage}
+            onSend={handleSendDirect}
+            onTyping={notifyDirectTyping}
+            isSending={isSendingDirect}
+            locale={locale}
+          />
         </CardContent>
       </Card>
     );
@@ -688,16 +414,39 @@ export default function UserChatPanel({
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={loadChats}
-            className="text-gray-500 hover:text-teal-600"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSearchOpen((p) => !p)}
+              className={cn(
+                'text-gray-500 hover:text-teal-600',
+                isSearchOpen && 'text-teal-600 bg-teal-50'
+              )}
+              aria-label={isHe ? 'חיפוש בהודעות' : 'Search messages'}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadChats}
+              className="text-gray-500 hover:text-teal-600"
+              aria-label={isHe ? 'רענון' : 'Refresh'}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
+
+      {/* Slide-down search */}
+      <ChatSearch
+        open={isSearchOpen}
+        searchUrl="/api/messages/search"
+        isHe={isHe}
+        onResultClick={handleSearchResultClick}
+      />
 
       <CardContent className="p-0">
         {chats.length === 0 ? (
@@ -797,7 +546,7 @@ export default function UserChatPanel({
                   {/* Unread badge + Arrow */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {chat.unreadCount > 0 && (
-                      <Badge className="bg-teal-500 text-white text-xs px-2 py-0.5 border-0 shadow-sm animate-pulse">
+                      <Badge className="bg-teal-500 text-white text-xs px-2 py-0.5 border-0 shadow-sm animate-zoom-in">
                         {chat.unreadCount}
                       </Badge>
                     )}

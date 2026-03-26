@@ -44,6 +44,10 @@ export default function SettingsClientPage({
     );
   }
 
+  // Find the main image URL
+  const mainImage = session.user.images?.find((img) => img.isMain);
+  const imageUrl = mainImage?.url || session.user.image || null;
+
   const userData = {
     id: session.user.id,
     email: session.user.email,
@@ -56,6 +60,12 @@ export default function SettingsClientPage({
     createdAt: session.user.createdAt,
     engagementEmailsConsent: session.user.engagementEmailsConsent,
     promotionalEmailsConsent: session.user.promotionalEmailsConsent,
+    language: session.user.language,
+    image: imageUrl,
+    accounts: session.user.accounts?.map((acc) => ({
+      provider: acc.provider,
+      providerAccountId: acc.providerAccountId,
+    })),
   };
 
   return <AccountSettings user={userData} dict={dict} locale={locale} />;

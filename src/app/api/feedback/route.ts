@@ -78,7 +78,20 @@ export async function POST(req: NextRequest) {
     }
 
     const { content, feedbackType, pageUrl } = validation.data;
-    const userAgent = req.headers.get('user-agent') || 'Unknown';
+    const baseUserAgent = req.headers.get('user-agent') || 'Unknown';
+    const screenWidth = formData.get('screenWidth') as string | null;
+    const screenHeight = formData.get('screenHeight') as string | null;
+    const browserLanguage = formData.get('language') as string | null;
+
+    // Append client metadata to userAgent for debugging context
+    const metadataParts = [
+      screenWidth && screenHeight ? `Screen: ${screenWidth}x${screenHeight}` : null,
+      browserLanguage ? `Lang: ${browserLanguage}` : null,
+    ].filter(Boolean);
+    const userAgent = metadataParts.length > 0
+      ? `${baseUserAgent} | ${metadataParts.join(' | ')}`
+      : baseUserAgent;
+
     const screenshot = formData.get('screenshot') as File | null;
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
@@ -144,6 +157,8 @@ export async function POST(req: NextRequest) {
           pageUrl: pageUrl,
           screenshotUrl: screenshotUrl,
           feedbackId: newFeedback.id,
+          screenInfo: screenWidth && screenHeight ? `${screenWidth}x${screenHeight}` : 'N/A',
+          browserLanguage: browserLanguage || 'N/A',
         }
       });
       console.log(`Feedback notification sent successfully to ${adminEmail}`);

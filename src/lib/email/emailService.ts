@@ -57,6 +57,7 @@ interface TemplateContext {
   };
   otp?: string;
   loginUrl?: string;
+  resetLink?: string;
   inquiryId?: string;
 
   feedbackType?: string;
@@ -161,6 +162,7 @@ interface PasswordResetOtpEmailParams {
   otp: string;
   firstName?: string;
   expiresIn?: string;
+  resetLink?: string;
 }
 
 interface PasswordChangedConfirmationParams {
@@ -586,6 +588,7 @@ class EmailService {
         firstName: params.firstName,
         otp: params.otp,
         expiresIn: params.expiresIn,
+        resetLink: params.resetLink,
       }
     });
   }

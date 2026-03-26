@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import {
 import { XCircle, Users } from 'lucide-react';
 import Autocomplete from 'react-google-autocomplete';
 import { cn } from '@/lib/utils';
+import { EditableCard } from '@/components/profile/fields';
 import { PreferenceCardProps } from './types';
 import { generateOptions, renderMultiSelectBadges, getSelectDisplayValue } from './helpers';
 
@@ -35,16 +35,12 @@ const PersonalBackgroundCard: React.FC<PreferenceCardProps> = ({
   const preferredAliyaStatusOptions = useMemo(() => generateOptions(t.options.aliyaStatus), [t.options.aliyaStatus]);
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <CardHeader className="bg-gradient-to-r from-rose-50/60 to-fuchsia-50/60 border-b border-gray-200/50 px-4 py-2.5 flex items-center space-x-2 rtl:space-x-reverse">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500/10 to-rose-600/10 flex items-center justify-center flex-shrink-0">
-          <Users className="w-4 h-4 text-rose-700" />
-        </div>
-        <CardTitle className="text-base font-semibold text-gray-700">
-          {t.cards.personalBackground.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 md:p-4 space-y-4">
+    <EditableCard
+      icon={<Users className="w-4 h-4 text-rose-700" />}
+      title={t.cards.personalBackground.title}
+      gradientFrom="from-rose-50/60 to-fuchsia-50/60"
+      iconGradient="from-rose-500/10 to-rose-600/10"
+    >
         {/* Marital Status */}
         <fieldset>
           <legend className="block mb-2 text-xs font-medium text-gray-600">
@@ -323,8 +319,7 @@ const PersonalBackgroundCard: React.FC<PreferenceCardProps> = ({
             </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

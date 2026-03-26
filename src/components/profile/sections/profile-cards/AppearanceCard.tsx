@@ -2,11 +2,9 @@
 
 import React, { useMemo } from 'react';
 import { BodyType, AppearanceTone, GroomingStyle } from '@prisma/client';
-import { Card, CardContent } from '@/components/ui/card';
-import ProfileCardHeader from '@/components/profile/ProfileCardHeader';
 import { Palette } from 'lucide-react';
 import { ProfileCardProps } from './types';
-import { SelectField } from '@/components/profile/fields';
+import { SelectField, EditableCard } from '@/components/profile/fields';
 
 const AppearanceCard: React.FC<ProfileCardProps> = ({
   isEditing,
@@ -41,14 +39,12 @@ const AppearanceCard: React.FC<ProfileCardProps> = ({
   );
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <ProfileCardHeader
-        icon={<Palette className="w-4 h-4 text-purple-600" />}
-        title={dict.cards.appearance.title}
-        gradientFrom="from-purple-50/60 to-pink-50/60"
-        iconGradient="from-purple-500/10 to-purple-600/10"
-      />
-      <CardContent className="p-3 md:p-4 space-y-4">
+    <EditableCard
+      icon={<Palette className="w-4 h-4 text-purple-600" />}
+      title={dict.cards.appearance.title}
+      gradientFrom="from-purple-50/60 to-pink-50/60"
+      iconGradient="from-purple-500/10 to-purple-600/10"
+    >
         <SelectField
           id="bodyType"
           label={dict.cards.appearance.bodyTypeLabel}
@@ -87,8 +83,7 @@ const AppearanceCard: React.FC<ProfileCardProps> = ({
           emptyText={dict.cards.appearance.groomingStyleEmpty}
           labelClassName="text-sm font-medium text-gray-700 block mb-1"
         />
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

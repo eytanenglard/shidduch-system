@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ import { Info, XCircle, MapPin } from 'lucide-react';
 import { Gender, HeadCoveringType, KippahType, ReligiousJourney } from '@prisma/client';
 import Autocomplete from 'react-google-autocomplete';
 import { cn } from '@/lib/utils';
+import { EditableCard } from '@/components/profile/fields';
 import { PreferenceCardProps } from './types';
 import { generateOptions, renderMultiSelectBadges, getSelectDisplayValue } from './helpers';
 
@@ -46,16 +46,12 @@ const LocationReligionCard: React.FC<PreferenceCardProps> = ({
   const kippahTypeOptions = useMemo(() => generateOptions(t.options.kippahType), [t.options.kippahType]);
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <CardHeader className="bg-gradient-to-r from-teal-50/60 to-orange-50/60 border-b border-gray-200/50 px-4 py-2.5 flex items-center space-x-2 rtl:space-x-reverse">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500/10 to-teal-600/10 flex items-center justify-center flex-shrink-0">
-          <MapPin className="w-4 h-4 text-teal-700" />
-        </div>
-        <CardTitle className="text-base font-semibold text-gray-700">
-          {t.cards.locationAndReligion.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 md:p-4 space-y-4">
+    <EditableCard
+      icon={<MapPin className="w-4 h-4 text-teal-700" />}
+      title={t.cards.locationAndReligion.title}
+      gradientFrom="from-teal-50/60 to-orange-50/60"
+      iconGradient="from-teal-500/10 to-teal-600/10"
+    >
         {/* Preferred Locations */}
         <div>
           <Label
@@ -452,8 +448,7 @@ const LocationReligionCard: React.FC<PreferenceCardProps> = ({
             )}
           </fieldset>
         )}
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

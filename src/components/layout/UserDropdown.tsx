@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { User, LogOut, Settings, Lightbulb } from 'lucide-react';
+import { User, LogOut, Settings, Lightbulb, Heart } from 'lucide-react';
 import type { Session as NextAuthSession } from 'next-auth';
 import type { UserImage } from '@/types/next-auth';
 import { getRelativeCloudinaryPath } from '@/lib/utils';
@@ -52,6 +52,7 @@ const UserDropdown = ({
     profileImageAlt: 'Profile picture',
     myProfile: 'My Profile',
     questionnaire: 'Matching Questionnaire',
+    heartMap: 'Soul Map',
     accountSettings: 'Account Settings',
     signOut: 'Sign Out',
   };
@@ -132,6 +133,15 @@ const UserDropdown = ({
               >
                 <Lightbulb className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
                 {safeDict.questionnaire}
+              </Link>
+              <Link
+                href={`/${locale}/heart-map`}
+                role="menuitem"
+                className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                <Heart className={`h-4 w-4 ${isRtl ? 'ml-2' : 'mr-2'}`} />
+                {safeDict.heartMap}
               </Link>
               <Link
                 href={`/${locale}/settings`}

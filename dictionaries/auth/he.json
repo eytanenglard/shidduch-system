@@ -65,6 +65,21 @@
     "backToSignInLink": "חזרה להתחברות",
     "successMessage": "הסיסמה אופסה בהצלחה!",
     "successRedirect": "אתה מועבר לדף ההתחברות...",
+    "resendCode": "שלח קוד מחדש",
+    "resendCodeCooldown": "שלח קוד מחדש ({seconds} שניות)",
+    "resendCodeSending": "שולח...",
+    "resendCodePrompt": "לא קיבלת קוד? שלח שוב",
+    "passwordStrength": {
+      "weak": "חלשה",
+      "medium": "בינונית",
+      "strong": "חזקה"
+    },
+    "passwordChecklist": {
+      "minLength": "8 תווים לפחות",
+      "uppercase": "אות גדולה באנגלית",
+      "lowercase": "אות קטנה באנגלית",
+      "number": "ספרה"
+    },
     "errors": {
       "missingEmail": "כתובת המייל חסרה. אנא חזור להתחלה ונסה שנית.",
       "invalidOtp": "קוד האימות (OTP) חייב להיות בן 6 ספרות.",

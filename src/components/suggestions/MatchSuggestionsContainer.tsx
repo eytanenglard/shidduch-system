@@ -3,8 +3,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useParams } from 'next/navigation';
 
 import {
@@ -18,13 +18,14 @@ import {
   Loader2,
   Sparkles,
   Bookmark,
-  ChevronDown,
-  ChevronUp,
   Star,
   Clock,
   Zap,
   Heart,
   MessageCircle,
+  ChevronRight,
+  ChevronLeft,
+  User,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -34,10 +35,10 @@ import type { MatchSuggestion } from '@prisma/client';
 
 import SuggestionsList from './list/SuggestionsList';
 import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
-import ActiveSuggestionHero from '@/components/suggestions/ActiveSuggestionHero';
-import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
+import SuggestionDetailPanel from '@/components/suggestions/panels/SuggestionDetailPanel';
 import type { ExtendedMatchSuggestion } from '../../types/suggestions';
-import { cn } from '@/lib/utils';
+import { cn, calculateAge, getRelativeCloudinaryPath } from '@/lib/utils';
+import { SYSTEM_MATCHMAKER_ID, ACTIVE_PROCESS_STATUSES } from './constants';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 import {
@@ -64,24 +65,6 @@ import type { FeedbackData } from '@/components/suggestions/auto/AutoSuggestionF
 import DateFeedbackDialog from '@/components/suggestions/feedback/DateFeedbackDialog';
 import type { DateFeedbackData } from '@/components/suggestions/feedback/DateFeedbackDialog';
 
-const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
-
-// --- Active Process Statuses ---
-const ACTIVE_PROCESS_STATUSES = [
-  'FIRST_PARTY_APPROVED',
-  'PENDING_SECOND_PARTY',
-  'SECOND_PARTY_APPROVED',
-  'AWAITING_MATCHMAKER_APPROVAL',
-  'CONTACT_DETAILS_SHARED',
-  'AWAITING_FIRST_DATE_FEEDBACK',
-  'THINKING_AFTER_DATE',
-  'PROCEEDING_TO_SECOND_DATE',
-  'MEETING_PENDING',
-  'MEETING_SCHEDULED',
-  'MATCH_APPROVED',
-  'DATING',
-  'ENGAGED',
-] as const;
 
 // --- Filter Type for the new chip-buttons ---
 type ActiveFilter = 'all' | 'active_process' | 'backup' | 'pending';
@@ -93,70 +76,23 @@ type ActionType = 'approve' | 'decline' | 'interested';
 const LoadingSkeleton: React.FC<{
   dict: SuggestionsDictionary['container']['loading'];
 }> = ({ dict }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20">
-    <div className="container mx-auto px-4 py-8">
-      <div className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
-        <div className="px-8 py-6 bg-gradient-to-r from-teal-50/80 via-white to-orange-50/30 border-b border-gray-100">
-          <div className="flex items-center justify-center">
-            <div className="h-7 bg-gray-200 rounded-lg w-48 animate-pulse" />
-          </div>
+  <div className="min-h-screen bg-gray-50">
+    <div className="max-w-[900px] mx-auto px-4 py-8">
+      <div className="flex items-center justify-center mb-8">
+        <div className="text-center space-y-2">
+          <Loader2 className="w-8 h-8 text-teal-600 animate-spin mx-auto" />
+          <h3 className="text-lg font-semibold text-gray-700">{dict.title}</h3>
+          <p className="text-sm text-gray-500">{dict.subtitle}</p>
         </div>
-        <div className="p-6">
-          <div className="flex justify-center mb-6">
-            <div className="grid grid-cols-2 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit gap-2">
-              {Array.from({ length: 2 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="px-6 py-3 rounded-xl bg-gray-200 animate-pulse w-28 h-10"
-                />
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-6">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-teal-100 via-orange-100 to-rose-100 animate-pulse border-4 border-white shadow-xl" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="w-10 h-10 text-teal-600 animate-spin" />
-              </div>
-            </div>
-            <div className="space-y-3">
-              <h3 className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-rose-600 bg-clip-text text-transparent">
-                {dict.title}
-              </h3>
-              <p className="text-gray-600 max-w-md leading-relaxed">
-                {dict.subtitle}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-teal-500 to-orange-500 animate-bounce"
-                  style={{ animationDelay: `${index * 0.2}s` }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-20 bg-white rounded-xl border border-gray-200 animate-pulse" />
+        ))}
       </div>
     </div>
   </div>
 );
-
-// --- Helper: enhance questionnaire data ---
-const enhanceQuestionnaireData = (
-  suggestion: ExtendedMatchSuggestion | null,
-  userId: string
-) => {
-  if (!suggestion) return null;
-  const isFirstParty = suggestion.firstPartyId === userId;
-  const targetParty = isFirstParty
-    ? suggestion.secondParty
-    : suggestion.firstParty;
-  const rawQuestionnaire = targetParty?.questionnaireResponses?.[0];
-  if (!rawQuestionnaire) return null;
-  return rawQuestionnaire;
-};
 
 // ============================================================
 // Filter Chip Button Component
@@ -183,9 +119,9 @@ const FilterChip: React.FC<FilterChipProps> = ({
   <button
     onClick={onClick}
     className={cn(
-      'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 border whitespace-nowrap',
+      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap',
       isActive
-        ? `${activeColors} shadow-sm scale-[1.02]`
+        ? `${activeColors} shadow-sm`
         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
     )}
   >
@@ -203,140 +139,6 @@ const FilterChip: React.FC<FilterChipProps> = ({
     )}
   </button>
 );
-
-// ============================================================
-// Collapsible Daily Suggestion Row
-// ============================================================
-interface CollapsibleDailySuggestionProps {
-  suggestion: ExtendedMatchSuggestion;
-  userId: string;
-  locale: 'he' | 'en';
-  onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
-  dailyDict?: {
-    cardTitle?: string;
-    cardSubtitle?: string;
-    matchingNote?: string;
-    aiPowered?: string;
-    basedOnLearning?: string;
-  };
-}
-
-const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
-  if (!dateOfBirth) return null;
-  const today = new Date();
-  const birth = new Date(dateOfBirth);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age;
-};
-
-const CollapsibleDailySuggestion: React.FC<CollapsibleDailySuggestionProps> = ({
-  suggestion,
-  userId,
-  locale,
-  onViewDetails,
-  dailyDict,
-}) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const isRtl = locale === 'he';
-
-  const isFirstParty = suggestion.firstPartyId === userId;
-  const otherParty = isFirstParty
-    ? suggestion.secondParty
-    : suggestion.firstParty;
-  const age = calculateAge(otherParty?.profile?.birthDate);
-
-  return (
-    <div className="mb-4">
-      {/* Collapsed Row */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className={cn(
-          'w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-200',
-          isExpanded
-            ? 'bg-gradient-to-r from-violet-50 via-purple-50/50 to-indigo-50 border-violet-200/50 shadow-sm rounded-b-none'
-            : 'bg-gradient-to-r from-violet-50/60 via-white to-purple-50/40 border-violet-100/50 hover:border-violet-200/70 hover:shadow-sm'
-        )}
-        dir={isRtl ? 'rtl' : 'ltr'}
-      >
-        {/* AI Icon */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
-          <Sparkles className="w-4 h-4 text-white" />
-        </div>
-
-        {/* Title + Name */}
-        <div className="flex-1 min-w-0 text-start">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              {dailyDict?.cardTitle ||
-                (isRtl ? '✨ ההצעה היומית שלך' : '✨ Your Daily Match')}
-            </span>
-          </div>
-          <p className="text-xs text-gray-500 truncate">
-            {otherParty?.firstName}
-            {age ? ` (${age})` : ''}
-            {otherParty?.profile?.city ? ` • ${otherParty.profile.city}` : ''}
-          </p>
-        </div>
-
-        {/* Badges */}
-        <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-[10px] px-2 py-0.5 flex-shrink-0">
-          {dailyDict?.aiPowered || (isRtl ? 'AI' : 'AI')}
-        </Badge>
-
-        {/* Chevron */}
-        <div className="flex-shrink-0 text-violet-400">
-          {isExpanded ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </div>
-      </button>
-
-      {/* Expanded Content */}
-      {isExpanded && (
-        <div
-          className="px-4 pb-4 pt-2 border border-t-0 border-violet-200/50 rounded-b-xl bg-gradient-to-r from-violet-50 via-purple-50/50 to-indigo-50"
-          dir={isRtl ? 'rtl' : 'ltr'}
-        >
-          <p className="text-sm text-gray-600 leading-relaxed mb-3">
-            {dailyDict?.matchingNote ||
-              (isRtl
-                ? 'הצעה זו נבחרה על סמך ניתוח מעמיק של הפרופיל שלך, תשובותיך לשאלון, והעדפותיך. המערכת שלנו לומדת ומשתפרת כל הזמן.'
-                : 'This match was selected based on deep analysis of your profile, questionnaire answers, and preferences. Our system learns and improves continuously.')}
-          </p>
-          <div className="flex items-center gap-2 mb-3">
-            <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-xs">
-              {dailyDict?.aiPowered ||
-                (isRtl ? 'מותאם אישית ע"י AI' : 'AI-Personalized')}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="border-violet-300 text-violet-700 text-xs"
-            >
-              {dailyDict?.basedOnLearning ||
-                (isRtl ? 'מבוסס על למידת המערכת' : 'Based on system learning')}
-            </Badge>
-          </div>
-          <Button
-            size="sm"
-            className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition-all"
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails(suggestion);
-            }}
-          >
-            {isRtl ? 'צפה בהצעה' : 'View Suggestion'}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-};
 
 // --- Props Interface ---
 interface MatchSuggestionsContainerProps {
@@ -374,7 +176,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('active');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [hasNewSuggestions, setHasNewSuggestions] = useState(false);
   const [isUserInActiveProcess, setIsUserInActiveProcess] = useState(false);
 
@@ -397,9 +198,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   // --- Details Modal State ---
   const [selectedSuggestion, setSelectedSuggestion] =
     useState<ExtendedMatchSuggestion | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [detailsModalInitialTab, setDetailsModalInitialTab] =
-    useState<string>('presentation');
+  const [showDetailsPanel, setShowDetailsPanel] = useState(false);
 
   // --- Derived: Active Process Suggestion (Hero Card) ---
   const activeProcessSuggestion = useMemo(() => {
@@ -501,7 +300,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
   // --- Derived: questionnaire for selected suggestion ---
   const selectedQuestionnaireData = useMemo(() => {
-    return enhanceQuestionnaireData(selectedSuggestion, userId);
+    if (!selectedSuggestion) return null;
+    const isFirstParty = selectedSuggestion.firstPartyId === userId;
+    const targetParty = isFirstParty
+      ? selectedSuggestion.secondParty
+      : selectedSuggestion.firstParty;
+    return targetParty?.questionnaireResponses?.[0] ?? null;
   }, [selectedSuggestion, userId]);
 
   // --- Derived: Suggestion in dating status that needs feedback ---
@@ -796,31 +600,19 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     []
   );
 
-  // --- View Details Handler (opens modal - presentation tab) ---
+  // --- View Details Handler (opens slide-over panel) ---
   const handleViewDetails = useCallback(
     (suggestion: ExtendedMatchSuggestion) => {
       setSelectedSuggestion(suggestion);
-      setDetailsModalInitialTab('presentation');
-      setShowDetailsModal(true);
+      setShowDetailsPanel(true);
     },
     []
   );
 
-  // --- Contact Matchmaker Handler (opens modal - details/chat tab) ---
-  const handleContactMatchmaker = useCallback(
-    (suggestion: ExtendedMatchSuggestion) => {
-      setSelectedSuggestion(suggestion);
-      setDetailsModalInitialTab('details');
-      setShowDetailsModal(true);
-    },
-    []
-  );
-
-  // --- Close Details Modal ---
-  const handleCloseDetailsModal = useCallback(() => {
-    setShowDetailsModal(false);
+  // --- Close Details Panel ---
+  const handleCloseDetailsPanel = useCallback(() => {
+    setShowDetailsPanel(false);
     setSelectedSuggestion(null);
-    setDetailsModalInitialTab('presentation');
   }, []);
 
   // --- Effects ---
@@ -903,364 +695,346 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   const showPendingSuggestions =
     activeFilter === 'all' || activeFilter === 'pending';
 
+  // --- Active process banner data ---
+  const activeProcessParty = useMemo(() => {
+    if (!activeProcessSuggestion) return null;
+    const isFirst = activeProcessSuggestion.firstPartyId === userId;
+    return isFirst ? activeProcessSuggestion.secondParty : activeProcessSuggestion.firstParty;
+  }, [activeProcessSuggestion, userId]);
+
+  const activeProcessImage = activeProcessParty?.images?.find((img) => img.isMain);
+  const activeProcessAge = calculateAge(activeProcessParty?.profile?.birthDate ?? null);
+
   // --- Render ---
   return (
     <div
-      className={cn(
-        'min-h-screen bg-gradient-to-br from-slate-50 via-teal-50/20 to-orange-50/20',
-        className
-      )}
+      className={cn('min-h-screen bg-gray-50', className)}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      <div className="container mx-auto px-4 py-8">
-        {/* Main Card */}
-        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm overflow-hidden rounded-3xl">
-          {/* Card Header */}
-          <CardHeader className="pb-4 bg-gradient-to-r from-white via-teal-50/30 to-orange-50/30 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="rounded-full h-10 w-10 hover:bg-teal-100 transition-colors"
-                  aria-label={suggestionsDict.container.main.refreshAriaLabel}
-                >
-                  <RefreshCw
-                    className={cn(
-                      'h-5 w-5 text-teal-600',
-                      isRefreshing && 'animate-spin'
-                    )}
-                  />
-                </Button>
-                {hasNewSuggestions && (
-                  <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 shadow-xl animate-pulse">
-                    <Bell className={cn('w-3 h-3', isRtl ? 'ml-1' : 'mr-1')} />
-                    {suggestionsDict.container.main.newSuggestions}
-                  </Badge>
+      <div className="max-w-[900px] mx-auto px-4 py-6 space-y-6">
+
+        {/* ===== Page Header ===== */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-gray-900">
+            {suggestionsDict.container.main.title}
+          </h1>
+          <div className="flex items-center gap-2">
+            {hasNewSuggestions && (
+              <Badge className="bg-amber-500 text-white border-0 text-xs animate-pulse">
+                <Bell className={cn('w-3 h-3', isRtl ? 'ml-1' : 'mr-1')} />
+                {suggestionsDict.container.main.newSuggestions}
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="rounded-lg h-9 w-9 hover:bg-gray-200"
+              aria-label={suggestionsDict.container.main.refreshAriaLabel}
+            >
+              <RefreshCw className={cn('h-4 w-4 text-gray-600', isRefreshing && 'animate-spin')} />
+            </Button>
+          </div>
+        </div>
+
+        {/* ===== Auto-Suggestions Zone ===== */}
+        <AutoSuggestionsZone
+          activeSuggestion={dailySuggestion || null}
+          historySuggestions={autoSuggestionHistory}
+          userId={userId}
+          locale={locale}
+          dict={(suggestionsDict.container as any).autoSuggestions || {
+            title: locale === 'he' ? 'הצעות חכמות' : 'Smart Suggestions',
+            subtitle: locale === 'he' ? 'המערכת לומדת מהתגובות שלך' : 'System learns from your responses',
+            scheduleInfo: locale === 'he' ? 'הצעות נשלחות ביום ראשון ורביעי' : 'Suggestions sent Sunday & Wednesday',
+            nextSuggestionIn: locale === 'he' ? 'ההצעה הבאה בעוד {days} ימים' : 'Next suggestion in {days} days',
+            nextSuggestionTomorrow: locale === 'he' ? 'ההצעה הבאה מחר' : 'Next suggestion tomorrow',
+            nextSuggestionToday: locale === 'he' ? 'ההצעה הבאה היום' : 'Next suggestion today',
+            noActiveSuggestion: locale === 'he' ? 'אין הצעה חכמה פעילה' : 'No active smart suggestion',
+            waitingForSuggestion: locale === 'he' ? 'המערכת מחפשת עבורך' : 'System is searching for you',
+            viewSuggestion: locale === 'he' ? 'צפה בהצעה' : 'View Suggestion',
+            approve: locale === 'he' ? 'מעוניין/ת' : 'Interested',
+            decline: locale === 'he' ? 'לא מתאים' : 'Not a Match',
+            saveForLater: locale === 'he' ? 'שמור' : 'Save',
+            history: { title: '', empty: '', approved: '', declined: '', interested: '', expired: '' },
+            feedbackDialog: {
+              titleApprove: '', titleDeclineStep1: '', titleDeclineStep2: '', titleInterested: '',
+              subtitleApprove: '', subtitleDeclineStep1: '', subtitleDeclineStep2: '',
+              likedTraits: {}, missingTraits: {},
+              freeTextPlaceholder: '', missingFreeTextPlaceholder: '', selectAtLeastOne: '',
+              next: '', back: '', submitApprove: '', submitDecline: '', submitInterested: '',
+              thankYou: '', thankYouDesc: '',
+            },
+          }}
+          onViewDetails={handleViewDetails}
+          onStatusChange={handleStatusChange}
+        />
+
+        {/* ===== AI Chat Assistant ===== */}
+        <AiChatPanel locale={locale} />
+
+        {/* ===== Preference Toggle ===== */}
+        <FirstPartyPreferenceToggle
+          initialValue={wantsToBeFirstParty}
+          locale={locale}
+        />
+
+        {/* ===== Active Process Banner (replaces Hero Card) ===== */}
+        {activeProcessSuggestion && activeProcessParty && (
+          <button
+            type="button"
+            onClick={() => handleViewDetails(activeProcessSuggestion)}
+            className="w-full flex items-center gap-3 p-4 bg-white border border-teal-200 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer text-start"
+          >
+            {/* Photo */}
+            <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+              {activeProcessImage?.url ? (
+                <Image
+                  src={getRelativeCloudinaryPath(activeProcessImage.url)}
+                  alt={activeProcessParty.firstName}
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-gray-400" />
+                </div>
+              )}
+            </div>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900">
+                  {activeProcessParty.firstName}
+                  {activeProcessParty.lastName ? ` ${activeProcessParty.lastName.charAt(0)}.` : ''}
+                </span>
+                {activeProcessAge > 0 && (
+                  <span className="text-sm text-gray-500">{activeProcessAge}</span>
                 )}
               </div>
-              <div className="text-center flex-grow">
-                <CardTitle className="text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-600 to-amber-600 bg-clip-text text-transparent">
-                  {suggestionsDict.container.main.title}
-                </CardTitle>
-              </div>
-              <div className="w-16" />
+              <p className="text-xs text-teal-600 font-medium mt-0.5">
+                {isRtl ? 'הצעה פעילה — לחצ/י לצפייה' : 'Active suggestion — tap to view'}
+              </p>
             </div>
-          </CardHeader>
+            {/* Arrow */}
+            <Badge className="bg-teal-600 text-white border-0 text-xs">
+              {isRtl ? 'פעיל' : 'Active'}
+            </Badge>
+            {isRtl ? (
+              <ChevronLeft className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            )}
+          </button>
+        )}
 
-          <CardContent className="p-6">
-            {/* ===== Auto-Suggestions Zone ===== */}
-            <AutoSuggestionsZone
-              activeSuggestion={dailySuggestion || null}
-              historySuggestions={autoSuggestionHistory}
-              userId={userId}
-              locale={locale}
-              dict={(suggestionsDict.container as any).autoSuggestions || {
-                title: locale === 'he' ? 'הצעות חכמות' : 'Smart Suggestions',
-                subtitle: locale === 'he' ? 'המערכת לומדת מהתגובות שלך' : 'System learns from your responses',
-                scheduleInfo: locale === 'he' ? 'הצעות נשלחות ביום ראשון ורביעי' : 'Suggestions sent Sunday & Wednesday',
-                nextSuggestionIn: locale === 'he' ? 'ההצעה הבאה בעוד {days} ימים' : 'Next suggestion in {days} days',
-                nextSuggestionTomorrow: locale === 'he' ? 'ההצעה הבאה מחר' : 'Next suggestion tomorrow',
-                nextSuggestionToday: locale === 'he' ? 'ההצעה הבאה היום' : 'Next suggestion today',
-                noActiveSuggestion: locale === 'he' ? 'אין הצעה חכמה פעילה' : 'No active smart suggestion',
-                waitingForSuggestion: locale === 'he' ? 'המערכת מחפשת עבורך' : 'System is searching for you',
-                viewSuggestion: locale === 'he' ? 'צפה בהצעה' : 'View Suggestion',
-                approve: locale === 'he' ? 'מעוניין/ת' : 'Interested',
-                decline: locale === 'he' ? 'לא מתאים' : 'Not a Match',
-                saveForLater: locale === 'he' ? 'שמור' : 'Save',
-                history: { title: '', empty: '', approved: '', declined: '', interested: '', expired: '' },
-                feedbackDialog: {
-                  titleApprove: '', titleDeclineStep1: '', titleDeclineStep2: '', titleInterested: '',
-                  subtitleApprove: '', subtitleDeclineStep1: '', subtitleDeclineStep2: '',
-                  likedTraits: {}, missingTraits: {},
-                  freeTextPlaceholder: '', missingFreeTextPlaceholder: '', selectAtLeastOne: '',
-                  next: '', back: '', submitApprove: '', submitDecline: '', submitInterested: '',
-                  thankYou: '', thankYouDesc: '',
-                },
-              }}
-              onViewDetails={handleViewDetails}
-              onStatusChange={handleStatusChange}
-            />
-
-            {/* ===== AI Chat Assistant ===== */}
-            <AiChatPanel locale={locale} />
-
-            {/* ===== Preference Toggle ===== */}
-            <FirstPartyPreferenceToggle
-              initialValue={wantsToBeFirstParty}
-              locale={locale}
-              className="mb-6"
-            />
-
-            {/* ===== Tabs ===== */}
-            <Tabs
-              value={activeTab}
-              onValueChange={(val) => {
-                setActiveTab(val);
-                setActiveFilter('all'); // Reset filter when switching tabs
-              }}
-              dir={isRtl ? 'rtl' : 'ltr'}
-              className="space-y-6"
+        {/* ===== Date Feedback CTA ===== */}
+        {datingSuggestion && (
+          <div className="flex items-center gap-3 p-4 bg-rose-50 rounded-xl border border-rose-200">
+            <div className="w-9 h-9 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
+              <Heart className="w-4 h-4 text-rose-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-rose-800">
+                {isRtl ? 'איך היה הדייט?' : 'How was the date?'}
+              </h4>
+              <p className="text-xs text-rose-600">
+                {isRtl
+                  ? 'הפידבק שלך יעזור לנו להציע הצעות טובות יותר'
+                  : 'Your feedback helps us suggest better matches'}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs px-4"
+              onClick={() => setShowDateFeedbackDialog(true)}
             >
-              <div className="flex justify-center">
-                <TabsList className="grid grid-cols-2 bg-teal-50/50 rounded-2xl p-1 h-14 w-fit">
-                  <TabsTrigger
-                    value="active"
-                    className="relative flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
-                  >
-                    <Target className="w-5 h-5 text-teal-500" />
-                    <span className="group-data-[state=active]:text-teal-700">
-                      {suggestionsDict.container.main.tabs.active}
-                    </span>
-                    {matchmakerActiveSuggestions.length > 0 && (
-                      <Badge
-                        className={cn(
-                          'text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6',
-                          urgentCount > 0
-                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 animate-pulse'
-                            : 'bg-teal-500'
-                        )}
-                      >
-                        {matchmakerActiveSuggestions.length}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
+              <MessageCircle className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
+              {isRtl ? 'שתף/י' : 'Share'}
+            </Button>
+          </div>
+        )}
 
-                  <TabsTrigger
-                    value="history"
-                    className="flex items-center gap-3 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg font-semibold text-base"
-                  >
-                    <History className="w-5 h-5 text-gray-500" />
-                    <span>{suggestionsDict.container.main.tabs.history}</span>
-                    {matchmakerHistorySuggestions.length > 0 && (
-                      <Badge className="bg-gray-500 text-white border-0 px-2 py-1 text-xs font-bold rounded-full min-w-[24px] h-6">
-                        {matchmakerHistorySuggestions.length}
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-
-              {/* Error Alert */}
-              {error && (
-                <Alert
-                  variant="destructive"
-                  className="border-red-200 bg-red-50"
-                  dir={isRtl ? 'rtl' : 'ltr'}
+        {/* ===== Tabs ===== */}
+        <Tabs
+          value={activeTab}
+          onValueChange={(val) => {
+            setActiveTab(val);
+            setActiveFilter('all');
+          }}
+          dir={isRtl ? 'rtl' : 'ltr'}
+          className="space-y-4"
+        >
+          <TabsList className="grid grid-cols-2 bg-gray-100 rounded-lg p-1 h-11 w-full">
+            <TabsTrigger
+              value="active"
+              className="flex items-center gap-2 px-4 py-2 rounded-md transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-sm"
+            >
+              <Target className="w-4 h-4 text-teal-600" />
+              {suggestionsDict.container.main.tabs.active}
+              {matchmakerActiveSuggestions.length > 0 && (
+                <Badge
+                  className={cn(
+                    'text-white border-0 px-1.5 py-0 text-[10px] font-bold rounded-full min-w-[20px] h-5',
+                    urgentCount > 0 ? 'bg-amber-500' : 'bg-teal-600'
+                  )}
                 >
-                  <AlertCircle
-                    className={cn('h-5 w-5', isRtl ? 'ml-2' : 'mr-2')}
+                  {matchmakerActiveSuggestions.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="flex items-center gap-2 px-4 py-2 rounded-md transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-sm"
+            >
+              <History className="w-4 h-4 text-gray-500" />
+              {suggestionsDict.container.main.tabs.history}
+              {matchmakerHistorySuggestions.length > 0 && (
+                <Badge className="bg-gray-500 text-white border-0 px-1.5 py-0 text-[10px] font-bold rounded-full min-w-[20px] h-5">
+                  {matchmakerHistorySuggestions.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive" className="border-red-200 bg-red-50" dir={isRtl ? 'rtl' : 'ltr'}>
+              <AlertCircle className={cn('h-4 w-4', isRtl ? 'ml-2' : 'mr-2')} />
+              <AlertDescription className="text-red-800 text-sm">{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Active Tab Content */}
+          <TabsContent value="active" className="space-y-4">
+            <ErrorBoundary>
+              {/* Filter Chips */}
+              {(activeProcessSuggestion || interestedSuggestions.length > 0 || sortedActiveSuggestions.length > 0) && (
+                <div className="flex flex-wrap gap-2">
+                  <FilterChip
+                    label={filterLabels.active_process}
+                    count={activeProcessSuggestion ? 1 : 0}
+                    isActive={activeFilter === 'active_process'}
+                    onClick={() => handleFilterToggle('active_process')}
+                    icon={Star}
+                    activeColors="bg-teal-600 text-white border-teal-600"
+                    locale={locale}
                   />
-                  <AlertDescription className="text-red-800 font-medium">
-                    {error}
-                  </AlertDescription>
-                </Alert>
+                  <FilterChip
+                    label={filterLabels.backup}
+                    count={interestedSuggestions.length}
+                    isActive={activeFilter === 'backup'}
+                    onClick={() => handleFilterToggle('backup')}
+                    icon={Bookmark}
+                    activeColors="bg-amber-500 text-white border-amber-500"
+                    locale={locale}
+                  />
+                  <FilterChip
+                    label={filterLabels.pending}
+                    count={sortedActiveSuggestions.length}
+                    isActive={activeFilter === 'pending'}
+                    onClick={() => handleFilterToggle('pending')}
+                    icon={Zap}
+                    activeColors="bg-blue-600 text-white border-blue-600"
+                    locale={locale}
+                  />
+                  {activeFilter !== 'all' && (
+                    <button
+                      onClick={() => setActiveFilter('all')}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <XCircle className="w-3.5 h-3.5" />
+                      {isRtl ? 'הצג הכל' : 'Show all'}
+                    </button>
+                  )}
+                </div>
               )}
 
-              {/* Active Tab Content */}
-              <TabsContent value="active" className="space-y-6">
-                <ErrorBoundary>
-                {/* ===== NEW: Filter Chip Buttons ===== */}
-                {(activeProcessSuggestion ||
-                  interestedSuggestions.length > 0 ||
-                  sortedActiveSuggestions.length > 0) && (
-                  <div className="flex flex-wrap gap-2">
-                    <FilterChip
-                      label={filterLabels.active_process}
-                      count={activeProcessSuggestion ? 1 : 0}
-                      isActive={activeFilter === 'active_process'}
-                      onClick={() => handleFilterToggle('active_process')}
-                      icon={Star}
-                      activeColors="bg-gradient-to-r from-teal-500 to-emerald-500 text-white border-teal-500"
-                      locale={locale}
-                    />
-                    <FilterChip
-                      label={filterLabels.backup}
-                      count={interestedSuggestions.length}
-                      isActive={activeFilter === 'backup'}
-                      onClick={() => handleFilterToggle('backup')}
-                      icon={Bookmark}
-                      activeColors="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-500"
-                      locale={locale}
-                    />
-                    <FilterChip
-                      label={filterLabels.pending}
-                      count={sortedActiveSuggestions.length}
-                      isActive={activeFilter === 'pending'}
-                      onClick={() => handleFilterToggle('pending')}
-                      icon={Zap}
-                      activeColors="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-blue-500"
-                      locale={locale}
-                    />
-                    {activeFilter !== 'all' && (
-                      <button
-                        onClick={() => setActiveFilter('all')}
-                        className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        <XCircle className="w-3.5 h-3.5" />
-                        {isRtl ? 'הצג הכל' : 'Show all'}
-                      </button>
-                    )}
-                  </div>
-                )}
+              {/* Interested Queue */}
+              {showInterestedQueue && interestedSuggestions.length > 0 && (
+                <InterestedQueue
+                  suggestions={interestedSuggestions}
+                  userId={userId}
+                  locale={locale}
+                  isUserInActiveProcess={isUserInActiveProcess}
+                  onActivate={handleActivateInterested}
+                  onRemove={handleRemoveFromInterested}
+                  onViewDetails={handleViewDetails}
+                  onRankUpdate={handleRankUpdate}
+                />
+              )}
 
-                {/* ===== Hero Card for Active Process ===== */}
-                {showHero && activeProcessSuggestion && (
-                  <ActiveSuggestionHero
-                    suggestion={activeProcessSuggestion}
-                    userId={userId}
-                    locale={locale}
-                    onContactMatchmaker={handleContactMatchmaker}
-                    onViewDetails={handleViewDetails}
-                    className="mb-2"
-                  />
-                )}
-
-                {/* ===== Date Feedback CTA ===== */}
-                {datingSuggestion && showHero && (
-                  <div className="p-4 bg-gradient-to-r from-rose-50 via-pink-50 to-orange-50 rounded-2xl border border-rose-100 shadow-sm mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-md flex-shrink-0">
-                        <Heart className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-rose-800">
-                          {isRtl ? 'איך היה הדייט?' : 'How was the date?'}
-                        </h4>
-                        <p className="text-xs text-rose-600">
-                          {isRtl
-                            ? 'הפידבק שלך יעזור לנו להציע הצעות טובות יותר'
-                            : 'Your feedback helps us suggest better matches'}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl text-xs px-4 shadow-md"
-                        onClick={() => setShowDateFeedbackDialog(true)}
-                      >
-                        <MessageCircle className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
-                        {isRtl ? 'שתף/י' : 'Share'}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* ===== Interested Queue ===== */}
-                {showInterestedQueue && interestedSuggestions.length > 0 && (
-                  <InterestedQueue
-                    suggestions={interestedSuggestions}
-                    userId={userId}
-                    locale={locale}
-                    isUserInActiveProcess={isUserInActiveProcess}
-                    onActivate={handleActivateInterested}
-                    onRemove={handleRemoveFromInterested}
-                    onViewDetails={handleViewDetails}
-                    onRankUpdate={handleRankUpdate}
-                    className="mb-4"
-                  />
-                )}
-
-                {/* ===== Regular Suggestion Cards ===== */}
-                {showPendingSuggestions && (
-                  <SuggestionsList
-                    locale={locale}
-                    suggestions={sortedActiveSuggestions}
-                    userId={userId}
-                    viewMode={viewMode}
-                    isLoading={isRefreshing}
-                    onStatusChange={handleStatusChange}
-                    onActionRequest={handleRequestAction}
-                    onRefresh={handleRefresh}
-                    isUserInActiveProcess={isUserInActiveProcess}
-                    suggestionsDict={suggestionsDict}
-                    profileCardDict={profileCardDict}
-                  />
-                )}
-
-                {/* Empty state when filter shows nothing */}
-                {activeFilter !== 'all' &&
-                  ((activeFilter === 'active_process' &&
-                    !activeProcessSuggestion) ||
-                    (activeFilter === 'backup' &&
-                      interestedSuggestions.length === 0) ||
-                    (activeFilter === 'pending' &&
-                      sortedActiveSuggestions.length === 0)) && (
-                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                        {activeFilter === 'active_process' && (
-                          <Star className="w-8 h-8 text-gray-300" />
-                        )}
-                        {activeFilter === 'backup' && (
-                          <Bookmark className="w-8 h-8 text-gray-300" />
-                        )}
-                        {activeFilter === 'pending' && (
-                          <Clock className="w-8 h-8 text-gray-300" />
-                        )}
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                        {activeFilter === 'active_process' &&
-                          (isRtl
-                            ? 'אין הצעה פעילה כרגע'
-                            : 'No active suggestion')}
-                        {activeFilter === 'backup' &&
-                          (isRtl
-                            ? 'אין הצעות ברשימת הגיבוי'
-                            : 'No backup suggestions')}
-                        {activeFilter === 'pending' &&
-                          (isRtl
-                            ? 'אין הצעות ממתינות לתגובה'
-                            : 'No pending suggestions')}
-                      </h3>
-                      <button
-                        onClick={() => setActiveFilter('all')}
-                        className="text-sm text-teal-600 hover:text-teal-700 font-medium underline underline-offset-2"
-                      >
-                        {isRtl ? 'חזור לתצוגה מלאה' : 'Back to full view'}
-                      </button>
-                    </div>
-                  )}
-                </ErrorBoundary>
-              </TabsContent>
-
-              {/* History Tab Content */}
-              <TabsContent value="history" className="space-y-6">
-                <ErrorBoundary>
+              {/* Regular Suggestions */}
+              {showPendingSuggestions && (
                 <SuggestionsList
                   locale={locale}
-                  suggestions={matchmakerHistorySuggestions}
+                  suggestions={sortedActiveSuggestions}
                   userId={userId}
-                  viewMode={viewMode}
                   isLoading={isRefreshing}
-                  isHistory={true}
-                  onStatusChange={handleStatusChange}
                   onActionRequest={handleRequestAction}
-                  onRefresh={handleRefresh}
+                  onOpenDetails={handleViewDetails}
                   isUserInActiveProcess={isUserInActiveProcess}
                   suggestionsDict={suggestionsDict}
-                  profileCardDict={profileCardDict}
                 />
-                </ErrorBoundary>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+              )}
+
+              {/* Empty state when filter shows nothing */}
+              {activeFilter !== 'all' &&
+                ((activeFilter === 'active_process' && !activeProcessSuggestion) ||
+                  (activeFilter === 'backup' && interestedSuggestions.length === 0) ||
+                  (activeFilter === 'pending' && sortedActiveSuggestions.length === 0)) && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                      {activeFilter === 'active_process' && <Star className="w-7 h-7 text-gray-300" />}
+                      {activeFilter === 'backup' && <Bookmark className="w-7 h-7 text-gray-300" />}
+                      {activeFilter === 'pending' && <Clock className="w-7 h-7 text-gray-300" />}
+                    </div>
+                    <h3 className="text-base font-semibold text-gray-600 mb-2">
+                      {activeFilter === 'active_process' && (isRtl ? 'אין הצעה פעילה כרגע' : 'No active suggestion')}
+                      {activeFilter === 'backup' && (isRtl ? 'אין הצעות ברשימת הגיבוי' : 'No backup suggestions')}
+                      {activeFilter === 'pending' && (isRtl ? 'אין הצעות ממתינות לתגובה' : 'No pending suggestions')}
+                    </h3>
+                    <button
+                      onClick={() => setActiveFilter('all')}
+                      className="text-sm text-teal-600 hover:text-teal-700 font-medium underline underline-offset-2"
+                    >
+                      {isRtl ? 'חזור לתצוגה מלאה' : 'Back to full view'}
+                    </button>
+                  </div>
+                )}
+            </ErrorBoundary>
+          </TabsContent>
+
+          {/* History Tab Content */}
+          <TabsContent value="history" className="space-y-4">
+            <ErrorBoundary>
+              <SuggestionsList
+                locale={locale}
+                suggestions={matchmakerHistorySuggestions}
+                userId={userId}
+                isLoading={isRefreshing}
+                isHistory={true}
+                onActionRequest={handleRequestAction}
+                onOpenDetails={handleViewDetails}
+                isUserInActiveProcess={isUserInActiveProcess}
+                suggestionsDict={suggestionsDict}
+              />
+            </ErrorBoundary>
+          </TabsContent>
+        </Tabs>
       </div>
 
-      {/* ===== Details Modal (for Hero & InterestedQueue) ===== */}
-      <SuggestionDetailsModal
+      {/* ===== Detail Panel (slide-over) ===== */}
+      <SuggestionDetailPanel
         suggestion={selectedSuggestion}
         userId={userId}
-        locale={locale}
-        isOpen={showDetailsModal}
-        onClose={handleCloseDetailsModal}
+        isOpen={showDetailsPanel}
+        onClose={handleCloseDetailsPanel}
         onActionRequest={handleRequestAction}
-        onRefresh={() => fetchSuggestions(false)}
-        questionnaire={selectedQuestionnaireData}
-        isDemo={false}
-        initialTab={detailsModalInitialTab}
         isUserInActiveProcess={isUserInActiveProcess}
+        locale={locale}
         dict={{
           suggestions: suggestionsDict,
           profileCard: profileCardDict,
@@ -1269,7 +1043,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="border-0 shadow-2xl rounded-2xl z-[9999]">
+        <AlertDialogContent className="border border-gray-200 shadow-lg rounded-xl z-[9999]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold text-center">
               {actionType === 'approve'
@@ -1297,12 +1071,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             <AlertDialogAction
               onClick={handleConfirmAction}
               className={cn(
-                'rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300',
+                'rounded-lg font-medium transition-all',
                 actionType === 'approve'
-                  ? 'bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700'
+                  ? 'bg-teal-600 hover:bg-teal-700'
                   : actionType === 'interested'
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600'
-                    : 'bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700'
+                    ? 'bg-amber-500 hover:bg-amber-600'
+                    : 'bg-rose-600 hover:bg-rose-700'
               )}
             >
               {actionType === 'approve' ? (

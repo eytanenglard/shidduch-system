@@ -2,214 +2,213 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
-  Languages,
   User,
   Mail,
-  Key,
   Shield,
   Clock,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  XCircle,
   Bell,
-  Settings,
-  AlertCircle,
-  Trash2,
-  Loader2,
+  Key,
+  Globe,
   Heart,
+  AlertCircle,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Link2,
+  Download,
+  FileDown,
 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
-import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { useSession, signOut } from 'next-auth/react';
-import { UserRole, UserStatus, Language } from '@prisma/client';
+import { useSession } from 'next-auth/react';
+import { cn } from '@/lib/utils';
 import type { AccountSettingsDict } from '@/types/dictionary';
 import type { Locale } from '../../../i18n-config';
-import { cn } from '@/lib/utils';
+import type { AccountSettingsUser } from './account-settings/types';
+import PasswordSection from './account-settings/PasswordSection';
+import ConsentTogglesSection from './account-settings/ConsentTogglesSection';
+import LanguageSection from './account-settings/LanguageSection';
+import DeleteAccountDialog from './account-settings/DeleteAccountDialog';
 
 interface AccountSettingsProps {
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: UserRole;
-    status: UserStatus;
-    isVerified: boolean;
-    lastLogin: Date | null;
-    createdAt: Date;
-    engagementEmailsConsent?: boolean;
-    promotionalEmailsConsent?: boolean;
-    language?: Language;
-    wantsToBeFirstParty?: boolean; // ← NEW
-  };
+  user: AccountSettingsUser;
   dict: AccountSettingsDict;
   locale: Locale;
 }
 
-const PASSWORD_MIN_LENGTH = 8;
+/* ── Animation variants ── */
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.07 },
+  },
+};
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+};
+
+/* ── Reusable section wrapper ── */
+const SettingsSection: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  variant?: 'default' | 'danger';
+}> = ({ icon, title, description, children, variant = 'default' }) => (
+  <motion.section
+    variants={sectionVariants}
+    className={cn(
+      'rounded-xl border bg-card text-card-foreground shadow-sm',
+      variant === 'danger'
+        ? 'border-red-200 dark:border-red-900/50'
+        : 'border-border'
+    )}
+  >
+    <div className="px-5 py-4 border-b border-border/60">
+      <div className="flex items-center gap-2.5">
+        <div
+          className={cn(
+            'flex items-center justify-center w-8 h-8 rounded-lg',
+            variant === 'danger'
+              ? 'bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400'
+              : 'bg-muted text-muted-foreground'
+          )}
+        >
+          {icon}
+        </div>
+        <div>
+          <h3
+            className={cn(
+              'text-sm font-semibold',
+              variant === 'danger' && 'text-red-700 dark:text-red-400'
+            )}
+          >
+            {title}
+          </h3>
+          {description && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {description}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+    <div className="px-5 py-4">{children}</div>
+  </motion.section>
+);
+
+/* ── Info row: label + value ── */
+const InfoRow: React.FC<{
+  label: string;
+  value: React.ReactNode;
+  action?: React.ReactNode;
+  isLast?: boolean;
+}> = ({ label, value, action, isLast }) => (
+  <div
+    className={cn(
+      'flex items-center justify-between py-3',
+      !isLast && 'border-b border-border/40'
+    )}
+  >
+    <div className="min-w-0 flex-1">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        {label}
+      </p>
+      <div className="text-sm text-foreground mt-0.5">{value}</div>
+    </div>
+    {action && <div className="ms-4 flex-shrink-0">{action}</div>}
+  </div>
+);
+
+/* ── Provider icon helper ── */
+const ProviderIcon: React.FC<{ provider: string }> = ({ provider }) => {
+  switch (provider) {
+    case 'google':
+      return (
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+          <path
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+            fill="#4285F4"
+          />
+          <path
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853"
+          />
+          <path
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            fill="#FBBC05"
+          />
+          <path
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            fill="#EA4335"
+          />
+        </svg>
+      );
+    case 'apple':
+      return (
+        <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+          <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-2.13 4.45-3.74 4.25z" />
+        </svg>
+      );
+    default:
+      return <Mail className="w-5 h-5" />;
+  }
+};
+
+/* ── User initials avatar ── */
+const UserAvatar: React.FC<{
+  firstName: string;
+  lastName: string;
+  image?: string | null;
+}> = ({ firstName, lastName, image }) => {
+  const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+
+  if (image) {
+    return (
+      <img
+        src={image}
+        alt={`${firstName} ${lastName}`}
+        className="w-16 h-16 rounded-full object-cover ring-2 ring-border"
+      />
+    );
+  }
+
+  return (
+    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center ring-2 ring-border">
+      <span className="text-xl font-bold text-primary-foreground">
+        {initials || '?'}
+      </span>
+    </div>
+  );
+};
 
 const AccountSettings: React.FC<AccountSettingsProps> = ({
   user: propUser,
   dict,
   locale,
 }) => {
-  const {
-    data: session,
-    status: sessionStatus,
-    update: updateSession,
-  } = useSession();
-  const isHe = locale === 'he';
-
-  // States for consents
-  const [engagementConsent, setEngagementConsent] = useState(
-    propUser.engagementEmailsConsent || false
-  );
-  const [promotionalConsent, setPromotionalConsent] = useState(
-    propUser.promotionalEmailsConsent || false
-  );
-  const [isEngagementLoading, setIsEngagementLoading] = useState(false);
-  const [isPromotionalLoading, setIsPromotionalLoading] = useState(false);
-
-  // ← NEW: First Party Consent state
-  const [wantsToBeFirstParty, setWantsToBeFirstParty] = useState<boolean>(
-    propUser.wantsToBeFirstParty ?? true
-  );
-  const [isFirstPartyLoading, setIsFirstPartyLoading] = useState(false);
-
-  // Other states
-  const [preferredLanguage, setPreferredLanguage] = useState<Language>(
-    propUser.language || Language.he
-  );
-  const [isLanguageLoading, setIsLanguageLoading] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const { update: updateSession } = useSession();
   const [isSendingVerification, setIsSendingVerification] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordChangeStep, setPasswordChangeStep] = useState(1);
-  const [, setShowVerificationInput] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
-  const [passwordRequirements, setPasswordRequirements] = useState({
-    length: false,
-    uppercase: false,
-    lowercase: false,
-    number: false,
-  });
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-  useEffect(() => {
-    if (session?.user) {
-      if (
-        session.user.language &&
-        session.user.language !== preferredLanguage
-      ) {
-        setPreferredLanguage(session.user.language);
-      }
-      if (
-        typeof session.user.engagementEmailsConsent === 'boolean' &&
-        session.user.engagementEmailsConsent !== engagementConsent
-      ) {
-        setEngagementConsent(session.user.engagementEmailsConsent);
-      }
-      if (
-        typeof session.user.promotionalEmailsConsent === 'boolean' &&
-        session.user.promotionalEmailsConsent !== promotionalConsent
-      ) {
-        setPromotionalConsent(session.user.promotionalEmailsConsent);
-      }
-    }
-  }, [session?.user]);
-
-  const canChangePassword = useMemo(() => {
-    if (sessionStatus === 'authenticated' && session?.user?.accounts) {
-      return session.user.accounts.some(
-        (acc) => acc.provider === 'credentials'
-      );
-    }
-    return false;
-  }, [session, sessionStatus]);
-
-  useEffect(() => {
-    if (!newPassword) {
-      setPasswordStrength(0);
-      setPasswordRequirements({
-        length: false,
-        uppercase: false,
-        lowercase: false,
-        number: false,
-      });
-      return;
-    }
-    const requirements = {
-      length: newPassword.length >= PASSWORD_MIN_LENGTH,
-      uppercase: /[A-Z]/.test(newPassword),
-      lowercase: /[a-z]/.test(newPassword),
-      number: /[0-9]/.test(newPassword),
-    };
-    setPasswordRequirements(requirements);
-    const metRequirements = Object.values(requirements).filter(Boolean).length;
-    setPasswordStrength(metRequirements * 25);
-  }, [newPassword]);
-
-  const validatePassword = (password: string) => {
-    const { requirements } = dict.passwordDialog;
-    if (password.length < PASSWORD_MIN_LENGTH)
-      throw new Error(
-        requirements.length.replace('{{count}}', String(PASSWORD_MIN_LENGTH))
-      );
-    if (!/[A-Z]/.test(password)) throw new Error(requirements.uppercase);
-    if (!/[a-z]/.test(password)) throw new Error(requirements.lowercase);
-    if (!/[0-9]/.test(password)) throw new Error(requirements.number);
-  };
-
-  const resetPasswordForm = () => {
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setVerificationCode('');
-    setShowVerificationInput(false);
-    setIsChangingPassword(false);
-    setPasswordChangeStep(1);
-    setShowCurrentPassword(false);
-    setShowNewPassword(false);
-    setShowConfirmPassword(false);
+  const handleSessionUpdate = async () => {
+    await updateSession();
   };
 
   const sendVerificationEmail = async () => {
     setIsSendingVerification(true);
     try {
-      const response = await fetch(`/api/auth/send-verification`, {
+      const response = await fetch('/api/auth/send-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: propUser.email }),
@@ -220,987 +219,319 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
       }
       toast.success(dict.toasts.verificationSentSuccess, {
         description: dict.toasts.verificationSentDesc,
-        icon: <Mail className="h-5 w-5 text-blue-500" />,
       });
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
           : dict.toasts.sendVerificationError,
-        {
-          description: dict.toasts.sendVerificationDesc,
-          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-        }
+        { description: dict.toasts.sendVerificationDesc }
       );
     } finally {
       setIsSendingVerification(false);
     }
   };
 
-  const initiatePasswordChange = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error(dict.toasts.fillAllFieldsError, {
-        description: dict.toasts.fillAllFieldsDesc,
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-      });
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error(dict.toasts.passwordsMismatchError, {
-        description: dict.toasts.passwordsMismatchDesc,
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-      });
-      return;
-    }
+  const handleExportData = async () => {
+    setIsExporting(true);
     try {
-      validatePassword(newPassword);
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : dict.toasts.passwordValidationError,
-        {
-          description: dict.toasts.passwordValidationDesc,
-          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-        }
-      );
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/auth/initiate-password-change`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: propUser.id,
-          currentPassword,
-          newPassword,
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to initiate password change');
-      }
-      setPasswordChangeStep(2);
-      setShowVerificationInput(true);
-      toast.success(dict.toasts.verificationSentSuccess, {
-        description: dict.toasts.verificationSentDesc,
-        icon: <Mail className="h-5 w-5 text-blue-500" />,
-      });
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : dict.toasts.initiatePasswordError,
-        {
-          description: dict.toasts.initiatePasswordDesc,
-          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-        }
-      );
+      const response = await fetch('/api/user/export-data', { method: 'GET' });
+      if (!response.ok) throw new Error('Export failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `neshamatech-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success(dict.sections.privacy.exportSuccess);
+    } catch {
+      toast.error(dict.sections.privacy.exportError);
     } finally {
-      setIsLoading(false);
+      setIsExporting(false);
     }
-  };
-
-  const completePasswordChange = async () => {
-    if (!verificationCode || !/^\d{6}$/.test(verificationCode)) {
-      toast.error(dict.toasts.invalidVerificationCode, {
-        description: dict.toasts.invalidVerificationCodeDesc,
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-      });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/auth/complete-password-change`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: propUser.id,
-          token: verificationCode,
-          newPassword,
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to complete password change');
-      }
-      toast.success(dict.toasts.passwordUpdateSuccess, {
-        description: dict.toasts.passwordUpdateSuccessDesc,
-        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
-      });
-      resetPasswordForm();
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : dict.toasts.passwordUpdateError,
-        {
-          description: dict.toasts.passwordUpdateDesc,
-          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-        }
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== dict.deleteDialog.confirmationPhrase) {
-      toast.error(dict.toasts.invalidDeleteConfirmation, {
-        description: dict.toasts.invalidDeleteConfirmationDesc.replace(
-          '{{phrase}}',
-          dict.deleteDialog.confirmationPhrase
-        ),
-        icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-      });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/auth/delete`, { method: 'DELETE' });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete account');
-      }
-      toast.success(dict.toasts.deleteSuccess, {
-        description: dict.toasts.deleteSuccessDesc,
-        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
-      });
-      await signOut({ callbackUrl: '/' });
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : dict.toasts.deleteError,
-        {
-          description: dict.toasts.deleteErrorDesc,
-          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-        }
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleConsentChange = async (
-    consentType: 'engagement' | 'promotional',
-    checked: boolean
-  ) => {
-    const setLoading =
-      consentType === 'engagement'
-        ? setIsEngagementLoading
-        : setIsPromotionalLoading;
-    const setConsent =
-      consentType === 'engagement'
-        ? setEngagementConsent
-        : setPromotionalConsent;
-    const previousValue =
-      consentType === 'engagement' ? engagementConsent : promotionalConsent;
-
-    setLoading(true);
-    setConsent(checked);
-
-    try {
-      const response = await fetch('/api/user/consent-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ consentType, consentValue: checked }),
-      });
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        setConsent(previousValue);
-        throw new Error(result.error || 'Failed to update preferences.');
-      }
-
-      toast.success(dict.toasts.consentUpdateSuccess, {
-        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
-      });
-
-      await updateSession();
-    } catch (error) {
-      setConsent(previousValue);
-      toast.error(
-        error instanceof Error ? error.message : dict.toasts.consentUpdateError,
-        {
-          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ← NEW: First Party Consent handler
-  const handleFirstPartyChange = async (newValue: boolean) => {
-    const previous = wantsToBeFirstParty;
-    setIsFirstPartyLoading(true);
-    setWantsToBeFirstParty(newValue); // Optimistic update
-
-    try {
-      const response = await fetch('/api/profile/first-party-preference', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wantsToBeFirstParty: newValue }),
-      });
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        setWantsToBeFirstParty(previous); // Rollback
-        throw new Error(result.error || 'Failed to update preference.');
-      }
-
-      toast.success(
-        newValue
-          ? isHe
-            ? '✅ תקבל/י הצעות מהסריקה האוטומטית'
-            : '✅ You will receive auto-scan suggestions'
-          : isHe
-            ? '🔕 הצעות יגיעו רק דרך שדכן אנושי'
-            : '🔕 Suggestions will only arrive via a matchmaker',
-        { icon: <CheckCircle className="h-5 w-5 text-green-500" /> }
-      );
-    } catch (error) {
-      setWantsToBeFirstParty(previous); // Rollback
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : isHe
-            ? 'שגיאה בשמירה'
-            : 'Save failed',
-        { icon: <AlertCircle className="h-5 w-5 text-red-500" /> }
-      );
-    } finally {
-      setIsFirstPartyLoading(false);
-    }
-  };
-
-  const handleLanguageChange = async (newLanguage: Language) => {
-    const previousLanguage = preferredLanguage;
-    setPreferredLanguage(newLanguage);
-    setIsLanguageLoading(true);
-
-    try {
-      const response = await fetch('/api/user/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language: newLanguage }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Failed to update language.');
-      }
-
-      await updateSession();
-
-      toast.success(dict.toasts.languageUpdateSuccess, {
-        icon: <CheckCircle className="h-5 w-5 text-green-500" />,
-      });
-    } catch (error) {
-      setPreferredLanguage(previousLanguage);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : dict.toasts.languageUpdateError,
-        {
-          icon: <AlertCircle className="h-5 w-5 text-red-500" />,
-        }
-      );
-    } finally {
-      setIsLanguageLoading(false);
-    }
-  };
-
-  const getPasswordStrengthColor = () => {
-    if (passwordStrength <= 25) return 'bg-red-500';
-    if (passwordStrength <= 50) return 'bg-orange-500';
-    if (passwordStrength <= 75) return 'bg-yellow-500';
-    return 'bg-green-500';
-  };
-
-  const getPasswordStrengthText = () => {
-    const { passwordStrength: strengthDict } = dict;
-    if (passwordStrength <= 25) return strengthDict.veryWeak;
-    if (passwordStrength <= 50) return strengthDict.weak;
-    if (passwordStrength <= 75) return strengthDict.medium;
-    return strengthDict.strong;
   };
 
   if (!propUser) {
     return <div>{dict.loadingText}</div>;
   }
 
-  const PasswordRequirement: React.FC<{ label: string; met: boolean }> = ({
-    label,
-    met,
-  }) => (
-    <li
-      className={`flex items-center text-xs ${met ? 'text-green-600' : 'text-gray-500'}`}
-    >
-      {met ? (
-        <CheckCircle className="w-3.5 h-3.5 me-1.5" />
-      ) : (
-        <XCircle className="w-3.5 h-3.5 me-1.5" />
-      )}
-      {label}
-    </li>
-  );
-
   return (
-    <div
-      className="max-w-2xl mx-auto space-y-6"
+    <motion.div
+      className="max-w-2xl mx-auto space-y-5 pb-8"
       dir={locale === 'he' ? 'rtl' : 'ltr'}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
     >
-      <Card
-        className="shadow-md hover:shadow-lg transition-all duration-300 border-t-4 border-blue-600 overflow-hidden relative"
-        onMouseEnter={() => setActiveSection('main')}
-        onMouseLeave={() => setActiveSection(null)}
+      {/* ── Profile Header ── */}
+      <motion.div
+        variants={sectionVariants}
+        className="flex items-center gap-4 pt-1 pb-2"
       >
-        <div
-          className={`absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 opacity-0 transition-opacity duration-500 ${activeSection === 'main' ? 'opacity-60' : ''}`}
+        <UserAvatar
+          firstName={propUser.firstName}
+          lastName={propUser.lastName}
+          image={propUser.image}
         />
-        <CardHeader className="border-b pb-3 relative">
-          <CardTitle className="text-xl flex items-center">
-            <Settings className="w-5 h-5 text-blue-600 me-2" />
-            {dict.cardHeader.title}
-          </CardTitle>
-          <CardDescription>{dict.cardHeader.description}</CardDescription>
-        </CardHeader>
-
-        <CardContent className="divide-y relative">
-          {/* ── Personal Info ── */}
-          <div className="py-4">
-            <h3 className="text-base font-semibold flex items-center mb-4">
-              <User className="w-4 h-4 text-blue-600 me-2" />
-              {dict.sections.personal.title}
-            </h3>
-            <div className="grid gap-3">
-              <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3">
-                <User className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    {dict.sections.personal.fullNameLabel}
-                  </p>
-                  <p className="text-base text-gray-800">
-                    {propUser.firstName || ''}{' '}
-                    {propUser.lastName || dict.sections.personal.fullNameNotSet}
-                  </p>
-                </div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3">
-                <Mail className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">
-                      {dict.sections.personal.emailLabel}
-                    </p>
-                    <p className="text-base text-gray-800">{propUser.email}</p>
-                  </div>
-                  {!propUser.isVerified && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={sendVerificationEmail}
-                      disabled={isSendingVerification}
-                    >
-                      {isSendingVerification ? (
-                        <Loader2 className="w-4 h-4 me-2 animate-spin" />
-                      ) : (
-                        <Mail className="w-4 h-4 me-2" />
-                      )}
-                      {dict.sections.personal.sendVerificationButton}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold tracking-tight truncate">
+            {propUser.firstName} {propUser.lastName}
+          </h2>
+          <p className="text-sm text-muted-foreground truncate">
+            {propUser.email}
+          </p>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <Badge
+              variant="secondary"
+              className="text-[10px] px-2 py-0.5 font-medium"
+            >
+              {dict.sections.status.roles[propUser.role]}
+            </Badge>
+            <Badge
+              variant="outline"
+              className={cn(
+                'text-[10px] px-2 py-0.5 font-medium',
+                propUser.status === 'ACTIVE'
+                  ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400'
+                  : ''
+              )}
+            >
+              {dict.sections.status.statuses[propUser.status]}
+            </Badge>
           </div>
+        </div>
+      </motion.div>
 
-          {/* ── Language ── */}
-          <div className="py-4">
-            <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Languages className="w-4 h-4 text-blue-600 me-2" />
-              {dict.sections.language.title}
-            </h3>
-            <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
-              <div>
-                <Label
-                  htmlFor="language-select"
-                  className="cursor-pointer text-start"
-                >
-                  {dict.sections.language.label}
-                </Label>
-                <p className="text-xs text-gray-600 text-start">
-                  {dict.sections.language.description}
-                </p>
-              </div>
-              <div className="relative">
-                <select
-                  id="language-select"
-                  value={preferredLanguage}
-                  onChange={(e) =>
-                    handleLanguageChange(e.target.value as Language)
-                  }
-                  disabled={isLanguageLoading}
-                  className="w-32 appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pe-8 text-sm shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="he">עברית</option>
-                  <option value="en">English</option>
-                </select>
-                {isLanguageLoading && (
-                  <Loader2 className="absolute top-1/2 end-10 -translate-y-1/2 h-4 w-4 animate-spin text-gray-500 pointer-events-none" />
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ── Account Status ── */}
-          <div className="py-4">
-            <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Shield className="w-4 h-4 text-blue-600 me-2" />
-              {dict.sections.status.title}
-            </h3>
-            <div className="grid gap-3">
-              <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3">
-                <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    {dict.sections.status.permissionsLabel}
-                  </p>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    <Badge variant="outline">
-                      {dict.sections.status.roles[propUser.role]}
-                    </Badge>
-                    <Badge>
-                      {dict.sections.status.statuses[propUser.status]}
-                    </Badge>
-                    <Badge>
-                      {propUser.isVerified
-                        ? dict.sections.status.verification.verified
-                        : dict.sections.status.verification.notVerified}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3">
-                <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    {dict.sections.status.timeInfoLabel}
-                  </p>
-                  <p className="text-gray-800">
-                    {dict.sections.status.createdAt}{' '}
-                    {new Date(propUser.createdAt).toLocaleDateString(locale)}
-                  </p>
-                  {propUser.lastLogin && (
-                    <p className="text-gray-800">
-                      {dict.sections.status.lastLogin}{' '}
-                      {new Date(propUser.lastLogin).toLocaleDateString(locale)}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Match Suggestion Preferences (NEW) ── */}
-          <div className="py-4">
-            <h3 className="text-base font-semibold mb-1 flex items-center">
-              <Heart className="w-4 h-4 text-rose-500 me-2" />
-              {isHe ? 'העדפות קבלת הצעות' : 'Match Suggestion Preferences'}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4 text-start">
-              {isHe
-                ? 'קביעה האם את/ה מסכים/ה לקבל הצעות שידוך כ"צד א\'" מהסריקה האוטומטית'
-                : "Choose whether you're open to receiving match suggestions as the first party from the auto-scan"}
-            </p>
-
-            {/* שני כפתורים */}
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {/* כן */}
-              <button
-                onClick={() =>
-                  !isFirstPartyLoading && handleFirstPartyChange(true)
-                }
-                disabled={isFirstPartyLoading}
-                className={cn(
-                  'relative flex flex-col items-center gap-2 px-4 py-3.5 rounded-xl border-2 text-sm font-medium transition-all duration-200',
-                  wantsToBeFirstParty
-                    ? 'border-teal-500 bg-gradient-to-br from-teal-50 to-emerald-50 text-teal-700 shadow-md shadow-teal-100'
-                    : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-teal-300 hover:bg-teal-50/50 hover:text-teal-600',
-                  isFirstPartyLoading && 'opacity-60 cursor-not-allowed'
-                )}
-              >
-                {isFirstPartyLoading && wantsToBeFirstParty ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <CheckCircle
-                    className={cn(
-                      'w-5 h-5',
-                      wantsToBeFirstParty ? 'text-teal-500' : 'text-gray-400'
-                    )}
-                  />
-                )}
-                <span>
-                  {isHe ? 'כן, אני פתוח/ה לזה' : "Yes, I'm open to it"}
-                </span>
-                {wantsToBeFirstParty && (
-                  <span className="absolute -top-2 -end-2 w-5 h-5 bg-teal-500 rounded-full flex items-center justify-center shadow-sm">
-                    <CheckCircle className="w-3 h-3 text-white" />
-                  </span>
-                )}
-              </button>
-
-              {/* לא */}
-              <button
-                onClick={() =>
-                  !isFirstPartyLoading && handleFirstPartyChange(false)
-                }
-                disabled={isFirstPartyLoading}
-                className={cn(
-                  'relative flex flex-col items-center gap-2 px-4 py-3.5 rounded-xl border-2 text-sm font-medium transition-all duration-200',
-                  !wantsToBeFirstParty
-                    ? 'border-rose-400 bg-gradient-to-br from-rose-50 to-red-50 text-rose-700 shadow-md shadow-rose-100'
-                    : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-rose-300 hover:bg-rose-50/50 hover:text-rose-600',
-                  isFirstPartyLoading && 'opacity-60 cursor-not-allowed'
-                )}
-              >
-                {isFirstPartyLoading && !wantsToBeFirstParty ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <XCircle
-                    className={cn(
-                      'w-5 h-5',
-                      !wantsToBeFirstParty ? 'text-rose-500' : 'text-gray-400'
-                    )}
-                  />
-                )}
-                <span>{isHe ? 'לא, רק דרך שדכן' : 'No, matchmaker only'}</span>
-                {!wantsToBeFirstParty && (
-                  <span className="absolute -top-2 -end-2 w-5 h-5 bg-rose-400 rounded-full flex items-center justify-center shadow-sm">
-                    <CheckCircle className="w-3 h-3 text-white" />
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* הסבר */}
-            <p className="text-xs text-center text-gray-400">
-              {wantsToBeFirstParty
-                ? isHe
-                  ? '✅ המערכת רשאית לשלוח לך הצעות ישירות מהסריקה האוטומטית'
-                  : '✅ The system may send you suggestions directly from the auto-scan'
-                : isHe
-                  ? '🔕 הצעות שידוך יגיעו אליך רק דרך שדכן אנושי'
-                  : '🔕 Match suggestions will only arrive via a human matchmaker'}
-            </p>
-          </div>
-
-          {/* ── Email Communication ── */}
-          <div className="py-4">
-            <h3 className="text-base font-semibold mb-4 flex items-center">
-              <Bell className="w-4 h-4 text-blue-600 me-2" />
-              {dict.sections.communication.title}
-            </h3>
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
-                <div>
-                  <Label
-                    htmlFor="engagement-switch"
-                    className="cursor-pointer text-start font-medium text-gray-800"
-                  >
-                    {dict.sections.communication.engagement.label}
-                  </Label>
-                  <p className="text-xs text-gray-600 text-start">
-                    {dict.sections.communication.engagement.description}
-                  </p>
-                </div>
-                <Switch
-                  id="engagement-switch"
-                  checked={engagementConsent}
-                  onCheckedChange={(checked) =>
-                    handleConsentChange('engagement', checked)
-                  }
-                  disabled={isEngagementLoading}
-                />
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
-                <div>
-                  <Label
-                    htmlFor="promotional-switch"
-                    className="cursor-pointer text-start font-medium text-gray-800"
-                  >
-                    {dict.sections.communication.promotional.label}
-                  </Label>
-                  <p className="text-xs text-gray-600 text-start">
-                    {dict.sections.communication.promotional.description}
-                  </p>
-                </div>
-                <Switch
-                  id="promotional-switch"
-                  checked={promotionalConsent}
-                  onCheckedChange={(checked) =>
-                    handleConsentChange('promotional', checked)
-                  }
-                  disabled={isPromotionalLoading}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* ── Security ── */}
-          <div className="py-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-start">
-                <h3 className="text-base font-semibold flex items-center">
-                  <Key className="w-4 h-4 text-blue-600 me-2" />
-                  {dict.sections.security.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {dict.sections.security.description}
-                </p>
-              </div>
-              {sessionStatus !== 'loading' && canChangePassword && (
-                <Button
+      {/* ── Personal Info ── */}
+      <SettingsSection
+        icon={<User className="w-4 h-4" />}
+        title={dict.sections.personal.title}
+      >
+        <InfoRow
+          label={dict.sections.personal.fullNameLabel}
+          value={
+            <span className="font-medium">
+              {propUser.firstName || ''}{' '}
+              {propUser.lastName || dict.sections.personal.fullNameNotSet}
+            </span>
+          }
+        />
+        <InfoRow
+          label={dict.sections.personal.emailLabel}
+          value={
+            <div className="flex items-center gap-2 flex-wrap">
+              <span>{propUser.email}</span>
+              {propUser.isVerified ? (
+                <Badge
                   variant="outline"
-                  size="sm"
-                  onClick={() => setIsChangingPassword(true)}
-                  disabled={isLoading}
+                  className="border-green-200 bg-green-50 text-green-700 text-[10px] px-1.5 py-0 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
                 >
-                  <Key className="w-4 h-4 me-2" />
-                  {dict.sections.security.changePasswordButton}
-                </Button>
+                  <CheckCircle2 className="w-3 h-3 me-1" />
+                  {dict.sections.status.verification.verified}
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="border-amber-200 bg-amber-50 text-amber-700 text-[10px] px-1.5 py-0 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400"
+                >
+                  <XCircle className="w-3 h-3 me-1" />
+                  {dict.sections.status.verification.notVerified}
+                </Badge>
               )}
             </div>
-            <div className="grid gap-3">
-              <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3">
-                <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    {dict.sections.security.accountVerificationLabel}
-                  </p>
-                  <p className="text-base text-gray-800 flex items-center gap-1">
-                    {propUser.isVerified ? (
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-red-600" />
-                    )}
-                    {propUser.isVerified
-                      ? dict.sections.status.verification.verified
-                      : dict.sections.status.verification.notVerified}
-                  </p>
-                </div>
-              </div>
-              {sessionStatus !== 'loading' && !canChangePassword && (
-                <div className="bg-gray-50 p-3 rounded-lg flex items-start gap-3">
-                  <Key className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">
-                      {dict.sections.security.passwordManagementLabel}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {session?.user?.accounts &&
-                      session.user.accounts.length > 0
-                        ? dict.sections.security.managedByProvider.replace(
-                            '{{provider}}',
-                            session.user.accounts[0].provider
-                          )
-                        : dict.sections.security.managedExternally}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* ── Delete Account ── */}
-          <div className="py-4 border-t border-dashed border-red-200">
-            <div className="flex items-center justify-between">
-              <div className="text-start">
-                <h3 className="text-base font-semibold flex items-center text-red-600">
-                  <Trash2 className="w-4 h-4 me-2" />
-                  {dict.sections.delete.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {dict.sections.delete.description}
-                </p>
-              </div>
+          }
+          action={
+            !propUser.isVerified ? (
               <Button
-                variant="destructive"
+                variant="outline"
                 size="sm"
-                onClick={() => setIsDeletingAccount(true)}
-                disabled={isLoading}
+                onClick={sendVerificationEmail}
+                disabled={isSendingVerification}
+                className="text-xs h-8"
               >
-                <Trash2 className="w-4 h-4 me-2" />
-                {dict.sections.delete.deleteButton}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-
-        <CardFooter className="bg-gradient-to-r from-gray-50 to-white border-t p-4 text-sm text-gray-500 relative">
-          <div className="flex items-center">
-            <Bell className="w-4 h-4 text-blue-600 me-2" />
-            <span>{dict.cardFooter.notice}</span>
-          </div>
-        </CardFooter>
-      </Card>
-
-      {/* ── Password Dialog ── */}
-      {canChangePassword && (
-        <Dialog
-          open={isChangingPassword}
-          onOpenChange={(open) => {
-            if (!open) resetPasswordForm();
-            else setIsChangingPassword(true);
-          }}
-        >
-          <DialogContent
-            className="sm:max-w-md"
-            dir={locale === 'he' ? 'rtl' : 'ltr'}
-          >
-            <DialogHeader className="text-start">
-              <DialogTitle>{dict.passwordDialog.title}</DialogTitle>
-              <DialogDescription>
-                {passwordChangeStep === 1
-                  ? dict.passwordDialog.step1Description
-                  : dict.passwordDialog.step2Description.replace(
-                      '{{email}}',
-                      propUser.email
-                    )}
-              </DialogDescription>
-            </DialogHeader>
-            {passwordChangeStep === 1 ? (
-              <div className="space-y-4 text-start">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">
-                    {dict.passwordDialog.currentPasswordLabel}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="currentPassword"
-                      type={showCurrentPassword ? 'text' : 'password'}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                      onClick={() =>
-                        setShowCurrentPassword(!showCurrentPassword)
-                      }
-                    >
-                      {showCurrentPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">
-                    {dict.passwordDialog.newPasswordLabel}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? 'text' : 'password'}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                    >
-                      {showNewPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">
-                    {dict.passwordDialog.confirmPasswordLabel}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                {newPassword && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-medium">
-                        {dict.passwordDialog.strengthLabel}
-                      </p>
-                      <p
-                        className={`text-xs font-semibold ${getPasswordStrengthColor().replace('bg-', 'text-')}`}
-                      >
-                        {getPasswordStrengthText()}
-                      </p>
-                    </div>
-                    <Progress
-                      value={passwordStrength}
-                      className={`h-1.5 ${getPasswordStrengthColor()}`}
-                    />
-                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
-                      <PasswordRequirement
-                        label={dict.passwordDialog.requirements.length.replace(
-                          '{{count}}',
-                          String(PASSWORD_MIN_LENGTH)
-                        )}
-                        met={passwordRequirements.length}
-                      />
-                      <PasswordRequirement
-                        label={dict.passwordDialog.requirements.uppercase}
-                        met={passwordRequirements.uppercase}
-                      />
-                      <PasswordRequirement
-                        label={dict.passwordDialog.requirements.lowercase}
-                        met={passwordRequirements.lowercase}
-                      />
-                      <PasswordRequirement
-                        label={dict.passwordDialog.requirements.number}
-                        met={passwordRequirements.number}
-                      />
-                    </ul>
-                  </div>
+                {isSendingVerification ? (
+                  <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />
+                ) : (
+                  <Mail className="w-3.5 h-3.5 me-1.5" />
                 )}
-              </div>
-            ) : (
-              <div className="space-y-4 text-start">
-                <Label htmlFor="verificationCode">
-                  {dict.passwordDialog.verificationCodeLabel}
-                </Label>
-                <Input
-                  id="verificationCode"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="123456"
-                  maxLength={6}
-                />
-              </div>
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={resetPasswordForm}>
-                {dict.passwordDialog.cancelButton}
+                {dict.sections.personal.sendVerificationButton}
               </Button>
-              <Button
-                onClick={
-                  passwordChangeStep === 1
-                    ? initiatePasswordChange
-                    : completePasswordChange
-                }
-                disabled={isLoading}
+            ) : undefined
+          }
+          isLast
+        />
+      </SettingsSection>
+
+      {/* ── Connected Accounts ── */}
+      {propUser.accounts && propUser.accounts.length > 0 && (
+        <SettingsSection
+          icon={<Link2 className="w-4 h-4" />}
+          title={dict.sections.connectedAccounts.title}
+          description={dict.sections.connectedAccounts.description}
+        >
+          <div className="space-y-2">
+            {propUser.accounts.map((account, idx) => (
+              <div
+                key={`${account.provider}-${idx}`}
+                className={cn(
+                  'flex items-center gap-3 py-2.5',
+                  idx < (propUser.accounts?.length ?? 0) - 1 &&
+                    'border-b border-border/40'
+                )}
               >
-                {isLoading ? (
-                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                ) : null}
-                {passwordChangeStep === 1
-                  ? dict.passwordDialog.continueButton
-                  : dict.passwordDialog.confirmButton}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted">
+                  <ProviderIcon provider={account.provider} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">
+                    {dict.sections.connectedAccounts.providers[
+                      account.provider as keyof typeof dict.sections.connectedAccounts.providers
+                    ] || account.provider}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {dict.sections.connectedAccounts.connectedVia}
+                  </p>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="border-green-200 bg-green-50 text-green-700 text-[10px] dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+                >
+                  <CheckCircle2 className="w-3 h-3 me-1" />
+                  {dict.sections.status.verification.verified}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </SettingsSection>
       )}
 
-      {/* ── Delete Account Dialog ── */}
-      <Dialog
-        open={isDeletingAccount}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsDeletingAccount(false);
-            setDeleteConfirmText('');
-          } else {
-            setIsDeletingAccount(true);
-          }
-        }}
+      {/* ── Language ── */}
+      <SettingsSection
+        icon={<Globe className="w-4 h-4" />}
+        title={dict.sections.language.title}
+        description={dict.sections.language.description}
       >
-        <DialogContent
-          className="sm:max-w-md"
-          dir={locale === 'he' ? 'rtl' : 'ltr'}
-        >
-          <DialogHeader className="text-start">
-            <DialogTitle>{dict.deleteDialog.title}</DialogTitle>
-            <DialogDescription>
-              {dict.deleteDialog.description}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4 text-start">
-            <Label htmlFor="deleteConfirm">
-              {dict.deleteDialog.confirmationLabel}{' '}
-              <strong>{dict.deleteDialog.confirmationPhrase}</strong>
-            </Label>
-            <Input
-              id="deleteConfirm"
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder={dict.deleteDialog.confirmationPhrase}
-            />
-            {deleteConfirmText &&
-              deleteConfirmText !== dict.deleteDialog.confirmationPhrase && (
-                <p className="text-xs text-red-600">
-                  {dict.deleteDialog.mismatchWarning}
-                </p>
+        <LanguageSection
+          user={propUser}
+          dict={dict}
+          locale={locale}
+          onSessionUpdate={handleSessionUpdate}
+        />
+      </SettingsSection>
+
+      {/* ── Match Suggestion Preferences ── */}
+      <SettingsSection
+        icon={<Heart className="w-4 h-4" />}
+        title={dict.sections.matchPreferences.title}
+        description={dict.sections.matchPreferences.description}
+      >
+        <ConsentTogglesSection
+          user={propUser}
+          dict={dict}
+          locale={locale}
+          onSessionUpdate={handleSessionUpdate}
+          sectionMode="firstParty"
+        />
+      </SettingsSection>
+
+      {/* ── Notifications ── */}
+      <SettingsSection
+        icon={<Bell className="w-4 h-4" />}
+        title={dict.sections.communication.title}
+      >
+        <ConsentTogglesSection
+          user={propUser}
+          dict={dict}
+          locale={locale}
+          onSessionUpdate={handleSessionUpdate}
+          sectionMode="email"
+        />
+      </SettingsSection>
+
+      {/* ── Account Status ── */}
+      <SettingsSection
+        icon={<Shield className="w-4 h-4" />}
+        title={dict.sections.status.title}
+      >
+        <InfoRow
+          label={dict.sections.status.timeInfoLabel}
+          value={
+            <div className="flex flex-col gap-0.5 text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {dict.sections.status.createdAt}{' '}
+                <span className="text-foreground">
+                  {new Date(propUser.createdAt).toLocaleDateString(locale)}
+                </span>
+              </span>
+              {propUser.lastLogin && (
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  {dict.sections.status.lastLogin}{' '}
+                  <span className="text-foreground">
+                    {new Date(propUser.lastLogin).toLocaleDateString(locale)}
+                  </span>
+                </span>
               )}
+            </div>
+          }
+          isLast
+        />
+      </SettingsSection>
+
+      {/* ── Security ── */}
+      <SettingsSection
+        icon={<Key className="w-4 h-4" />}
+        title={dict.sections.security.title}
+        description={dict.sections.security.description}
+      >
+        <PasswordSection user={propUser} dict={dict} locale={locale} />
+      </SettingsSection>
+
+      {/* ── Privacy & Export Data ── */}
+      <SettingsSection
+        icon={<Download className="w-4 h-4" />}
+        title={dict.sections.privacy.title}
+        description={dict.sections.privacy.description}
+      >
+        <div className="flex items-center justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm text-foreground">
+              {dict.sections.privacy.exportDescription}
+            </p>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsDeletingAccount(false);
-                setDeleteConfirmText('');
-              }}
-            >
-              {dict.deleteDialog.cancelButton}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteAccount}
-              disabled={
-                isLoading ||
-                deleteConfirmText !== dict.deleteDialog.confirmationPhrase
-              }
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                  {dict.deleteDialog.deletingButton}
-                </>
-              ) : (
-                dict.deleteDialog.deleteButton
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportData}
+            disabled={isExporting}
+            className="ms-4 text-xs h-8"
+          >
+            {isExporting ? (
+              <Loader2 className="w-3.5 h-3.5 me-1.5 animate-spin" />
+            ) : (
+              <FileDown className="w-3.5 h-3.5 me-1.5" />
+            )}
+            {isExporting
+              ? dict.sections.privacy.exportLoading
+              : dict.sections.privacy.exportButton}
+          </Button>
+        </div>
+      </SettingsSection>
+
+      {/* ── Danger Zone ── */}
+      <SettingsSection
+        icon={<AlertCircle className="w-4 h-4" />}
+        title={dict.sections.delete.title}
+        description={dict.sections.delete.description}
+        variant="danger"
+      >
+        <DeleteAccountDialog user={propUser} dict={dict} locale={locale} />
+      </SettingsSection>
+    </motion.div>
   );
 };
 

@@ -25,7 +25,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
+import { cn, getRelativeCloudinaryPath, calculateAge } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../../types/suggestions';
 
 // ============================================================
@@ -181,21 +181,6 @@ const DEFAULT_CONFIG: StatusConfig = {
   badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   progress: 50,
   step: 1,
-};
-
-// ============================================================
-// Helper
-// ============================================================
-const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
-  if (!dateOfBirth) return null;
-  const today = new Date();
-  const birth = new Date(dateOfBirth);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age;
 };
 
 /**

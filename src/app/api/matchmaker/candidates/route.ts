@@ -422,7 +422,16 @@ export async function GET(request: NextRequest) {
               testimonials: {
                 where: { status: 'APPROVED' },
               },
+              metrics: {
+                select: {
+                  dealBreakersHard: true,
+                  dealBreakersSoft: true,
+                },
+              },
             },
+          },
+          _count: {
+            select: { notesAboutUser: true },
           },
         },
         orderBy,
@@ -451,6 +460,66 @@ export async function GET(request: NextRequest) {
 
     // Step 2: Collect all user IDs
     const userIds = users.map((user) => user.id);
+
+    // Step 2b: Fetch recent suggestion history (last 6 months, for mini history on card)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const recentSuggestionsRaw = await prisma.matchSuggestion.findMany({
+      where: {
+        OR: [
+          { firstPartyId: { in: userIds } },
+          { secondPartyId: { in: userIds } },
+        ],
+        createdAt: { gte: sixMonthsAgo },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: userIds.length * 5,
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        firstParty: { select: { firstName: true, lastName: true } },
+        secondParty: { select: { firstName: true, lastName: true } },
+      },
+    });
+
+    // Build per-user recent suggestions map (max 3 per user)
+    const recentSuggestionsMap = new Map<string, Array<{
+      id: string;
+      status: string;
+      createdAt: string;
+      partnerName: string;
+      role: 'first' | 'second';
+    }>>();
+
+    for (const s of recentSuggestionsRaw) {
+      const firstList = recentSuggestionsMap.get(s.firstPartyId) ?? [];
+      if (firstList.length < 3) {
+        firstList.push({
+          id: s.id,
+          status: s.status,
+          createdAt: s.createdAt.toISOString(),
+          partnerName: `${s.secondParty.firstName} ${s.secondParty.lastName.charAt(0)}.`,
+          role: 'first',
+        });
+        recentSuggestionsMap.set(s.firstPartyId, firstList);
+      }
+
+      const secondList = recentSuggestionsMap.get(s.secondPartyId) ?? [];
+      if (secondList.length < 3) {
+        secondList.push({
+          id: s.id,
+          status: s.status,
+          createdAt: s.createdAt.toISOString(),
+          partnerName: `${s.firstParty.firstName} ${s.firstParty.lastName.charAt(0)}.`,
+          role: 'second',
+        });
+        recentSuggestionsMap.set(s.secondPartyId, secondList);
+      }
+    }
 
     // Step 3: Fetch all relevant suggestions in a single query
     const allSuggestions = await prisma.matchSuggestion.findMany({
@@ -514,6 +583,8 @@ export async function GET(request: NextRequest) {
 
       return {
         ...user,
+        notesCount: (user as any)._count?.notesAboutUser ?? 0,
+        recentSuggestions: recentSuggestionsMap.get(user.id) ?? [],
         suggestionStatus: suggestionInfo,
         profile: profile
           ? {

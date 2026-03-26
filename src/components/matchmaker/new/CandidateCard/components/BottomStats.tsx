@@ -20,6 +20,14 @@ import {
 import { cn } from '@/lib/utils';
 import type { ReadinessConfig, MinimalCardDict } from '../MinimalCard.types';
 
+interface RecentSuggestion {
+  id: string;
+  status: string;
+  createdAt: string;
+  partnerName: string;
+  role: 'first' | 'second';
+}
+
 interface BottomStatsProps {
   readinessConfig: ReadinessConfig | null;
   wantsToBeFirst: boolean;
@@ -36,7 +44,44 @@ interface BottomStatsProps {
   lastScannedAt?: Date | string | null;
   /** Callback to trigger AI rescan */
   onRescan?: (e: React.MouseEvent) => void;
+  /** Recent suggestion history for tooltip */
+  recentSuggestions?: RecentSuggestion[];
 }
+
+const STATUS_COLORS: Record<string, string> = {
+  FIRST_PARTY_APPROVED: 'bg-emerald-500',
+  SECOND_PARTY_APPROVED: 'bg-emerald-500',
+  CONTACT_DETAILS_SHARED: 'bg-emerald-500',
+  DATING: 'bg-emerald-500',
+  ENGAGED: 'bg-emerald-500',
+  MARRIED: 'bg-emerald-500',
+  FIRST_PARTY_DECLINED: 'bg-red-400',
+  SECOND_PARTY_DECLINED: 'bg-red-400',
+  CLOSED: 'bg-gray-400',
+  CANCELLED: 'bg-gray-400',
+  EXPIRED: 'bg-gray-400',
+  PENDING_FIRST_PARTY: 'bg-amber-400',
+  PENDING_SECOND_PARTY: 'bg-amber-400',
+  DRAFT: 'bg-gray-300',
+};
+
+const STATUS_LABELS_HE: Record<string, string> = {
+  DRAFT: 'טיוטה',
+  PENDING_FIRST_PARTY: 'ממתין צד א׳',
+  PENDING_SECOND_PARTY: 'ממתין צד ב׳',
+  FIRST_PARTY_APPROVED: 'צד א׳ אישר',
+  FIRST_PARTY_INTERESTED: 'צד א׳ מעוניין',
+  FIRST_PARTY_DECLINED: 'צד א׳ דחה',
+  SECOND_PARTY_APPROVED: 'צד ב׳ אישר',
+  SECOND_PARTY_DECLINED: 'צד ב׳ דחה',
+  CONTACT_DETAILS_SHARED: 'פרטים שותפו',
+  DATING: 'בדייטים',
+  ENGAGED: 'מאורסים',
+  MARRIED: 'נשואים',
+  CLOSED: 'סגור',
+  CANCELLED: 'בוטל',
+  EXPIRED: 'פג תוקף',
+};
 
 const BottomStats: React.FC<BottomStatsProps> = ({
   readinessConfig,
@@ -51,6 +96,7 @@ const BottomStats: React.FC<BottomStatsProps> = ({
   profileUpdatedAt,
   lastScannedAt,
   onRescan,
+  recentSuggestions,
 }) => {
   // Check if AI score is stale (profile updated after last scan)
   const isAiStale = (() => {
@@ -110,47 +156,59 @@ const BottomStats: React.FC<BottomStatsProps> = ({
           )}
         </div>
 
-        {/* Right: Engagement stats */}
+        {/* Right: Engagement stats with rich tooltip */}
         {hasEngagementStats && (
-          <div className="flex items-center gap-2 text-[11px] text-gray-400">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 text-[11px] text-gray-400 cursor-default">
                   <span className="flex items-center gap-0.5">
                     <Heart className="w-2.5 h-2.5" />
                     {suggestionsReceived}
                   </span>
-                </TooltipTrigger>
-                <TooltipContent><p>{dict.stats?.received ?? 'הצעות שהתקבלו'}</p></TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            {suggestionsAccepted > 0 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
+                  {suggestionsAccepted > 0 && (
                     <span className="flex items-center gap-0.5 text-emerald-500">
                       <CheckCircle className="w-2.5 h-2.5" />
                       {suggestionsAccepted}
                     </span>
-                  </TooltipTrigger>
-                  <TooltipContent><p>{dict.stats?.accepted ?? 'אושרו'}</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {suggestionsDeclined > 0 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
+                  )}
+                  {suggestionsDeclined > 0 && (
                     <span className="flex items-center gap-0.5 text-red-400">
                       <XSquare className="w-2.5 h-2.5" />
                       {suggestionsDeclined}
                     </span>
-                  </TooltipTrigger>
-                  <TooltipContent><p>{dict.stats?.declined ?? 'נדחו'}</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="p-0 w-[260px]">
+                {recentSuggestions && recentSuggestions.length > 0 ? (
+                  <div className="p-2 space-y-1.5">
+                    <p className="text-[11px] font-semibold text-gray-500 px-1">הצעות אחרונות</p>
+                    {recentSuggestions.map((s) => (
+                      <div key={s.id} className="flex items-center gap-2 px-1 py-0.5 text-xs">
+                        <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', STATUS_COLORS[s.status] ?? 'bg-gray-300')} />
+                        <span className="font-medium truncate flex-1">{s.partnerName}</span>
+                        <span className="text-gray-400 text-[10px] shrink-0">
+                          {STATUS_LABELS_HE[s.status] ?? s.status}
+                        </span>
+                        <span className="text-gray-300 text-[10px] shrink-0">
+                          {format(new Date(s.createdAt), 'dd/MM')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-3 text-center">
+                    <p className="text-xs text-gray-500">
+                      {suggestionsReceived} {dict.stats?.received ?? 'הצעות שהתקבלו'}
+                      {suggestionsAccepted > 0 && ` · ${suggestionsAccepted} ${dict.stats?.accepted ?? 'אושרו'}`}
+                      {suggestionsDeclined > 0 && ` · ${suggestionsDeclined} ${dict.stats?.declined ?? 'נדחו'}`}
+                    </p>
+                  </div>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
 
       </div>

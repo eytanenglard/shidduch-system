@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { EditableCard } from '@/components/profile/fields';
 import { PreferenceCardProps } from './types';
 import { generateOptions, renderMultiSelectBadges } from './helpers';
 
@@ -19,16 +19,12 @@ const CharacterInterestsCard: React.FC<PreferenceCardProps> = ({
   const hobbiesOptions = useMemo(() => generateOptions(t.options.hobbies, true), [t.options.hobbies]);
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <CardHeader className="bg-gradient-to-r from-amber-50/60 to-yellow-50/60 border-b border-gray-200/50 px-4 py-2.5 flex items-center space-x-2 rtl:space-x-reverse">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/10 to-amber-600/10 flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-4 h-4 text-amber-700" />
-        </div>
-        <CardTitle className="text-base font-semibold text-gray-700">
-          {t.cards.characterAndInterests.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 md:p-4 space-y-4">
+    <EditableCard
+      icon={<Sparkles className="w-4 h-4 text-amber-700" />}
+      title={t.cards.characterAndInterests.title}
+      gradientFrom="from-amber-50/60 to-yellow-50/60"
+      iconGradient="from-amber-500/10 to-amber-600/10"
+    >
         {/* Character Traits */}
         <fieldset>
           <legend className="block mb-2 text-xs font-medium text-gray-600">
@@ -151,8 +147,7 @@ const CharacterInterestsCard: React.FC<PreferenceCardProps> = ({
             </div>
           )}
         </fieldset>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

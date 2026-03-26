@@ -46,6 +46,68 @@ export const getReligiousLabel = (value: string | null | undefined): string | nu
   return option ? option.label : value;
 };
 
+// ── Waiting time calculation ────────────────────────────────────────────────
+
+import type { WaitingConfig } from './MinimalCard.types';
+
+export const getWaitingConfig = (
+  lastSuggestedAt: Date | string | null | undefined,
+  suggestionsReceived: number,
+  createdAt: Date | string
+): WaitingConfig => {
+  const sinceDate = lastSuggestedAt
+    ? new Date(lastSuggestedAt)
+    : new Date(createdAt);
+  const days = Math.floor((Date.now() - sinceDate.getTime()) / (1000 * 60 * 60 * 24));
+  const neverSuggested = suggestionsReceived === 0;
+
+  if (days <= 7) {
+    return { label: '', className: '', textColor: '', show: false, showOnPhoto: false, days, neverSuggested };
+  }
+  if (days <= 14) {
+    return {
+      label: neverSuggested ? `חדש/ה · ${days} ימים` : `${days} ימים`,
+      className: 'bg-emerald-500/90 text-white',
+      textColor: 'text-emerald-600',
+      show: true,
+      showOnPhoto: false,
+      days,
+      neverSuggested,
+    };
+  }
+  if (days <= 30) {
+    return {
+      label: neverSuggested ? `חדש/ה · ${days} ימים` : `⏰ ${days} ימים`,
+      className: 'bg-amber-500/90 text-white',
+      textColor: 'text-amber-600',
+      show: true,
+      showOnPhoto: true,
+      days,
+      neverSuggested,
+    };
+  }
+  if (days <= 60) {
+    return {
+      label: neverSuggested ? `חדש/ה · ${days} ימים` : `⚠️ ${days} ימים`,
+      className: 'bg-orange-500/90 text-white',
+      textColor: 'text-orange-600',
+      show: true,
+      showOnPhoto: true,
+      days,
+      neverSuggested,
+    };
+  }
+  return {
+    label: neverSuggested ? `חדש/ה · ${days} ימים` : `🔴 ${days} ימים`,
+    className: 'bg-red-500/90 text-white',
+    textColor: 'text-red-600',
+    show: true,
+    showOnPhoto: true,
+    days,
+    neverSuggested,
+  };
+};
+
 // ── Format spoken languages ─────────────────────────────────────────────────
 
 export const formatLanguages = (

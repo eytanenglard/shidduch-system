@@ -2,8 +2,6 @@
 
 import React, { useMemo } from 'react';
 import { Gender } from '@prisma/client';
-import { Card, CardContent } from '@/components/ui/card';
-import ProfileCardHeader from '@/components/profile/ProfileCardHeader';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -17,7 +15,7 @@ import { UserCircle } from 'lucide-react';
 import { languageOptions } from '@/lib/languageOptions';
 import { ProfileCardProps } from './types';
 import { renderDisplayValue, getLanguageLabel } from './helpers';
-import { SelectField, InputField, GooglePlacesField } from '@/components/profile/fields';
+import { SelectField, InputField, GooglePlacesField, EditableCard } from '@/components/profile/fields';
 
 const PersonalInfoCard: React.FC<ProfileCardProps> = ({
   isEditing,
@@ -46,14 +44,13 @@ const PersonalInfoCard: React.FC<ProfileCardProps> = ({
       : '';
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <ProfileCardHeader
-        icon={<UserCircle className="w-4 h-4 text-cyan-700" />}
-        title={dict.cards.personal.title}
-        gradientFrom="from-cyan-50/60 to-pink-50/60"
-        iconGradient="from-cyan-500/10 to-cyan-600/10"
-      />
-      <CardContent className="p-3 md:p-4">
+    <EditableCard
+      icon={<UserCircle className="w-4 h-4 text-cyan-700" />}
+      title={dict.cards.personal.title}
+      gradientFrom="from-cyan-50/60 to-pink-50/60"
+      iconGradient="from-cyan-500/10 to-cyan-600/10"
+      contentClassName="!space-y-0"
+    >
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           <SelectField
             id="gender"
@@ -226,8 +223,7 @@ const PersonalInfoCard: React.FC<ProfileCardProps> = ({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

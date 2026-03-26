@@ -65,6 +65,21 @@
     "backToSignInLink": "Back to Sign In",
     "successMessage": "Password reset successfully!",
     "successRedirect": "Redirecting you to the sign-in page...",
+    "resendCode": "Resend code",
+    "resendCodeCooldown": "Resend code ({seconds}s)",
+    "resendCodeSending": "Sending...",
+    "resendCodePrompt": "Didn't get a code? Resend",
+    "passwordStrength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "passwordChecklist": {
+      "minLength": "At least 8 characters",
+      "uppercase": "Uppercase letter",
+      "lowercase": "Lowercase letter",
+      "number": "A number"
+    },
     "errors": {
       "missingEmail": "Email address is missing. Please go back and try again.",
       "invalidOtp": "The verification code (OTP) must be 6 digits.",

@@ -689,6 +689,10 @@
     "title": "גודל טקסט",
     "description": "הגדל או הקטן את גודל הטקסט בכל האתר"
   },
+  "lineHeight": {
+    "title": "גובה שורה",
+    "description": "התאם את המרווח בין שורות הטקסט"
+  },
   "displayMode": {
     "title": "מצב תצוגה ונגישות"
   },
@@ -704,6 +708,27 @@
     "dark": {
       "label": "חשוך",
       "description": "מצב לילה להפחתת עומס על העיניים"
+    }
+  },
+  "colorBlindMode": {
+    "title": "מצב עיוורון צבעים"
+  },
+  "colorBlindOptions": {
+    "none": {
+      "label": "ללא",
+      "description": "תצוגה רגילה ללא התאמת צבעים"
+    },
+    "protanopia": {
+      "label": "פרוטנופיה",
+      "description": "קושי בהבחנת אדום-ירוק (חסר אדום)"
+    },
+    "deuteranopia": {
+      "label": "דאוטרנופיה",
+      "description": "קושי בהבחנת אדום-ירוק (חסר ירוק)"
+    },
+    "tritanopia": {
+      "label": "טריטנופיה",
+      "description": "קושי בהבחנת כחול-צהוב"
     }
   },
   "additionalSettings": {
@@ -726,19 +751,40 @@
       "label": "פונט קריא",
       "description": "פונט ברור עם ריווח מוגדל בין האותיות"
     },
+    "dyslexia": {
+      "label": "פונט דיסלקציה",
+      "description": "פונט מותאם לקוראים עם דיסלקציה"
+    },
     "motion": {
       "label": "הפחתת אנימציות",
       "description": "מפחית תנועות ואנימציות ברחבי האתר"
+    },
+    "highlightLinks": {
+      "label": "הדגשת קישורים",
+      "description": "מדגיש את כל הקישורים בקו תחתון ומסגרת"
+    },
+    "readingGuide": {
+      "label": "קו מדריך קריאה",
+      "description": "פס אופקי שעוקב אחרי העכבר לעזרה במעקב אחרי שורות"
     }
   },
   "settingNames": {
     "fontScale": "גודל הטקסט",
+    "lineHeight": "גובה שורה",
     "contrastMode": "מצב התצוגה",
     "reducedMotion": "הפחתת אנימציות",
     "readableMode": "פונט קריא",
+    "dyslexiaFont": "פונט דיסלקציה",
     "bigCursor": "סמן גדול",
     "textReader": "הקראת תוכן",
-    "soundEnabled": "צלילים"
+    "soundEnabled": "צלילים",
+    "highlightLinks": "הדגשת קישורים",
+    "readingGuide": "קו מדריך קריאה",
+    "colorBlindMode": "מצב עיוורון צבעים"
+  },
+  "keyboardShortcuts": {
+    "title": "קיצורי מקלדת",
+    "toggle": "פתיחה/סגירה"
   },
   "toasts": {
     "settingUpdated": "הגדרת {{settingName}} עודכנה",

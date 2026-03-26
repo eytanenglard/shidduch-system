@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect, Fragment } from 'react';
+import React, { useReducer, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -16,9 +16,11 @@ import {
   Paperclip,
   X,
   Send,
-  Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
 import type { FeedbackWidgetDict } from '@/types/dictionary';
+
+// ─── Types ───────────────────────────────────────────────────────────
 
 interface FeedbackWidgetProps {
   dict: FeedbackWidgetDict;
@@ -26,6 +28,86 @@ interface FeedbackWidgetProps {
 }
 
 type FeedbackType = 'SUGGESTION' | 'BUG' | 'POSITIVE';
+type Step = 'type' | 'form' | 'success';
+
+interface State {
+  isOpen: boolean;
+  step: Step;
+  feedbackType: FeedbackType | null;
+  content: string;
+  screenshot: File | null;
+  isSubmitting: boolean;
+  isHovered: boolean;
+  isPermanentlyHidden: boolean;
+  showConfirmClose: boolean;
+}
+
+type Action =
+  | { type: 'OPEN' }
+  | { type: 'CLOSE' }
+  | { type: 'SET_STEP'; step: Step }
+  | { type: 'SET_FEEDBACK_TYPE'; feedbackType: FeedbackType }
+  | { type: 'SET_CONTENT'; content: string }
+  | { type: 'SET_SCREENSHOT'; screenshot: File | null }
+  | { type: 'SET_SUBMITTING'; isSubmitting: boolean }
+  | { type: 'SET_HOVERED'; isHovered: boolean }
+  | { type: 'HIDE_PERMANENTLY' }
+  | { type: 'SHOW_WIDGET' }
+  | { type: 'SHOW_CONFIRM_CLOSE' }
+  | { type: 'HIDE_CONFIRM_CLOSE' }
+  | { type: 'RESET' };
+
+const MAX_CHARS = 5000;
+
+const initialState: State = {
+  isOpen: false,
+  step: 'type',
+  feedbackType: null,
+  content: '',
+  screenshot: null,
+  isSubmitting: false,
+  isHovered: false,
+  isPermanentlyHidden: false,
+  showConfirmClose: false,
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'OPEN':
+      return { ...state, isOpen: true, step: 'type' };
+    case 'CLOSE':
+      return { ...state, isOpen: false, showConfirmClose: false };
+    case 'SET_STEP':
+      return { ...state, step: action.step };
+    case 'SET_FEEDBACK_TYPE':
+      return { ...state, feedbackType: action.feedbackType, step: 'form' };
+    case 'SET_CONTENT':
+      return { ...state, content: action.content };
+    case 'SET_SCREENSHOT':
+      return { ...state, screenshot: action.screenshot };
+    case 'SET_SUBMITTING':
+      return { ...state, isSubmitting: action.isSubmitting };
+    case 'SET_HOVERED':
+      return { ...state, isHovered: action.isHovered };
+    case 'HIDE_PERMANENTLY':
+      return { ...state, isPermanentlyHidden: true };
+    case 'SHOW_WIDGET':
+      return { ...state, isPermanentlyHidden: false };
+    case 'SHOW_CONFIRM_CLOSE':
+      return { ...state, showConfirmClose: true };
+    case 'HIDE_CONFIRM_CLOSE':
+      return { ...state, showConfirmClose: false };
+    case 'RESET':
+      return {
+        ...initialState,
+        isPermanentlyHidden: state.isPermanentlyHidden,
+      };
+    default:
+      return state;
+  }
+}
+
+// ─── Component ───────────────────────────────────────────────────────
 
 const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
   dict,
@@ -33,203 +115,208 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
 }) => {
   const isRTL = locale === 'he' || locale === 'ar';
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState<'type' | 'form'>('type');
-  const [feedbackType, setFeedbackType] = useState<FeedbackType | null>(null);
-  const [content, setContent] = useState('');
-  const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(
-    null
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isPermanentlyHidden, setIsPermanentlyHidden] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const {
+    isOpen,
+    step,
+    feedbackType,
+    content,
+    screenshot,
+    isSubmitting,
+    isHovered,
+    isPermanentlyHidden,
+    showConfirmClose,
+  } = state;
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const firstFocusableRef = useRef<HTMLButtonElement>(null);
 
-  const tabButtonRef = useRef<HTMLButtonElement>(null);
-  const [isProcessingClick, setIsProcessingClick] = useState(false);
+  // Screenshot preview via URL.createObjectURL
+  const screenshotPreview = useMemo(() => {
+    if (!screenshot) return null;
+    return URL.createObjectURL(screenshot);
+  }, [screenshot]);
 
+  // Cleanup object URL on unmount or screenshot change
   useEffect(() => {
-    if (isOpen) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
+    return () => {
+      if (screenshotPreview) {
+        URL.revokeObjectURL(screenshotPreview);
+      }
+    };
+  }, [screenshotPreview]);
 
+  // Load hidden state from localStorage
   useEffect(() => {
     const hidden = localStorage.getItem('feedback-widget-hidden');
     if (hidden === 'true') {
-      setIsPermanentlyHidden(true);
+      dispatch({ type: 'HIDE_PERMANENTLY' });
     }
   }, []);
 
-  // פלטת צבעים מעודכנת - תואמת ל-HeroSection
-  const feedbackOptions = [
-    {
-      type: 'SUGGESTION' as FeedbackType,
-      icon: Lightbulb,
-      label: dict.types.suggestion.label,
-      description: dict.types.suggestion.description,
-      // גרדיאנט המותג הראשי - Teal/Orange/Amber
-      gradient: 'from-teal-400 via-orange-400 to-amber-400',
-    },
-    {
-      type: 'BUG' as FeedbackType,
-      icon: Bug,
-      label: dict.types.bug.label,
-      description: dict.types.bug.description,
-      // Rose/Red - תואם ל-HeroSection principle colors
-      gradient: 'from-rose-400 via-pink-500 to-red-500',
-    },
-    {
-      type: 'POSITIVE' as FeedbackType,
-      icon: ThumbsUp,
-      label: dict.types.positive.label,
-      description: dict.types.positive.description,
-      // Teal/Emerald - תואם ל-HeroSection principle colors
-      gradient: 'from-teal-400 via-teal-500 to-emerald-500',
-    },
-  ];
+  // Feedback type options
+  const feedbackOptions = useMemo(
+    () => [
+      {
+        type: 'SUGGESTION' as FeedbackType,
+        icon: Lightbulb,
+        label: dict.types.suggestion.label,
+        description: dict.types.suggestion.description,
+        color: 'bg-amber-500',
+        hoverBorder: 'hover:border-amber-300',
+      },
+      {
+        type: 'BUG' as FeedbackType,
+        icon: Bug,
+        label: dict.types.bug.label,
+        description: dict.types.bug.description,
+        color: 'bg-rose-500',
+        hoverBorder: 'hover:border-rose-300',
+      },
+      {
+        type: 'POSITIVE' as FeedbackType,
+        icon: ThumbsUp,
+        label: dict.types.positive.label,
+        description: dict.types.positive.description,
+        color: 'bg-teal-500',
+        hoverBorder: 'hover:border-teal-300',
+      },
+    ],
+    [dict]
+  );
 
-  const minSwipeDistance = 50;
+  const selectedOption = useMemo(
+    () => feedbackOptions.find((o) => o.type === feedbackType),
+    [feedbackOptions, feedbackType]
+  );
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-    e.preventDefault();
-  };
+  const hasUnsavedContent = content.trim().length > 0 || screenshot !== null;
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
+  // ─── Close logic with confirm ───────────────────────────────────
 
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStart || !touchEnd) {
-      if (!isProcessingClick) {
-        setIsProcessingClick(true);
-        setTimeout(() => {
-          setStep('type');
-          setIsOpen(true);
-          setIsProcessingClick(false);
-        }, 50);
-      }
-      return;
-    }
-
-    const distance = touchStart - touchEnd;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isRightSwipe) {
-      handleHidePermanently();
+  const attemptClose = useCallback(() => {
+    if (hasUnsavedContent && step === 'form') {
+      dispatch({ type: 'SHOW_CONFIRM_CLOSE' });
     } else {
-      if (!isProcessingClick) {
-        setIsProcessingClick(true);
-        setTimeout(() => {
-          setStep('type');
-          setIsOpen(true);
-          setIsProcessingClick(false);
-        }, 50);
-      }
+      dispatch({ type: 'RESET' });
     }
-  };
+  }, [hasUnsavedContent, step]);
 
-  const handleHidePermanently = () => {
-    setIsPermanentlyHidden(true);
-    localStorage.setItem('feedback-widget-hidden', 'true');
-  };
+  const confirmClose = useCallback(() => {
+    dispatch({ type: 'RESET' });
+  }, []);
 
-  const handleShowWidget = () => {
-    setIsPermanentlyHidden(false);
-    localStorage.setItem('feedback-widget-hidden', 'false');
-  };
+  // ─── Escape key handler ─────────────────────────────────────────
 
   useEffect(() => {
-    if (screenshot) {
-      const reader = new FileReader();
-      reader.onloadend = () => setScreenshotPreview(reader.result as string);
-      reader.readAsDataURL(screenshot);
-    } else {
-      setScreenshotPreview(null);
-    }
-  }, [screenshot]);
+    if (!isOpen) return;
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isOpen || step !== 'form') {
-      if (event.target) event.target.value = '';
-      return;
-    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (showConfirmClose) {
+          dispatch({ type: 'HIDE_CONFIRM_CLOSE' });
+        } else {
+          attemptClose();
+        }
+      }
+    };
 
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error(dict.toasts.imageTooLarge);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, showConfirmClose, attemptClose]);
+
+  // ─── Focus trap ─────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!isOpen || !panelRef.current) return;
+
+    const panel = panelRef.current;
+
+    // Focus first focusable element when opening
+    const timer = setTimeout(() => {
+      firstFocusableRef.current?.focus();
+    }, 100);
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      const focusableElements = panel.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), textarea, input:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (focusableElements.length === 0) return;
+
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleTab);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('keydown', handleTab);
+    };
+  }, [isOpen, step]);
+
+  // ─── Permanently hide/show ──────────────────────────────────────
+
+  const handleHidePermanently = useCallback(() => {
+    dispatch({ type: 'HIDE_PERMANENTLY' });
+    localStorage.setItem('feedback-widget-hidden', 'true');
+  }, []);
+
+  const handleShowWidget = useCallback(() => {
+    dispatch({ type: 'SHOW_WIDGET' });
+    localStorage.setItem('feedback-widget-hidden', 'false');
+  }, []);
+
+  // ─── File handling ──────────────────────────────────────────────
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!isOpen || step !== 'form') {
+        if (event.target) event.target.value = '';
         return;
       }
-      setScreenshot(file);
-    }
-    if (event.target) event.target.value = '';
-  };
 
-  const resetState = (closeWidget: boolean = true) => {
-    if (closeWidget) {
-      setIsOpen(false);
-      setTimeout(() => {
-        setStep('type');
-        setFeedbackType(null);
-        setContent('');
-        setScreenshot(null);
-        setScreenshotPreview(null);
-      }, 300);
-    } else {
-      setStep('type');
-      setFeedbackType(null);
-      setContent('');
-      setScreenshot(null);
-      setScreenshotPreview(null);
-    }
-  };
+      const file = event.target.files?.[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          toast.error(dict.toasts.imageTooLarge);
+          return;
+        }
+        dispatch({ type: 'SET_SCREENSHOT', screenshot: file });
+      }
+      if (event.target) event.target.value = '';
+    },
+    [isOpen, step, dict.toasts.imageTooLarge]
+  );
 
-  const handleTabClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // ─── Submit ─────────────────────────────────────────────────────
 
-    if (isProcessingClick || isOpen) return;
-
-    setIsProcessingClick(true);
-    setTimeout(() => {
-      setStep('type');
-      setIsOpen(true);
-      setIsProcessingClick(false);
-    }, 50);
-  };
-
-  const handleFileButtonClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (step === 'form' && isOpen && !isTransitioning) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(async () => {
     if (!content.trim() || !feedbackType) {
       toast.error(dict.toasts.contentRequired);
       return;
     }
 
-    setIsSubmitting(true);
+    dispatch({ type: 'SET_SUBMITTING', isSubmitting: true });
     const formData = new FormData();
     formData.append('content', content);
     formData.append('feedbackType', feedbackType);
     formData.append('pageUrl', window.location.href);
+    formData.append('screenWidth', String(window.innerWidth));
+    formData.append('screenHeight', String(window.innerHeight));
+    formData.append('language', navigator.language);
     if (screenshot) {
       formData.append('screenshot', screenshot);
     }
@@ -240,55 +327,64 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
         body: formData,
       });
       if (!response.ok) throw new Error('Failed to submit feedback');
+
+      // Show success step briefly before closing
+      dispatch({ type: 'SET_STEP', step: 'success' });
       toast.success(dict.toasts.submitSuccess);
-      resetState();
+
+      setTimeout(() => {
+        dispatch({ type: 'RESET' });
+      }, 2000);
     } catch (error) {
       console.error(error);
       toast.error(dict.toasts.submitError);
     } finally {
-      setIsSubmitting(false);
+      dispatch({ type: 'SET_SUBMITTING', isSubmitting: false });
     }
-  };
+  }, [content, feedbackType, screenshot, dict.toasts]);
+
+  // ─── Character count display ────────────────────────────────────
+
+  const charCountText = dict.charCount
+    .replace('{{count}}', String(content.length))
+    .replace('{{max}}', String(MAX_CHARS));
+
+  const isOverLimit = content.length > MAX_CHARS;
+
+  // ─── Render ─────────────────────────────────────────────────────
 
   return (
-    <Fragment>
+    <>
       {/* Floating Tab Button */}
       <div className="fixed top-1/2 -translate-y-1/2 right-0 z-50">
         <div
-          className={`transition-all duration-700 ${
+          className={cn(
+            'transition-all duration-500',
             isOpen || isPermanentlyHidden
-              ? 'translate-x-4 opacity-0 scale-95'
+              ? 'translate-x-4 opacity-0 scale-95 pointer-events-none'
               : 'translate-x-0 opacity-100 scale-100'
-          }`}
+          )}
         >
           <div className="relative group">
             <button
-              ref={tabButtonRef}
-              onClick={handleTabClick}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
-              disabled={isProcessingClick}
-              // גרדיאנט ראשי - Teal -> Orange -> Amber (תואם ל-HeroSection CTA)
-              className={`relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-gradient-to-l from-teal-500 via-orange-500 to-amber-500 bg-size-200 hover:bg-pos-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-2xl ${
-                isHovered ? 'w-20 sm:w-32' : 'w-8 sm:w-12'
-              }`}
-              style={{
-                backgroundSize: '200% 100%',
-                backgroundPosition: isHovered ? '100% 0' : '0% 0',
-              }}
+              onClick={() => dispatch({ type: 'OPEN' })}
+              onMouseEnter={() =>
+                dispatch({ type: 'SET_HOVERED', isHovered: true })
+              }
+              onMouseLeave={() =>
+                dispatch({ type: 'SET_HOVERED', isHovered: false })
+              }
+              className={cn(
+                'relative text-white px-1.5 sm:px-2 py-4 sm:py-6 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center min-h-[100px] sm:min-h-[120px] hover:scale-105 active:scale-95 overflow-hidden bg-teal-600 hover:bg-teal-700 rounded-l-2xl',
+                isHovered ? 'w-20 sm:w-28' : 'w-8 sm:w-12'
+              )}
               aria-label={dict.openAriaLabel}
             >
-              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
-
               <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 mb-2 sm:mb-3 drop-shadow-sm" />
-
+                <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mb-2 sm:mb-3" />
                 {!isHovered ? (
                   <span
-                    className="text-xs sm:text-sm font-bold tracking-wider transition-all duration-300 ease-in-out drop-shadow-sm"
+                    className="text-xs sm:text-sm font-bold tracking-wider"
                     style={{
                       writingMode: 'vertical-rl',
                       textOrientation: 'mixed',
@@ -297,22 +393,11 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                     {dict.tabLabel}
                   </span>
                 ) : (
-                  <span className="text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 ease-in-out drop-shadow-sm px-1">
+                  <span className="text-xs sm:text-sm font-bold whitespace-nowrap px-1">
                     {dict.tabLabel}
                   </span>
                 )}
               </div>
-
-              {/* הילה בצבעי Teal/Orange - תואם ל-HeroSection */}
-              <div className="absolute -inset-1 bg-gradient-to-br from-teal-400 via-orange-400 to-amber-400 rounded-2xl blur opacity-30 group-hover:opacity-60 transition-all duration-300" />
-
-              {isHovered && (
-                <>
-                  <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-amber-400 rounded-full animate-ping shadow-lg" />
-                  <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-teal-400 rounded-full animate-bounce delay-300 shadow-lg" />
-                  <div className="absolute top-1/2 -left-1 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-orange-400 rounded-full animate-pulse delay-500 shadow-lg" />
-                </>
-              )}
             </button>
 
             <button
@@ -320,112 +405,135 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                 e.stopPropagation();
                 handleHidePermanently();
               }}
-              // כפתור סגירה - Rose (תואם לצבע ה-Rose ב-HeroSection principles)
-              className="absolute -top-2 -left-2 w-6 h-6 bg-white/90 hover:bg-rose-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/close opacity-0 group-hover:opacity-100 backdrop-blur-sm border border-gray-200 z-20"
-              aria-label="הסתר כפתור פידבק"
+              className="absolute -top-2 -left-2 w-6 h-6 bg-white hover:bg-rose-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-md transition-all duration-200 hover:scale-110 opacity-0 group-hover:opacity-100 border border-gray-200 z-20"
+              aria-label={dict.hideAriaLabel}
             >
-              <X className="w-3 h-3 group-hover/close:rotate-45 transition-all duration-300" />
+              <X className="w-3 h-3" />
             </button>
           </div>
         </div>
 
         {isPermanentlyHidden && (
-          <div className="transition-all duration-700 opacity-100 translate-x-0">
-            <button
-              onClick={handleShowWidget}
-              // כפתור חזרה - Teal/Amber (תואם ל-HeroSection)
-              className="w-8 h-8 bg-gradient-to-r from-teal-500 to-amber-500 hover:from-teal-600 hover:to-amber-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group/show"
-              aria-label="הצג כפתור משוב"
-              title="הצג כפתור משוב"
-            >
-              <MessageSquare className="w-4 h-4 group-hover/show:scale-110 transition-transform duration-300" />
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-400 to-amber-400 animate-ping opacity-20"></div>
-            </button>
-          </div>
+          <button
+            onClick={handleShowWidget}
+            className="w-8 h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-110"
+            aria-label={dict.showAriaLabel}
+            title={dict.showAriaLabel}
+          >
+            <MessageSquare className="w-4 h-4" />
+          </button>
         )}
       </div>
 
+      {/* Backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-all duration-500"
-          onClick={() => resetState()}
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
+          onClick={attemptClose}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              attemptClose();
+            }
+          }}
+          role="button"
+          tabIndex={-1}
+          aria-label={dict.closeAriaLabel}
         />
       )}
 
-      {/* Main Widget */}
+      {/* Main Widget Panel */}
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={dict.title}
         className={cn(
-          'fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:right-16 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-500',
+          'fixed inset-x-4 top-1/2 -translate-y-1/2 sm:top-1/2 sm:-translate-y-1/2 sm:left-auto sm:right-24 z-50 w-auto sm:w-96 max-w-lg mx-auto sm:mx-0 transition-all duration-400',
           isOpen
             ? 'opacity-100 translate-x-0 scale-100'
-            : 'opacity-0 translate-x-8 scale-95 pointer-events-none',
-          isTransitioning && 'pointer-events-none'
+            : 'opacity-0 translate-x-8 scale-95 pointer-events-none'
         )}
       >
-        <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/50 overflow-hidden max-h-[85vh] sm:max-h-none overflow-y-auto">
-          {/* הילת רקע - Teal/Orange (תואם ל-HeroSection) */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-teal-400/20 via-orange-400/20 to-amber-400/20 rounded-2xl sm:rounded-3xl blur-xl" />
-
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-gray-200/50 overflow-hidden max-h-[85vh] sm:max-h-none overflow-y-auto">
           <div className="relative">
-            {/* כותרת עם רקע Teal/Orange עדין */}
-            <div className="bg-gradient-to-r from-teal-500/10 via-orange-500/5 to-amber-500/10 p-4 sm:p-6 border-b border-white/30">
+            {/* Header */}
+            <div className="bg-gray-50/80 p-4 sm:p-6 border-b border-gray-100">
               <div
-                className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}
+                className={cn(
+                  'flex items-center justify-between',
+                  isRTL && 'flex-row-reverse'
+                )}
               >
                 <div
-                  className={`flex items-center gap-2 sm:gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}
+                  className={cn(
+                    'flex items-center gap-2 sm:gap-3',
+                    isRTL && 'flex-row-reverse'
+                  )}
                 >
-                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full animate-pulse shadow-lg" />
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-teal-500 rounded-full" />
                   <div className={isRTL ? 'text-right' : 'text-left'}>
-                    <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-teal-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800">
                       {dict.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                       {dict.subtitle}
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => resetState()}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/50 hover:bg-white/70 flex items-center justify-center transition-all duration-300 group hover:scale-110"
+                  ref={firstFocusableRef}
+                  onClick={attemptClose}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white hover:bg-gray-100 flex items-center justify-center transition-colors duration-200 border border-gray-200"
                   aria-label={dict.closeAriaLabel}
                 >
-                  <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 group-hover:text-gray-800 transition-colors" />
+                  <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500" />
                 </button>
               </div>
             </div>
 
             <div className="p-4 sm:p-6">
+              {/* ─── Step: Type Selection ──────────────────────────── */}
               {step === 'type' && (
                 <div className="space-y-3 sm:space-y-4">
-                  <div className="text-center mb-4 sm:mb-6">
-                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-transparent bg-gradient-to-r from-teal-500 to-amber-500 bg-clip-text mx-auto mb-2" />
-                    <p className="text-gray-700 font-medium text-sm sm:text-base">
-                      {dict.step_type_title}
-                    </p>
-                  </div>
+                  <p
+                    className={cn(
+                      'text-gray-600 font-medium text-sm sm:text-base text-center mb-4 sm:mb-5',
+                    )}
+                  >
+                    {dict.step_type_title}
+                  </p>
 
                   {feedbackOptions.map((option) => (
                     <button
                       key={option.type}
-                      onClick={() => {
-                        setFeedbackType(option.type);
-                        setStep('form');
-                      }}
-                      // בורדר ו-Hover ב-Teal (תואם ל-HeroSection secondary button)
-                      className={`w-full p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 hover:from-white to-gray-50 border border-gray-100/50 hover:border-teal-200/50 transition-all duration-300 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.02] ${
-                        isRTL ? 'flex-row-reverse' : ''
-                      }`}
+                      onClick={() =>
+                        dispatch({
+                          type: 'SET_FEEDBACK_TYPE',
+                          feedbackType: option.type,
+                        })
+                      }
+                      className={cn(
+                        'w-full p-3 sm:p-4 rounded-xl bg-white border border-gray-150 transition-all duration-200 group flex items-center gap-3 sm:gap-4 hover:shadow-md hover:scale-[1.01]',
+                        option.hoverBorder,
+                        isRTL && 'flex-row-reverse'
+                      )}
                     >
                       <div
-                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br ${option.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                        className={cn(
+                          'w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200',
+                          option.color
+                        )}
                       >
-                        <option.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-sm" />
+                        <option.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
                       <div
-                        className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}
+                        className={cn(
+                          'flex-1',
+                          isRTL ? 'text-right' : 'text-left'
+                        )}
                       >
-                        <div className="font-medium text-gray-800 mb-1 text-sm sm:text-base">
+                        <div className="font-medium text-gray-800 mb-0.5 text-sm sm:text-base">
                           {option.label}
                         </div>
                         <div className="text-xs sm:text-sm text-gray-500">
@@ -437,125 +545,160 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                 </div>
               )}
 
+              {/* ─── Step: Form ────────────────────────────────────── */}
               {step === 'form' && (
-                <div className="space-y-4 sm:space-y-6">
+                <div className="space-y-4 sm:space-y-5">
+                  {/* Back button */}
                   <button
-                    onClick={() => setStep('type')}
-                    className={`text-sm text-gray-500 hover:text-teal-600 flex items-center gap-2 transition-colors duration-300 group ${
-                      isRTL ? 'flex-row-reverse' : ''
-                    }`}
+                    onClick={() =>
+                      dispatch({ type: 'SET_STEP', step: 'type' })
+                    }
+                    className={cn(
+                      'text-sm text-gray-500 hover:text-teal-600 flex items-center gap-2 transition-colors duration-200 group',
+                      isRTL && 'flex-row-reverse'
+                    )}
                   >
                     <span
-                      className={`transition-transform ${
+                      className={cn(
+                        'transition-transform',
                         isRTL
                           ? 'group-hover:-translate-x-1'
                           : 'group-hover:translate-x-1'
-                      }`}
+                      )}
                     >
-                      {isRTL ? '→' : '←'}
+                      {isRTL ? '\u2192' : '\u2190'}
                     </span>
                     {dict.cancelButton}
                   </button>
 
-                  <div
-                    className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-gray-50/80 to-white/80 rounded-lg sm:rounded-xl border border-gray-100/50 ${
-                      isRTL ? 'flex-row-reverse' : ''
-                    }`}
-                  >
-                    {(() => {
-                      const selectedOption = feedbackOptions.find(
-                        (option) => option.type === feedbackType
-                      );
-                      return selectedOption ? (
-                        <>
-                          <div
-                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br ${selectedOption.gradient} flex items-center justify-center shadow-md`}
-                          >
-                            <selectedOption.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow-sm" />
-                          </div>
-                          <div
-                            className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}
-                          >
-                            <div className="font-medium text-gray-800 text-sm sm:text-base">
-                              {selectedOption.label}
-                            </div>
-                            <div className="text-xs sm:text-sm text-gray-500">
-                              {selectedOption.description}
-                            </div>
-                          </div>
-                        </>
-                      ) : null;
-                    })()}
+                  {/* Selected type indicator */}
+                  {selectedOption && (
+                    <div
+                      className={cn(
+                        'flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-xl border border-gray-100',
+                        isRTL && 'flex-row-reverse'
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center',
+                          selectedOption.color
+                        )}
+                      >
+                        <selectedOption.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                      <div
+                        className={cn(
+                          'flex-1',
+                          isRTL ? 'text-right' : 'text-left'
+                        )}
+                      >
+                        <div className="font-medium text-gray-800 text-sm sm:text-base">
+                          {selectedOption.label}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-500">
+                          {selectedOption.description}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Textarea */}
+                  <div>
+                    <Textarea
+                      value={content}
+                      onChange={(e) =>
+                        dispatch({
+                          type: 'SET_CONTENT',
+                          content: e.target.value,
+                        })
+                      }
+                      placeholder={dict.placeholder}
+                      maxLength={MAX_CHARS}
+                      className={cn(
+                        'min-h-[100px] sm:min-h-[120px] resize-none border border-gray-200 bg-white focus:bg-white focus:ring-2 focus:ring-teal-400 focus:border-teal-400 rounded-xl transition-all duration-200 placeholder:text-gray-400 text-sm sm:text-base',
+                        isRTL ? 'text-right' : 'text-left'
+                      )}
+                      dir={isRTL ? 'rtl' : 'ltr'}
+                      required
+                    />
+                    {/* Character counter */}
+                    <div
+                      className={cn(
+                        'flex justify-end mt-1.5',
+                        isRTL && 'flex-row-reverse'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'text-xs',
+                          isOverLimit
+                            ? 'text-rose-500 font-medium'
+                            : content.length > MAX_CHARS * 0.9
+                              ? 'text-amber-500'
+                              : 'text-gray-400'
+                        )}
+                      >
+                        {charCountText}
+                      </span>
+                    </div>
                   </div>
 
-                  <Textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder={dict.placeholder}
-                    // Focus ring ב-Teal (תואם ל-HeroSection)
-                    className={`min-h-[100px] sm:min-h-[120px] resize-none border-0 bg-gray-50/80 focus:bg-white focus:ring-2 focus:ring-teal-400 rounded-xl sm:rounded-2xl shadow-inner transition-all duration-300 placeholder:text-gray-400 text-sm sm:text-base ${
-                      isRTL ? 'text-right' : 'text-left'
-                    }`}
-                    dir={isRTL ? 'rtl' : 'ltr'}
-                    required
-                  />
-
-                  <div className="space-y-3 sm:space-y-4">
+                  {/* Attachment section */}
+                  <div className="space-y-2">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <button
                         type="button"
-                        onClick={handleFileButtonClick}
-                        disabled={isTransitioning}
-                        // Border ב-Teal ב-Hover (תואם ל-HeroSection secondary button)
-                        className="group relative px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 hover:border-teal-300 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-2 sm:gap-3 hover:shadow-md hover:scale-[1.02] overflow-hidden w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (step === 'form' && isOpen) {
+                            fileInputRef.current?.click();
+                          }
+                        }}
+                        className="group px-3 py-2.5 sm:px-4 sm:py-3 bg-white border border-gray-200 hover:border-teal-300 rounded-xl transition-all duration-200 flex items-center gap-2 sm:gap-3 hover:shadow-sm w-full sm:w-auto"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-teal-50/50 via-orange-50/30 to-amber-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                        <div className="relative">
-                          <Paperclip className="w-4 h-4 text-gray-600 group-hover:text-teal-600 transition-all duration-300 group-hover:rotate-12" />
-                          <div className="absolute inset-0 border-2 border-teal-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" />
-                        </div>
-
-                        <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-teal-700 transition-colors duration-300 relative z-10">
+                        <Paperclip className="w-4 h-4 text-gray-500 group-hover:text-teal-600 transition-colors duration-200" />
+                        <span className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-teal-700 transition-colors duration-200">
                           {dict.attachScreenshot}
                         </span>
-
-                        <div className="w-2 h-2 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
                       </button>
 
                       {screenshotPreview && (
                         <div className="flex items-center justify-center sm:justify-start">
                           <div className="relative group/preview">
-                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-teal-200 shadow-lg bg-white">
+                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white">
                               <img
                                 src={screenshotPreview}
-                                alt="Screenshot preview"
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover/preview:scale-110"
+                                alt={dict.screenshotTooltip}
+                                className="w-full h-full object-cover"
                               />
-                              <div className="absolute inset-0 bg-black/0 group-hover/preview:bg-black/20 transition-colors duration-300" />
                             </div>
-
                             <button
                               type="button"
-                              onClick={() => setScreenshot(null)}
-                              // כפתור מחיקה - Rose (תואם ל-HeroSection Rose principle)
-                              className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 group/remove"
+                              onClick={() =>
+                                dispatch({
+                                  type: 'SET_SCREENSHOT',
+                                  screenshot: null,
+                                })
+                              }
+                              className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-rose-500 hover:bg-rose-600 text-white rounded-full flex items-center justify-center shadow-sm transition-colors duration-200"
                             >
-                              <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover/remove:rotate-90 transition-transform duration-300" />
+                              <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </button>
                           </div>
                         </div>
                       )}
                     </div>
 
-                    <div
-                      className={`text-xs text-gray-500 flex items-center gap-2 ${
-                        isRTL ? 'flex-row-reverse' : ''
-                      }`}
+                    <p
+                      className={cn(
+                        'text-xs text-gray-400 flex items-center gap-1.5',
+                        isRTL && 'flex-row-reverse'
+                      )}
                     >
-                      <div className="w-1.5 h-1.5 bg-gradient-to-r from-teal-400 to-amber-400 rounded-full" />
-                      <span>{dict.fileInstructions}</span>
-                    </div>
+                      {dict.fileInstructions}
+                    </p>
 
                     <input
                       type="file"
@@ -567,31 +710,39 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                     />
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
+                  {/* Action buttons */}
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={() => resetState()}
-                      className="flex-1 hover:bg-gray-100 transition-colors duration-300 text-sm sm:text-base"
+                      onClick={attemptClose}
+                      className="flex-1 hover:bg-gray-100 transition-colors duration-200 text-sm sm:text-base"
                     >
                       {dict.cancelButton}
                     </Button>
                     <Button
                       onClick={handleSubmit}
-                      disabled={isSubmitting || !content.trim()}
-                      // כפתור ראשי - Teal/Orange/Amber Gradient (תואם ל-HeroSection CTA)
-                      className="flex-1 bg-gradient-to-r from-teal-500 via-orange-500 to-amber-500 hover:from-teal-600 hover:via-orange-600 hover:to-amber-600 text-white rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
+                      disabled={
+                        isSubmitting || !content.trim() || isOverLimit
+                      }
+                      className="flex-1 bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm sm:text-base"
                     >
                       {isSubmitting ? (
                         <div
-                          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+                          className={cn(
+                            'flex items-center gap-2',
+                            isRTL && 'flex-row-reverse'
+                          )}
                         >
                           <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                           <span>{dict.submittingButton}</span>
                         </div>
                       ) : (
                         <div
-                          className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}
+                          className={cn(
+                            'flex items-center gap-2',
+                            isRTL && 'flex-row-reverse'
+                          )}
                         >
                           <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           <span>{dict.submitButton}</span>
@@ -601,11 +752,51 @@ const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* ─── Step: Success ─────────────────────────────────── */}
+              {step === 'success' && (
+                <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-teal-50 rounded-full flex items-center justify-center mb-4">
+                    <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-teal-500" />
+                  </div>
+                  <p className="text-lg sm:text-xl font-bold text-gray-800 mb-1">
+                    {dict.successMessage}
+                  </p>
+                  <p className="text-sm text-gray-500">{dict.subtitle}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* ─── Confirm Close Dialog ─────────────────────────────── */}
+        {showConfirmClose && (
+          <div className="absolute inset-0 z-10 bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center p-6 text-center">
+            <h4 className="text-lg font-bold text-gray-800 mb-2">
+              {dict.confirmCloseTitle}
+            </h4>
+            <p className="text-sm text-gray-500 mb-6 max-w-xs">
+              {dict.confirmCloseMessage}
+            </p>
+            <div className="flex gap-3 w-full max-w-xs">
+              <Button
+                variant="ghost"
+                onClick={confirmClose}
+                className="flex-1 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+              >
+                {dict.confirmCloseDiscard}
+              </Button>
+              <Button
+                onClick={() => dispatch({ type: 'HIDE_CONFIRM_CLOSE' })}
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                {dict.confirmCloseKeepEditing}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
-    </Fragment>
+    </>
   );
 };
 

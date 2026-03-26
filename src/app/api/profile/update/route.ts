@@ -18,50 +18,7 @@ import {
 import { updateProfileVectorsAndMetrics } from '@/lib/services/dualVectorService';
 import { sanitizeText } from '@/lib/sanitize';
 import type { UserProfile } from "@/types/next-auth";
-
-// --- Helpers ---
-
-const toNumberOrNull = (value: string | number | null | undefined): number | null => {
-  if (value === null || value === undefined || String(value).trim() === "") {
-    return null;
-  }
-  const num = Number(value);
-  return isNaN(num) ? null : num;
-};
-
-const toRequiredDate = (value: string | number | Date | null | undefined, fieldName: string): Date => {
-  if (value === null || value === undefined || String(value).trim() === "") {
-    throw new Error(`Required date field '${fieldName}' is missing or empty.`);
-  }
-  let date: Date;
-  if (value instanceof Date) {
-    date = value;
-  } else {
-    date = new Date(value);
-  }
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid date value for required field '${fieldName}'.`);
-  }
-  return date;
-};
-
-const toDateOrNull = (value: string | number | Date | null | undefined): Date | null => {
-  if (value === null || value === undefined || String(value).trim() === "") {
-    return null;
-  }
-  if (value instanceof Date) {
-    return isNaN(value.getTime()) ? null : value;
-  }
-  const date = new Date(value);
-  return isNaN(date.getTime()) ? null : date;
-};
-
-const emptyStringToNull = (value: string | null | undefined): string | null => {
-  if (value === "" || value === null || value === undefined) {
-    return null;
-  }
-  return value;
-};
+import { buildProfileResponse, toNumberOrNull, toRequiredDate, toDateOrNull, emptyStringToNull } from '@/lib/services/profileService';
 
 
 export async function PUT(req: NextRequest) {
@@ -387,98 +344,14 @@ export async function PUT(req: NextRequest) {
     
     const dbProfile = refreshedUserWithProfile.profile;
 
-    // Construct Response
-    const responseUserProfile: UserProfile = {
-      id: dbProfile.id,
-      userId: dbProfile.userId,
-      gender: dbProfile.gender, 
-      birthDate: new Date(dbProfile.birthDate),
-      birthDateIsApproximate: dbProfile.birthDateIsApproximate ?? undefined, // <--- הוספה לתשובה
-      nativeLanguage: dbProfile.nativeLanguage || undefined,
-      additionalLanguages: dbProfile.additionalLanguages || [],
-      height: dbProfile.height ?? null,
-      maritalStatus: dbProfile.maritalStatus || undefined,
-      occupation: dbProfile.occupation || "",
-      education: dbProfile.education || "",
-      educationLevel: dbProfile.educationLevel || undefined,
-      city: dbProfile.city || "",
-      origin: dbProfile.origin || "",
-      religiousLevel: dbProfile.religiousLevel || undefined,
-      religiousJourney: dbProfile.religiousJourney || undefined,
-      about: dbProfile.about || "",
-      profileHeadline: dbProfile.profileHeadline || undefined,
-      inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
-      influentialRabbi: dbProfile.influentialRabbi || undefined,
-      isAboutVisible: dbProfile.isAboutVisible ?? true,
-      isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
-      isNeshamaTechSummaryVisible: dbProfile.isNeshamaTechSummaryVisible ?? true,
-      parentStatus: dbProfile.parentStatus || undefined,
-      fatherOccupation: dbProfile.fatherOccupation || "",
-      motherOccupation: dbProfile.motherOccupation || "",
-      siblings: dbProfile.siblings ?? null,
-      position: dbProfile.position ?? null,
-      isProfileVisible: dbProfile.isProfileVisible,
+    // Build response using shared service
+    const responseUserProfile = buildProfileResponse(dbProfile, {
+      id: refreshedUserWithProfile.id,
+      firstName: refreshedUserWithProfile.firstName,
+      lastName: refreshedUserWithProfile.lastName,
+      email: refreshedUserWithProfile.email,
       isProfileComplete: refreshedUserWithProfile.isProfileComplete,
-      hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
-      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
-      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
-      isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-      needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
-      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender || undefined,
-      availabilityStatus: dbProfile.availabilityStatus,
-      availabilityNote: dbProfile.availabilityNote || "",
-      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
-      matchingNotes: dbProfile.matchingNotes || "",
-      
-      internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", 
-
-      shomerNegiah: dbProfile.shomerNegiah ?? undefined,
-      smokingStatus: dbProfile.smokingStatus ?? null,
-      preferredSmokingStatus: dbProfile.preferredSmokingStatus ?? null,
-      serviceType: dbProfile.serviceType || undefined,
-      serviceDetails: dbProfile.serviceDetails || "",
-      headCovering: dbProfile.headCovering || undefined,
-      kippahType: dbProfile.kippahType || undefined,
-      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined, 
-      profileCharacterTraits: dbProfile.profileCharacterTraits || [], 
-      profileHobbies: dbProfile.profileHobbies || [],                 
-      aliyaCountry: dbProfile.aliyaCountry || "",
-      aliyaYear: dbProfile.aliyaYear ?? null,
-      preferredAgeMin: dbProfile.preferredAgeMin ?? null,
-      preferredAgeMax: dbProfile.preferredAgeMax ?? null,
-      preferredHeightMin: dbProfile.preferredHeightMin ?? null,
-      preferredHeightMax: dbProfile.preferredHeightMax ?? null,
-      preferredLocations: dbProfile.preferredLocations || [],
-      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
-      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
-      preferredEducation: dbProfile.preferredEducation || [],
-      preferredOccupations: dbProfile.preferredOccupations || [],
-      contactPreference: dbProfile.contactPreference || undefined,
-      preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
-      preferredOrigins: dbProfile.preferredOrigins || [],
-      preferredServiceTypes: (dbProfile.preferredServiceTypes as ServiceType[]) || [], 
-      preferredHeadCoverings: (dbProfile.preferredHeadCoverings as HeadCoveringType[]) || [],
-      preferredKippahTypes: (dbProfile.preferredKippahTypes as KippahType[]) || [],
-      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
-      preferredPartnerHasChildren: dbProfile.preferredPartnerHasChildren || undefined,
-      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [], 
-      preferredHobbies: dbProfile.preferredHobbies || [],                 
-      preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
-      preferredEthnicBackgrounds: dbProfile.preferredEthnicBackgrounds ?? [],
-      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
-      cvUrl: dbProfile.cvUrl,
-      cvSummary: dbProfile.cvSummary,
-      aiProfileSummary: dbProfile.aiProfileSummary, 
-      createdAt: new Date(dbProfile.createdAt),
-      updatedAt: new Date(dbProfile.updatedAt),
-      lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
-      user: {
-        id: refreshedUserWithProfile.id,
-        firstName: refreshedUserWithProfile.firstName,
-        lastName: refreshedUserWithProfile.lastName,
-        email: refreshedUserWithProfile.email,
-      },
-    };
+    }, { isOwner: true });
 
     return NextResponse.json({
       success: true,

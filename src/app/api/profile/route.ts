@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 import type { UserProfile } from "@/types/next-auth";
 import { sanitizeText } from '@/lib/sanitize';
 import { profileUpdateSchema } from '@/lib/validations/profileSchemas';
+import { buildProfileResponse } from '@/lib/services/profileService';
 
 // הגדרה זו מבטיחה שה-Route Handler ירוץ תמיד מחדש ולא ישמר ב-Cache.
 export const dynamic = 'force-dynamic';
@@ -69,111 +70,15 @@ export async function GET(req: Request) {
         );
     }
 
-    // בנה את אובייקט התגובה המלא שישלח חזרה ללקוח
-    const profileResponseData: UserProfile = {
-      id: dbProfile.id,
-      userId: dbProfile.userId,
-      gender: dbProfile.gender,
-      birthDate: dbProfile.birthDate ? new Date(dbProfile.birthDate) : new Date(), // Fallback if missing, though integrity check exists
-      nativeLanguage: dbProfile.nativeLanguage || undefined,
-      additionalLanguages: dbProfile.additionalLanguages || [],
-      height: dbProfile.height ?? null,
-      city: dbProfile.city || "",
-      origin: dbProfile.origin || "",
-      aliyaCountry: dbProfile.aliyaCountry || "",
-      aliyaYear: dbProfile.aliyaYear ?? null,
-      maritalStatus: dbProfile.maritalStatus || undefined,
-      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined,
-      parentStatus: dbProfile.parentStatus || undefined,
-      fatherOccupation: dbProfile.fatherOccupation || "",
-      motherOccupation: dbProfile.motherOccupation || "",
-      siblings: dbProfile.siblings ?? null,
-      position: dbProfile.position ?? null,
-      educationLevel: dbProfile.educationLevel || undefined,
-      education: dbProfile.education || "",
-      occupation: dbProfile.occupation || "",
-      serviceType: dbProfile.serviceType,
-      serviceDetails: dbProfile.serviceDetails || "",
-      religiousLevel: dbProfile.religiousLevel || undefined,
-      religiousJourney: dbProfile.religiousJourney,
-      shomerNegiah: dbProfile.shomerNegiah ?? undefined,
-      smokingStatus: dbProfile.smokingStatus ?? null,
-      preferredSmokingStatus: dbProfile.preferredSmokingStatus ?? null,
-      headCovering: dbProfile.headCovering,
-      kippahType: dbProfile.kippahType,
-      profileCharacterTraits: dbProfile.profileCharacterTraits || [],
-      profileHobbies: dbProfile.profileHobbies || [],
-
-      about: dbProfile.about || "",
-      isAboutVisible: dbProfile.isAboutVisible ?? true,
-      profileHeadline: dbProfile.profileHeadline || undefined,
-      inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
-      influentialRabbi: dbProfile.influentialRabbi || undefined,
-      
-      manualEntryText: dbProfile.manualEntryText || undefined,
-      isNeshamaTechSummaryVisible: dbProfile.isNeshamaTechSummaryVisible ?? true,
-      testimonials: dbProfile.testimonials || [],
-      isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
-
-      matchingNotes: dbProfile.matchingNotes || "",
-      internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", // ✅ FIX: Added missing field
-      preferredAgeMin: dbProfile.preferredAgeMin ?? null,
-      preferredAgeMax: dbProfile.preferredAgeMax ?? null,
-      preferredHeightMin: dbProfile.preferredHeightMin ?? null,
-      preferredHeightMax: dbProfile.preferredHeightMax ?? null,
-      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
-      preferredLocations: dbProfile.preferredLocations || [],
-      preferredEducation: dbProfile.preferredEducation || [],
-      preferredOccupations: dbProfile.preferredOccupations || [],
-      preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
-      preferredOrigins: dbProfile.preferredOrigins || [],
-      preferredServiceTypes: dbProfile.preferredServiceTypes || [],
-      preferredHeadCoverings: dbProfile.preferredHeadCoverings || [],
-      preferredKippahTypes: dbProfile.preferredKippahTypes || [],
-      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
-            preferredPartnerHasChildren: dbProfile.preferredPartnerHasChildren || undefined,
-
-      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
-      preferredHobbies: dbProfile.preferredHobbies || [],
-      preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
-      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
-      preferredEthnicBackgrounds: dbProfile.preferredEthnicBackgrounds ?? [],
-
-      contactPreference: dbProfile.contactPreference || undefined,
-      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender,
-
-      isProfileVisible: dbProfile.isProfileVisible,
+    // Build response using shared service
+    const profileResponseData = buildProfileResponse(dbProfile, {
+      id: userWithProfile.id,
+      firstName: userWithProfile.firstName,
+      lastName: userWithProfile.lastName,
+      email: userWithProfile.email,
+      phone: userWithProfile.phone,
       isProfileComplete: userWithProfile.isProfileComplete,
-      availabilityStatus: dbProfile.availabilityStatus,
-      availabilityNote: dbProfile.availabilityNote || "",
-      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
-      verifiedBy: dbProfile.verifiedBy || undefined,
-      createdAt: new Date(dbProfile.createdAt),
-      updatedAt: new Date(dbProfile.updatedAt),
-      contentUpdatedAt: dbProfile.contentUpdatedAt ? new Date(dbProfile.contentUpdatedAt) : null, 
-      lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
-      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
-      needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
-      
-      hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
-      // ✨ FIX: Allow owner to see details even if hidden
-      medicalInfoDetails: (isOwner || dbProfile.isMedicalInfoVisible)
-        ? dbProfile.medicalInfoDetails ?? undefined 
-        : undefined,      
-      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
-      isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-      cvUrl: dbProfile.cvUrl,
-      cvSummary: dbProfile.cvSummary,
-      aiProfileSummary: dbProfile.aiProfileSummary,
-
-      user: {
-        id: userWithProfile.id,
-        firstName: userWithProfile.firstName,
-        lastName: userWithProfile.lastName,
-        email: userWithProfile.email,
-        phone: userWithProfile.phone,
-      }
-    };
+    }, { isOwner });
     
     return NextResponse.json({
       success: true,
@@ -306,112 +211,14 @@ export async function PUT(req: Request) {
 
     const dbProfile = userWithProfile.profile;
 
-    // Build response (same structure as GET)
-    const profileResponseData: UserProfile = {
-      id: dbProfile.id,
-      userId: dbProfile.userId,
-      gender: dbProfile.gender,
-      birthDate: dbProfile.birthDate ? new Date(dbProfile.birthDate) : new Date(),
-      nativeLanguage: dbProfile.nativeLanguage || undefined,
-      additionalLanguages: dbProfile.additionalLanguages || [],
-      height: dbProfile.height ?? null,
-      city: dbProfile.city || "",
-      origin: dbProfile.origin || "",
-      aliyaCountry: dbProfile.aliyaCountry || "",
-      aliyaYear: dbProfile.aliyaYear ?? null,
-      maritalStatus: dbProfile.maritalStatus || undefined,
-      hasChildrenFromPrevious: dbProfile.hasChildrenFromPrevious ?? undefined,
-      parentStatus: dbProfile.parentStatus || undefined,
-      fatherOccupation: dbProfile.fatherOccupation || "",
-      motherOccupation: dbProfile.motherOccupation || "",
-      siblings: dbProfile.siblings ?? null,
-      position: dbProfile.position ?? null,
-      educationLevel: dbProfile.educationLevel || undefined,
-      education: dbProfile.education || "",
-      occupation: dbProfile.occupation || "",
-      serviceType: dbProfile.serviceType,
-      serviceDetails: dbProfile.serviceDetails || "",
-      religiousLevel: dbProfile.religiousLevel || undefined,
-      religiousJourney: dbProfile.religiousJourney,
-      shomerNegiah: dbProfile.shomerNegiah ?? undefined,
-      smokingStatus: dbProfile.smokingStatus ?? null,
-      preferredSmokingStatus: dbProfile.preferredSmokingStatus ?? null,
-      headCovering: dbProfile.headCovering,
-      kippahType: dbProfile.kippahType,
-      profileCharacterTraits: dbProfile.profileCharacterTraits || [],
-      profileHobbies: dbProfile.profileHobbies || [],
-
-      about: dbProfile.about || "",
-      isAboutVisible: dbProfile.isAboutVisible ?? true,
-      profileHeadline: dbProfile.profileHeadline || undefined,
-      inspiringCoupleStory: dbProfile.inspiringCoupleStory || undefined,
-      influentialRabbi: dbProfile.influentialRabbi || undefined,
-      
-      manualEntryText: dbProfile.manualEntryText || undefined,
-      isNeshamaTechSummaryVisible: dbProfile.isNeshamaTechSummaryVisible ?? true,
-      testimonials: dbProfile.testimonials || [],
-      isFriendsSectionVisible: dbProfile.isFriendsSectionVisible ?? true,
-
-      matchingNotes: dbProfile.matchingNotes || "",
-       internalMatchmakerNotes: dbProfile.internalMatchmakerNotes || "", 
-      preferredAgeMin: dbProfile.preferredAgeMin ?? null,
-      preferredAgeMax: dbProfile.preferredAgeMax ?? null,
-      preferredHeightMin: dbProfile.preferredHeightMin ?? null,
-      preferredHeightMax: dbProfile.preferredHeightMax ?? null,
-      preferredReligiousLevels: dbProfile.preferredReligiousLevels || [],
-      preferredLocations: dbProfile.preferredLocations || [],
-      preferredEducation: dbProfile.preferredEducation || [],
-      preferredOccupations: dbProfile.preferredOccupations || [],
-      preferredMaritalStatuses: dbProfile.preferredMaritalStatuses || [],
-      preferredOrigins: dbProfile.preferredOrigins || [],
-      preferredServiceTypes: dbProfile.preferredServiceTypes || [],
-      preferredHeadCoverings: dbProfile.preferredHeadCoverings || [],
-      preferredKippahTypes: dbProfile.preferredKippahTypes || [],
-      preferredShomerNegiah: dbProfile.preferredShomerNegiah || undefined,
-      preferredCharacterTraits: dbProfile.preferredCharacterTraits || [],
-      preferredHobbies: dbProfile.preferredHobbies || [],
-      preferredAliyaStatus: dbProfile.preferredAliyaStatus || undefined,
-      preferredReligiousJourneys: dbProfile.preferredReligiousJourneys ?? [],
-      preferredEthnicBackgrounds: dbProfile.preferredEthnicBackgrounds ?? [],
-
-      contactPreference: dbProfile.contactPreference || undefined,
-      preferredMatchmakerGender: dbProfile.preferredMatchmakerGender,
-
-      isProfileVisible: dbProfile.isProfileVisible,
+    // Build response using shared service
+    const profileResponseData = buildProfileResponse(dbProfile, {
+      id: userWithProfile.id,
+      firstName: userWithProfile.firstName,
+      lastName: userWithProfile.lastName,
+      email: userWithProfile.email,
       isProfileComplete: userWithProfile.isProfileComplete,
-      availabilityStatus: dbProfile.availabilityStatus,
-      availabilityNote: dbProfile.availabilityNote || "",
-      availabilityUpdatedAt: dbProfile.availabilityUpdatedAt ? new Date(dbProfile.availabilityUpdatedAt) : null,
-      verifiedBy: dbProfile.verifiedBy || undefined,
-      createdAt: new Date(dbProfile.createdAt),
-      updatedAt: new Date(dbProfile.updatedAt),
-            contentUpdatedAt: new Date(), // או להשתמש בערך מה-updatedProfile אם שלפת אותו
-
-      lastActive: dbProfile.lastActive ? new Date(dbProfile.lastActive) : null,
-      hasViewedProfilePreview: dbProfile.hasViewedProfilePreview,
-      needsAiProfileUpdate: dbProfile.needsAiProfileUpdate,
-      
-      hasMedicalInfo: dbProfile.hasMedicalInfo ?? undefined,
-      medicalInfoDetails: dbProfile.medicalInfoDetails ?? undefined,
-      medicalInfoDisclosureTiming: dbProfile.medicalInfoDisclosureTiming ?? undefined,
-      isMedicalInfoVisible: dbProfile.isMedicalInfoVisible,
-      cvUrl: dbProfile.cvUrl,
-      cvSummary: dbProfile.cvSummary,
-      aiProfileSummary: dbProfile.aiProfileSummary,
-  priorityScore: dbProfile.priorityScore,
-  priorityCategory: dbProfile.priorityCategory,
-  redFlags: dbProfile.redFlags || [],
-  greenFlags: dbProfile.greenFlags || [],
-  difficultyScore: dbProfile.difficultyScore,
-  readinessLevel: dbProfile.readinessLevel,
-  missingFields: dbProfile.missingFields || [],
-      user: {
-        id: userWithProfile.id,
-        firstName: userWithProfile.firstName,
-        lastName: userWithProfile.lastName,
-        email: userWithProfile.email,
-      }
-    };
+    }, { isOwner: true });
 
     return NextResponse.json({
       success: true,

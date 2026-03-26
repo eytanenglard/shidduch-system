@@ -2,12 +2,10 @@
 
 import React, { useMemo } from 'react';
 import { ServiceType } from '@prisma/client';
-import { Card, CardContent } from '@/components/ui/card';
 import { Briefcase } from 'lucide-react';
-import ProfileCardHeader from '@/components/profile/ProfileCardHeader';
 import CvUploadSection from '../CvUploadSection';
 import { ProfileCardProps } from './types';
-import { SelectField, InputField } from '@/components/profile/fields';
+import { SelectField, InputField, EditableCard } from '@/components/profile/fields';
 
 interface EducationCareerCardProps extends ProfileCardProps {
   onCvUpload?: (file: File) => Promise<void>;
@@ -38,14 +36,12 @@ const EducationCareerCard: React.FC<EducationCareerCardProps> = ({
   );
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <ProfileCardHeader
-        icon={<Briefcase className="w-4 h-4 text-teal-700" />}
-        title={dict.cards.education.title}
-        gradientFrom="from-teal-50/60 to-green-50/60"
-        iconGradient="from-teal-500/10 to-teal-600/10"
-      />
-      <CardContent className="p-3 md:p-4">
+    <EditableCard
+      icon={<Briefcase className="w-4 h-4 text-teal-700" />}
+      title={dict.cards.education.title}
+      gradientFrom="from-teal-50/60 to-green-50/60"
+      iconGradient="from-teal-500/10 to-teal-600/10"
+    >
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           <SelectField
             id="educationLevel"
@@ -103,7 +99,6 @@ const EducationCareerCard: React.FC<EducationCareerCardProps> = ({
             />
           </div>
         </div>
-      </CardContent>
       <CvUploadSection
         cvUrl={formData.cvUrl}
         isUploading={isCvUploading ?? false}
@@ -112,7 +107,7 @@ const EducationCareerCard: React.FC<EducationCareerCardProps> = ({
         disabled={viewOnly || !isEditing}
         dict={dict.cards.education.cvSection}
       />
-    </Card>
+    </EditableCard>
   );
 };
 

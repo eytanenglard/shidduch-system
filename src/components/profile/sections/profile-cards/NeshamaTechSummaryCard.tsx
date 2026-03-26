@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
@@ -11,6 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Award } from 'lucide-react';
 import { ProfileCardProps } from './types';
+import { EditableCard } from '@/components/profile/fields';
 
 const NeshamaTechSummaryCard: React.FC<ProfileCardProps> = ({
   profile,
@@ -24,16 +24,12 @@ const NeshamaTechSummaryCard: React.FC<ProfileCardProps> = ({
   const t = dict.neshamaTechSummary;
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <CardHeader className="bg-gradient-to-r from-purple-50/60 to-indigo-50/60 border-b border-gray-200/50 px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10 flex items-center justify-center flex-shrink-0">
-            <Award className="w-4 h-4 text-purple-700" />
-          </div>
-          <CardTitle className="text-base font-semibold text-gray-700">
-            {t.cardTitle}
-          </CardTitle>
-        </div>
+    <EditableCard
+      icon={<Award className="w-4 h-4 text-purple-700" />}
+      title={t.cardTitle}
+      gradientFrom="from-purple-50/60 to-indigo-50/60"
+      iconGradient="from-purple-500/10 to-purple-600/10"
+      headerChildren={
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -48,15 +44,14 @@ const NeshamaTechSummaryCard: React.FC<ProfileCardProps> = ({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </CardHeader>
-      <CardContent className="p-3 md:p-4">
-        <p className="text-sm text-gray-700 whitespace-pre-wrap min-h-[60px]">
-          {profile.manualEntryText || (
-            <span className="italic text-gray-500">{t.emptyState}</span>
-          )}
-        </p>
-      </CardContent>
-    </Card>
+      }
+    >
+      <p className="text-sm text-gray-700 whitespace-pre-wrap min-h-[60px]">
+        {profile.manualEntryText || (
+          <span className="italic text-gray-500">{t.emptyState}</span>
+        )}
+      </p>
+    </EditableCard>
   );
 };
 

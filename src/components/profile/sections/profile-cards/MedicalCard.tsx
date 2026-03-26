@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,7 +15,7 @@ import {
 import { HeartPulse, Lock, Eye } from 'lucide-react';
 import { ProfileCardProps } from './types';
 import { renderBooleanDisplayValue } from './helpers';
-import { SelectField } from '@/components/profile/fields';
+import { SelectField, EditableCard } from '@/components/profile/fields';
 
 const MedicalCard: React.FC<ProfileCardProps> = ({
   isEditing,
@@ -33,16 +32,12 @@ const MedicalCard: React.FC<ProfileCardProps> = ({
     [dict.options.medicalTiming]
   );
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <CardHeader className="bg-gradient-to-r from-rose-50/60 to-pink-50/60 border-b border-gray-200/50 px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center space-x-2 rtl:space-x-reverse">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500/10 to-rose-600/10 flex items-center justify-center flex-shrink-0">
-            <HeartPulse className="w-4 h-4 text-rose-600" />
-          </div>
-          <CardTitle className="text-base font-semibold text-gray-700">
-            {dict.cards.medical.title}
-          </CardTitle>
-        </div>
+    <EditableCard
+      icon={<HeartPulse className="w-4 h-4 text-rose-600" />}
+      title={dict.cards.medical.title}
+      gradientFrom="from-rose-50/60 to-pink-50/60"
+      iconGradient="from-rose-500/10 to-rose-600/10"
+      headerChildren={
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -56,8 +51,9 @@ const MedicalCard: React.FC<ProfileCardProps> = ({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </CardHeader>
-      <CardContent className="p-4 md:p-6 space-y-4">
+      }
+      contentClassName="p-4 md:p-6 space-y-4"
+    >
         <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200/80">
           {dict.cards.medical.description}
         </div>
@@ -175,8 +171,7 @@ const MedicalCard: React.FC<ProfileCardProps> = ({
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

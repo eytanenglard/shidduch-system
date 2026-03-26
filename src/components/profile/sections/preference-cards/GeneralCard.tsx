@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -11,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Info, FileText } from 'lucide-react';
+import { EditableCard } from '@/components/profile/fields';
 import { PreferenceCardProps } from './types';
 
 const GeneralCard: React.FC<PreferenceCardProps> = ({
@@ -20,16 +20,13 @@ const GeneralCard: React.FC<PreferenceCardProps> = ({
   t,
 }) => {
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <CardHeader className="bg-gradient-to-r from-slate-50/60 to-gray-100/60 border-b border-gray-200/50 px-4 py-2.5 flex items-center space-x-2 rtl:space-x-reverse">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-500/10 to-slate-600/10 flex items-center justify-center flex-shrink-0">
-          <FileText className="w-4 h-4 text-slate-600" />
-        </div>
-        <CardTitle className="text-base font-semibold text-gray-700">
-          {t.cards.general.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 md:p-4 space-y-3">
+    <EditableCard
+      icon={<FileText className="w-4 h-4 text-slate-600" />}
+      title={t.cards.general.title}
+      gradientFrom="from-slate-50/60 to-gray-100/60"
+      iconGradient="from-slate-500/10 to-slate-600/10"
+      contentClassName="space-y-3"
+    >
         <div>
           <div className="flex items-center gap-1.5 mb-1.5">
             <Label
@@ -78,8 +75,7 @@ const GeneralCard: React.FC<PreferenceCardProps> = ({
             </p>
           )}
         </div>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

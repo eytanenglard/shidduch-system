@@ -1863,6 +1863,33 @@
         "title": "שפה והתראות",
         "label": "שפת תקשורת מועדפת",
         "description": "השפה בה נשלח אליך מיילים ועדכונים מהמערכת."
+      },
+      "connectedAccounts": {
+        "title": "חשבונות מקושרים",
+        "description": "שיטות הכניסה המחוברות לחשבון שלך",
+        "connectedVia": "מחובר דרך",
+        "providers": {
+          "google": "Google",
+          "apple": "Apple",
+          "credentials": "מייל וסיסמה"
+        }
+      },
+      "matchPreferences": {
+        "title": "העדפות קבלת הצעות",
+        "description": "קביעה האם את/ה מעוניין/ת לקבל הצעות כ\"צד א'\" מהסריקה האוטומטית",
+        "yesOption": "כן, אני פתוח/ה לזה",
+        "noOption": "לא, רק דרך שדכן",
+        "yesDescription": "המערכת רשאית לשלוח לך הצעות ישירות מהסריקה האוטומטית",
+        "noDescription": "הצעות שידוך יגיעו אליך רק דרך שדכן אנושי"
+      },
+      "privacy": {
+        "title": "פרטיות ומידע",
+        "description": "ניהול הפרטיות והמידע האישי שלך",
+        "exportButton": "הורד את המידע שלי",
+        "exportDescription": "הורדת כל המידע האישי שלך בקובץ JSON",
+        "exportLoading": "מכין את הקובץ...",
+        "exportSuccess": "הקובץ הורד בהצלחה",
+        "exportError": "שגיאה בהורדת המידע"
       }
     },
     "cardFooter": {
@@ -1898,7 +1925,10 @@
       "consentUpdateSuccess": "העדפות התקשורת עודכנו בהצלחה",
       "consentUpdateError": "שגיאה בעדכון העדפות התקשורת",
       "languageUpdateSuccess": "השפה עודכנה בהצלחה!",
-      "languageUpdateError": "שגיאה בעדכון השפה"
+      "languageUpdateError": "שגיאה בעדכון השפה",
+      "firstPartyEnabled": "תקבל/י הצעות מהסריקה האוטומטית",
+      "firstPartyDisabled": "הצעות יגיעו רק דרך שדכן אנושי",
+      "firstPartyError": "שגיאה בשמירת ההעדפה"
     },
     "passwordDialog": {
       "title": "שינוי סיסמה",

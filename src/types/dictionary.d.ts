@@ -31,6 +31,7 @@ export type UserDropdownDict = {
   profileImageAlt: string;
   myProfile: string;
   questionnaire: string;
+  heartMap: string;
   accountSettings: string;
   signOut: string;
 };
@@ -482,6 +483,21 @@ export type SuggestionsModalDict = {
       confirmButton: string;
       goBack: string;
       cancelApproval: string;
+    };
+    reOfferInfo: string;
+    gracePeriodExpired: string;
+    withdrawError: string;
+  };
+  detailsTab: {
+    aiChatTitle: string;
+    aiChatSubtitle: string;
+    chatTitle: string;
+    chatTitleFallback: string;
+    chatSubtitle: string;
+    toasts: {
+      sendSuccess: string;
+      sendSuccessDescription: string;
+      sendError: string;
     };
   };
   profile: {
@@ -1715,6 +1731,10 @@ export type AccessibilityFeaturesDict = {
     title: string;
     description: string;
   };
+  lineHeight: {
+    title: string;
+    description: string;
+  };
   displayMode: {
     title: string;
   };
@@ -1722,6 +1742,15 @@ export type AccessibilityFeaturesDict = {
     normal: ContrastOptionDict;
     high: ContrastOptionDict;
     dark: ContrastOptionDict;
+  };
+  colorBlindMode: {
+    title: string;
+  };
+  colorBlindOptions: {
+    none: ContrastOptionDict;
+    protanopia: ContrastOptionDict;
+    deuteranopia: ContrastOptionDict;
+    tritanopia: ContrastOptionDict;
   };
   additionalSettings: {
     title: string;
@@ -1731,16 +1760,28 @@ export type AccessibilityFeaturesDict = {
     reader: AdvancedOptionDict;
     cursor: AdvancedOptionDict;
     font: AdvancedOptionDict;
+    dyslexia: AdvancedOptionDict;
     motion: AdvancedOptionDict;
+    highlightLinks: AdvancedOptionDict;
+    readingGuide: AdvancedOptionDict;
   };
   settingNames: {
     fontScale: string;
+    lineHeight: string;
     contrastMode: string;
     reducedMotion: string;
     readableMode: string;
+    dyslexiaFont: string;
     bigCursor: string;
     textReader: string;
     soundEnabled: string;
+    highlightLinks: string;
+    readingGuide: string;
+    colorBlindMode: string;
+  };
+  keyboardShortcuts: {
+    title: string;
+    toggle: string;
   };
   toasts: {
     settingUpdated: string;
@@ -3163,6 +3204,24 @@ export type AccountSettingsDict = {
       emailLabel: string;
       sendVerificationButton: string;
     };
+    connectedAccounts: {
+      title: string;
+      description: string;
+      connectedVia: string;
+      providers: {
+        google: string;
+        apple: string;
+        credentials: string;
+      };
+    };
+    matchPreferences: {
+      title: string;
+      description: string;
+      yesOption: string;
+      noOption: string;
+      yesDescription: string;
+      noDescription: string;
+    };
     status: {
       title: string;
       permissionsLabel: string;
@@ -3211,6 +3270,15 @@ export type AccountSettingsDict = {
       description: string;
       deleteButton: string;
     };
+    privacy: {
+      title: string;
+      description: string;
+      exportButton: string;
+      exportDescription: string;
+      exportLoading: string;
+      exportSuccess: string;
+      exportError: string;
+    };
     language: {
       title: string;
       label: string;
@@ -3251,6 +3319,9 @@ export type AccountSettingsDict = {
     consentUpdateError: string;
     languageUpdateSuccess: string;
     languageUpdateError: string;
+    firstPartyEnabled: string;
+    firstPartyDisabled: string;
+    firstPartyError: string;
   };
   passwordDialog: {
     title: string;
@@ -3530,6 +3601,8 @@ export type ContactPageDict = {
 export type FeedbackWidgetDict = {
   openAriaLabel: string;
   closeAriaLabel: string;
+  hideAriaLabel: string;
+  showAriaLabel: string;
   title: string;
   subtitle: string;
   tabLabel: string;
@@ -3546,6 +3619,12 @@ export type FeedbackWidgetDict = {
   cancelButton: string;
   submitButton: string;
   submittingButton: string;
+  confirmCloseTitle: string;
+  confirmCloseMessage: string;
+  confirmCloseDiscard: string;
+  confirmCloseKeepEditing: string;
+  charCount: string;
+  successMessage: string;
   toasts: {
     imageTooLarge: string;
     contentRequired: string;

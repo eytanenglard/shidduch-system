@@ -145,7 +145,7 @@ export default function MessagesClientPage({
                   'text-xs px-1.5 py-0 border-0',
                   mainTab === 'chats'
                     ? 'bg-white/30 text-white'
-                    : 'bg-teal-500 text-white animate-pulse'
+                    : 'bg-teal-500 text-white animate-zoom-in'
                 )}
               >
                 {chatUnread}
@@ -169,7 +169,7 @@ export default function MessagesClientPage({
                   'text-xs px-1.5 py-0 border-0',
                   mainTab === 'updates'
                     ? 'bg-white/30 text-white'
-                    : 'bg-orange-500 text-white animate-pulse'
+                    : 'bg-orange-500 text-white animate-zoom-in'
                 )}
               >
                 {actionRequiredCount}
@@ -236,7 +236,7 @@ export default function MessagesClientPage({
                   {dict.filters?.actionRequired ||
                     (isHe ? 'דורש תגובה' : 'Action Required')}
                   {actionRequiredCount > 0 && (
-                    <Badge className="absolute -top-1 -right-2 bg-orange-500 text-white animate-pulse">
+                    <Badge className="absolute -top-1 -right-2 bg-orange-500 text-white animate-zoom-in">
                       {actionRequiredCount}
                     </Badge>
                   )}

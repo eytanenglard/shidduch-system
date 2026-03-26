@@ -61,12 +61,15 @@ export async function POST(req: Request) {
       // עדכון סיסמה
       db.user.update({
         where: { id: userId },
-        data: { password: hashedNewPassword }
+        data: {
+          password: hashedNewPassword,
+          passwordChangedAt: new Date(),
+        }
       }),
       // עדכון סטטוס האימות
       db.verification.update({
         where: { id: verification.id },
-        data: { 
+        data: {
           status: "COMPLETED",
           completedAt: new Date()
         }

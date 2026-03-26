@@ -21,6 +21,7 @@ import BottomStats from './components/BottomStats';
 import FloatingActions from './components/FloatingActions';
 import ComparisonCheckbox from './components/ComparisonCheckbox';
 import AiReasoningDialog from './components/AiReasoningDialog';
+import DealBreakersBadges from './components/DealBreakersBadges';
 
 const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
   (props) => {
@@ -80,6 +81,9 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
           {/* ── PHOTO ─────────────────────────────────────────────────────── */}
           <PhotoSection
             mainImage={state.mainImage}
+            allImages={state.allImages}
+            activePhotoIndex={state.activePhotoIndex}
+            onPhotoIndexChange={state.setActivePhotoIndex}
             imageLoaded={state.imageLoaded}
             imageError={state.imageError}
             isHovered={state.isHovered}
@@ -100,6 +104,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
               hasExistingSuggestion={state.hasExistingSuggestion}
               existingSuggestion={existingSuggestion}
               availabilityConfig={state.availabilityConfig}
+              waitingConfig={state.waitingConfig}
               dict={dict}
             />
             <NameOverlay
@@ -130,6 +135,14 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
               dict={dict}
             />
 
+            {/* Deal-breakers */}
+            {(candidate.profile as any).metrics && (
+              <DealBreakersBadges
+                hard={((candidate.profile as any).metrics?.dealBreakersHard as any[]) ?? []}
+                soft={((candidate.profile as any).metrics?.dealBreakersSoft as any[]) ?? []}
+              />
+            )}
+
             <BottomStats
               readinessConfig={state.readinessConfig}
               wantsToBeFirst={state.wantsToBeFirst}
@@ -139,6 +152,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
               suggestionsDeclined={state.suggestionsDeclined}
               hasAiData={state.hasAiData}
               lastActive={candidate.profile.lastActive}
+              recentSuggestions={(candidate as any).recentSuggestions}
               dict={dict}
             />
           </div>
@@ -154,6 +168,9 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
             onAnalyze={onAnalyze}
             onSendProfileFeedback={onSendProfileFeedback}
             onShowReasoning={() => state.setShowReasoning(true)}
+            notesCount={(candidate as any).notesCount ?? 0}
+            showNotes={state.showNotes}
+            onShowNotesChange={state.setShowNotes}
             dict={dict}
           />
 

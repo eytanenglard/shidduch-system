@@ -8,6 +8,7 @@ import {
   Edit2,
   Star,
   AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -17,7 +18,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { getBackgroundBadge } from '../MinimalCard.constants';
-import type { AvailabilityConfig, CandidateWithAiData, MinimalCardDict } from '../MinimalCard.types';
+import type { AvailabilityConfig, CandidateWithAiData, MinimalCardDict, WaitingConfig } from '../MinimalCard.types';
 
 interface PhotoBadgesProps {
   candidate: CandidateWithAiData;
@@ -30,6 +31,7 @@ interface PhotoBadgesProps {
   hasExistingSuggestion: boolean;
   existingSuggestion: { status: string; createdAt: string } | null;
   availabilityConfig: AvailabilityConfig;
+  waitingConfig?: WaitingConfig;
   dict: MinimalCardDict;
 }
 
@@ -44,6 +46,7 @@ const PhotoBadges: React.FC<PhotoBadgesProps> = ({
   hasExistingSuggestion,
   existingSuggestion,
   availabilityConfig,
+  waitingConfig,
   dict,
 }) => (
   <>
@@ -134,6 +137,26 @@ const PhotoBadges: React.FC<PhotoBadgesProps> = ({
           <Star className="w-2.5 h-2.5 fill-current" />
           <span>מטרה</span>
         </div>
+      )}
+
+      {/* Waiting time indicator */}
+      {waitingConfig?.show && waitingConfig.showOnPhoto && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className={cn(
+                'flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold shadow-md backdrop-blur-sm',
+                waitingConfig.className
+              )}>
+                <Clock className="w-2.5 h-2.5" />
+                <span>{waitingConfig.label}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{waitingConfig.neverSuggested ? 'טרם קיבל/ה הצעה' : `ממתינ/ה ${waitingConfig.days} ימים`}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
 

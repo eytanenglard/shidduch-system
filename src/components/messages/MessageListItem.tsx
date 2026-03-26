@@ -21,7 +21,7 @@ interface MessageListItemProps {
   locale: Locale;
 }
 
-// Komponent pomocniczy do wyboru ikony i koloru na podstawie typu wiadomości
+// Helper component for choosing icon and color based on message type
 const MessageIcon: React.FC<{ type: UnifiedMessage['type'] }> = ({ type }) => {
   switch (type) {
     case 'ACTION_REQUIRED':
@@ -46,16 +46,16 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
   dict,
   locale,
 }) => {
-  // Jeśli nie ma payloadu lub sugestii, nie renderujemy elementu
+  // Skip rendering if there's no payload or suggestion
   const suggestion = message.payload?.suggestion;
   if (!suggestion) return null;
 
-  // Identyfikacja drugiej strony w sugestii
+  // Identify the other party in the suggestion
   const otherParty =
     suggestion.firstPartyId === userId
       ? suggestion.secondParty
       : suggestion.firstParty;
-  if (!otherParty) return null; // Dodatkowe zabezpieczenie
+  if (!otherParty) return null;
 
   const isActionRequired = message.type === 'ACTION_REQUIRED';
   const mainImage = otherParty.images?.find((img) => img.isMain);
@@ -69,7 +69,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
         isSelected ? 'bg-cyan-50 border border-cyan-200' : 'hover:bg-gray-100'
       )}
     >
-      {/* Sekcja awatara z ikoną */}
+      {/* Avatar with type icon */}
       <div className="relative flex-shrink-0">
         <Avatar className="w-12 h-12 border-2 border-white shadow-md">
           {mainImage?.url ? (
@@ -93,7 +93,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
             </AvatarFallback>
           )}
         </Avatar>
-        {/* Mała ikona wskazująca typ wiadomości */}
+        {/* Small icon indicating message type */}
         <div
           className={cn(
             'absolute -bottom-1 p-1 bg-white rounded-full shadow-lg',
@@ -104,7 +104,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
         </div>
       </div>
 
-      {/* Sekcja treści */}
+      {/* Content section */}
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
           <h3 className="font-bold text-gray-800 truncate">{message.title}</h3>
@@ -117,7 +117,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
         </div>
         <p className="text-sm text-gray-600 truncate">{message.description}</p>
 
-        {/* Specjalna odznaka "Dopasowanie!" */}
+        {/* Special "Match!" badge */}
         {message.type === 'STATUS_UPDATE' &&
           suggestion.status === 'CONTACT_DETAILS_SHARED' && (
             <Badge className="mt-1 bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 text-xs shadow-md">

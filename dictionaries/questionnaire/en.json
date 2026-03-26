@@ -606,6 +606,10 @@
     "title": "Text Size",
     "description": "Increase or decrease the size of text on the page."
   },
+  "lineHeight": {
+    "title": "Line Height",
+    "description": "Adjust the spacing between text lines."
+  },
   "displayMode": {
     "title": "Display Mode"
   },
@@ -621,6 +625,27 @@
     "dark": {
       "label": "Dark Mode",
       "description": "Reduces eye strain in low light."
+    }
+  },
+  "colorBlindMode": {
+    "title": "Color Blind Mode"
+  },
+  "colorBlindOptions": {
+    "none": {
+      "label": "None",
+      "description": "Standard display without color adjustment."
+    },
+    "protanopia": {
+      "label": "Protanopia",
+      "description": "Red-green color blindness (red deficiency)."
+    },
+    "deuteranopia": {
+      "label": "Deuteranopia",
+      "description": "Red-green color blindness (green deficiency)."
+    },
+    "tritanopia": {
+      "label": "Tritanopia",
+      "description": "Blue-yellow color blindness."
     }
   },
   "additionalSettings": {
@@ -643,19 +668,40 @@
       "label": "Readable Font",
       "description": "Switch to a standard, high-legibility font."
     },
+    "dyslexia": {
+      "label": "Dyslexia Font",
+      "description": "Uses a font designed for readers with dyslexia."
+    },
     "motion": {
       "label": "Reduce Motion",
       "description": "Disable animations and transition effects."
+    },
+    "highlightLinks": {
+      "label": "Highlight Links",
+      "description": "Underlines and outlines all links for visibility."
+    },
+    "readingGuide": {
+      "label": "Reading Guide",
+      "description": "A horizontal bar follows your mouse to help track lines."
     }
   },
   "settingNames": {
     "fontScale": "Text Size",
+    "lineHeight": "Line Height",
     "contrastMode": "Display Mode",
     "reducedMotion": "Reduce Motion",
     "readableMode": "Readable Font",
+    "dyslexiaFont": "Dyslexia Font",
     "bigCursor": "Large Cursor",
     "textReader": "Text Reader",
-    "soundEnabled": "Interaction Sounds"
+    "soundEnabled": "Interaction Sounds",
+    "highlightLinks": "Highlight Links",
+    "readingGuide": "Reading Guide",
+    "colorBlindMode": "Color Blind Mode"
+  },
+  "keyboardShortcuts": {
+    "title": "Keyboard Shortcuts",
+    "toggle": "Toggle panel"
   },
   "toasts": {
     "settingUpdated": "{{settingName}} updated.",

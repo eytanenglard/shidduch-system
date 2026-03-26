@@ -150,14 +150,46 @@ export async function POST(req: NextRequest) {
     });
     logger.info('Invalidated previous pending password reset OTPs', { action, userId: user.id });
 
+    // Account lockout: check recent failed verification attempts
+    const recentFailedAttempts = await prisma.verification.count({
+      where: {
+        userId: user.id,
+        type: VerificationType.PASSWORD_RESET,
+        status: { in: ['FAILED', 'EXPIRED'] },
+        createdAt: { gte: new Date(Date.now() - 30 * 60 * 1000) }, // last 30 minutes
+      },
+    });
+
+    if (recentFailedAttempts >= 5) {
+      logger.warn('Account locked out due to too many failed password reset attempts', {
+        action,
+        userId: user.id,
+        email: normalizedEmail,
+      });
+      // Send lockout notification email (best-effort)
+      try {
+        await emailService.sendPasswordChangedConfirmationEmail({
+          locale: finalLocale,
+          email: user.email,
+          firstName: user.firstName,
+        });
+      } catch { /* ignore email errors */ }
+      // Return generic message to avoid enumeration
+      return NextResponse.json({ success: true, message: genericSuccessMessage }, { status: 200 });
+    }
+
     const expiresInMinutes = 15;
     const { otp: generatedOtp, verification: passwordResetVerification } = await VerificationService.createVerification(
       user.id,
       VerificationType.PASSWORD_RESET,
       user.email,
-      expiresInMinutes / 60 
+      expiresInMinutes / 60
     );
     logger.info('New password reset OTP created', { action, userId: user.id, verificationId: passwordResetVerification.id });
+
+    // Build deep link URL for email
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const resetLink = `${baseUrl}/${finalLocale}/auth/reset-password?email=${encodeURIComponent(user.email)}&token=${generatedOtp}`;
 
     try {
       const expiresInText = finalLocale === 'he' ? `${expiresInMinutes} דקות` : `${expiresInMinutes} minutes`;
@@ -168,6 +200,7 @@ export async function POST(req: NextRequest) {
         otp: generatedOtp,
         firstName: user.firstName,
         expiresIn: expiresInText,
+        resetLink,
       });
       logger.info('Password reset OTP email sent successfully', { action, userId: user.id, email: user.email });
     } catch (emailError) {

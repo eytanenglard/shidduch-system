@@ -87,3 +87,13 @@ export interface AvailabilityConfig {
   dot: string;
   icon: React.ReactNode;
 }
+
+export interface WaitingConfig {
+  label: string;
+  className: string;
+  textColor: string;
+  show: boolean;
+  showOnPhoto: boolean;
+  days: number;
+  neverSuggested: boolean;
+}

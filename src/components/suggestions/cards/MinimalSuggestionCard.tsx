@@ -12,8 +12,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { getRelativeCloudinaryPath } from '@/lib/utils';
+import { cn, getRelativeCloudinaryPath, calculateAge } from '@/lib/utils';
 import {
   getEnhancedStatusInfo,
   getPartyIndicator,
@@ -24,8 +23,7 @@ import CardCountdown from './CardCountdown';
 import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type { SuggestionsCardDict } from '@/types/dictionary';
 
-// ID of system matchmaker for daily suggestions
-const SYSTEM_MATCHMAKER_ID = 'system-matchmaker-neshamatech';
+import { SYSTEM_MATCHMAKER_ID } from '../constants';
 
 const isDailySuggestion = (suggestion: ExtendedMatchSuggestion): boolean => {
   return suggestion.matchmakerId === SYSTEM_MATCHMAKER_ID;
@@ -46,19 +44,6 @@ interface MinimalSuggestionCardProps {
   dict: SuggestionsCardDict;
   locale: 'he' | 'en';
 }
-
-const calculateAge = (birthDate?: Date | string | null): number | null => {
-  if (!birthDate) return null;
-  const today = new Date();
-  const birth = new Date(birthDate);
-  if (isNaN(birth.getTime())) return null;
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age > 0 ? age : null;
-};
 
 const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   suggestion,

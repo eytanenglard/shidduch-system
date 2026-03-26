@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import ProfileCardHeader from '@/components/profile/ProfileCardHeader';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,6 +14,7 @@ import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProfileCardProps } from './types';
 import { renderDisplayValue } from './helpers';
+import { EditableCard } from '@/components/profile/fields';
 
 const StoryAndMoreCard: React.FC<ProfileCardProps> = ({
   profile,
@@ -30,14 +29,13 @@ const StoryAndMoreCard: React.FC<ProfileCardProps> = ({
   const tAboutMe = dict.aboutMe;
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <ProfileCardHeader
-        icon={<Info className="w-4 h-4 text-slate-600" />}
-        title={tAboutCard.title}
-        gradientFrom="from-slate-50/60 to-gray-100/60"
-        iconGradient="from-slate-500/10 to-slate-600/10"
-      />
-      <CardContent className="p-3 md:p-4">
+    <EditableCard
+      icon={<Info className="w-4 h-4 text-slate-600" />}
+      title={tAboutCard.title}
+      gradientFrom="from-slate-50/60 to-gray-100/60"
+      iconGradient="from-slate-500/10 to-slate-600/10"
+      contentClassName="!space-y-0"
+    >
         <div className="space-y-4">
           {/* Profile Headline */}
           <div>
@@ -221,8 +219,7 @@ const StoryAndMoreCard: React.FC<ProfileCardProps> = ({
             )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

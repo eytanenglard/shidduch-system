@@ -2,12 +2,10 @@
 
 import React, { useMemo } from 'react';
 import { Gender, ReligiousJourney, HeadCoveringType, KippahType } from '@prisma/client';
-import { Card, CardContent } from '@/components/ui/card';
 import { BookOpen } from 'lucide-react';
-import ProfileCardHeader from '@/components/profile/ProfileCardHeader';
 import { ProfileCardProps } from './types';
 import { renderBooleanDisplayValue, QuestionnaireSyncBadge } from './helpers';
-import { SelectField, TextareaField } from '@/components/profile/fields';
+import { SelectField, TextareaField, EditableCard } from '@/components/profile/fields';
 
 const ReligionCard: React.FC<ProfileCardProps> = ({
   isEditing,
@@ -63,14 +61,13 @@ const ReligionCard: React.FC<ProfileCardProps> = ({
   );
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <ProfileCardHeader
-        icon={<BookOpen className="w-4 h-4 text-amber-700" />}
-        title={dict.cards.religion.title}
-        gradientFrom="from-yellow-50/60 to-amber-50/60"
-        iconGradient="from-amber-500/10 to-amber-600/10"
-      />
-      <CardContent className="p-3 md:p-4">
+    <EditableCard
+      icon={<BookOpen className="w-4 h-4 text-amber-700" />}
+      title={dict.cards.religion.title}
+      gradientFrom="from-yellow-50/60 to-amber-50/60"
+      iconGradient="from-amber-500/10 to-amber-600/10"
+      contentClassName="!space-y-0"
+    >
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-3 gap-y-3 items-start">
           <SelectField
             id="religiousLevel"
@@ -218,8 +215,7 @@ const ReligionCard: React.FC<ProfileCardProps> = ({
             labelClassName="text-sm font-medium text-gray-700 block mb-1"
           />
         </div>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

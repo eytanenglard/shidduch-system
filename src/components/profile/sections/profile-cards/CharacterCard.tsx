@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import ProfileCardHeader from '@/components/profile/ProfileCardHeader';
 import { Button } from '@/components/ui/button';
 import {
   Smile,
@@ -18,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ProfileCardProps } from './types';
 import { renderMultiSelectBadges, QuestionnaireSyncBadge } from './helpers';
+import { EditableCard } from '@/components/profile/fields';
 
 const TRAIT_ICONS: Record<string, React.ElementType> = {
   empathetic: Heart,
@@ -85,14 +84,12 @@ const CharacterCard: React.FC<ProfileCardProps> = ({
   );
 
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <ProfileCardHeader
-        icon={<Smile className="w-4 h-4 text-amber-600" />}
-        title={dict.cards.character.title}
-        gradientFrom="from-amber-50/60 to-yellow-50/60"
-        iconGradient="from-amber-500/10 to-amber-600/10"
-      />
-      <CardContent className="p-3 md:p-4 space-y-4">
+    <EditableCard
+      icon={<Smile className="w-4 h-4 text-amber-600" />}
+      title={dict.cards.character.title}
+      gradientFrom="from-amber-50/60 to-yellow-50/60"
+      iconGradient="from-amber-500/10 to-amber-600/10"
+    >
         {/* Character Traits */}
         <fieldset>
           <legend className="block mb-2 text-sm font-medium text-gray-700">
@@ -188,8 +185,7 @@ const CharacterCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
         </fieldset>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

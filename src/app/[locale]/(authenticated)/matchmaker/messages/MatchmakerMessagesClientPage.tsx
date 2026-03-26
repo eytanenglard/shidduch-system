@@ -121,7 +121,7 @@ export default function MatchmakerMessagesClientPage({ locale, dict }: Props) {
             />
           </TabsContent>
           <TabsContent value="availability" className="mt-0">
-            <MessagesPage />
+            <MessagesPage locale={locale} />
           </TabsContent>
         </Tabs>
       </div>

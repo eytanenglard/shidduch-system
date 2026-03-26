@@ -325,6 +325,21 @@
         "confirmButton": "כן, בטל את האישור",
         "goBack": "חזרה",
         "cancelApproval": "ביטול אישור"
+      },
+      "reOfferInfo": "הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין רלוונטית עבורך?",
+      "gracePeriodExpired": "חלון הביטול נסגר",
+      "withdrawError": "שגיאה בביטול"
+    },
+    "detailsTab": {
+      "aiChatTitle": "שאל/י את העוזר החכם",
+      "aiChatSubtitle": "שאל/י אותי על ההצעה הזו",
+      "chatTitle": "שיחה עם {{name}}",
+      "chatTitleFallback": "השדכן/ית",
+      "chatSubtitle": "שאל/י שאלות, קבל/י עדכונים",
+      "toasts": {
+        "sendSuccess": "ההודעה נשלחה בהצלחה!",
+        "sendSuccessDescription": "השדכן/ית יקבל/תקבל את ההודעה שלך בקרוב",
+        "sendError": "שגיאה בשליחת ההודעה"
       }
     },
     "profile": {

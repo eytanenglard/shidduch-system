@@ -1840,6 +1840,33 @@
         "title": "Language & Notifications",
         "label": "Preferred Communication Language",
         "description": "The language for emails and system updates we send you."
+      },
+      "connectedAccounts": {
+        "title": "Connected Accounts",
+        "description": "Sign-in methods linked to your account",
+        "connectedVia": "Connected via",
+        "providers": {
+          "google": "Google",
+          "apple": "Apple",
+          "credentials": "Email & Password"
+        }
+      },
+      "matchPreferences": {
+        "title": "Match Suggestion Preferences",
+        "description": "Choose whether you are open to receiving auto-scan suggestions as the first party",
+        "yesOption": "Yes, I am open to it",
+        "noOption": "No, matchmaker only",
+        "yesDescription": "The system may send you suggestions directly from the auto-scan",
+        "noDescription": "Match suggestions will only arrive via a human matchmaker"
+      },
+      "privacy": {
+        "title": "Privacy & Data",
+        "description": "Manage your privacy and personal data",
+        "exportButton": "Download my data",
+        "exportDescription": "Download all your personal data as a JSON file",
+        "exportLoading": "Preparing file...",
+        "exportSuccess": "File downloaded successfully",
+        "exportError": "Error downloading data"
       }
     },
     "cardFooter": {
@@ -1875,7 +1902,10 @@
       "consentUpdateSuccess": "Communication preferences updated successfully.",
       "consentUpdateError": "Error updating communication preferences.",
       "languageUpdateSuccess": "Language updated successfully!",
-      "languageUpdateError": "Error updating language."
+      "languageUpdateError": "Error updating language.",
+      "firstPartyEnabled": "You will receive auto-scan suggestions",
+      "firstPartyDisabled": "Suggestions will only arrive via a matchmaker",
+      "firstPartyError": "Error saving preference"
     },
     "passwordDialog": {
       "title": "Change Password",

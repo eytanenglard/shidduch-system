@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Info, SlidersHorizontal } from 'lucide-react';
+import { EditableCard } from '@/components/profile/fields';
 import { PreferenceCardProps } from './types';
 
 const AgeHeightCard: React.FC<PreferenceCardProps> = ({
@@ -20,16 +20,13 @@ const AgeHeightCard: React.FC<PreferenceCardProps> = ({
   t,
 }) => {
   return (
-    <Card className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300/50">
-      <CardHeader className="bg-gradient-to-r from-indigo-50/60 to-purple-50/60 border-b border-gray-200/50 px-4 py-2.5 flex items-center space-x-2 rtl:space-x-reverse">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500/10 to-indigo-600/10 flex items-center justify-center flex-shrink-0">
-          <SlidersHorizontal className="w-4 h-4 text-indigo-700" />
-        </div>
-        <CardTitle className="text-base font-semibold text-gray-700">
-          {t.cards.ageAndHeight.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-3 md:p-4">
+    <EditableCard
+      icon={<SlidersHorizontal className="w-4 h-4 text-indigo-700" />}
+      title={t.cards.ageAndHeight.title}
+      gradientFrom="from-indigo-50/60 to-purple-50/60"
+      iconGradient="from-indigo-500/10 to-indigo-600/10"
+      contentClassName="space-y-0"
+    >
         <div className="grid grid-cols-2 gap-x-3 gap-y-3">
           <fieldset>
             <legend className="flex items-center gap-1.5 text-xs font-medium text-gray-600 mb-1.5">
@@ -133,8 +130,7 @@ const AgeHeightCard: React.FC<PreferenceCardProps> = ({
               )}
           </fieldset>
         </div>
-      </CardContent>
-    </Card>
+    </EditableCard>
   );
 };
 

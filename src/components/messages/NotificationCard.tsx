@@ -160,11 +160,10 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
             <Link href={item.link} passHref>
               <Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300">
                 {dict.viewDetails}
-                {/* ✨ LOCALE UPDATE: שינוי כיוון החץ */}
                 {locale === 'he' ? (
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <ArrowLeft className="ms-2 h-4 w-4" />
                 ) : (
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ms-2 h-4 w-4" />
                 )}
               </Button>
             </Link>

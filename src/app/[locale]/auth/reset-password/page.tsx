@@ -7,7 +7,6 @@ import type { Locale } from '../../../../../i18n-config';
 import ResetPasswordClient from './ResetPasswordClient';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 
-// עדכון רכיב הטעינה
 function Loading() {
   return <StandardizedLoadingSpinner />;
 }
@@ -23,13 +22,13 @@ export default async function ResetPasswordPage({ params }: ResetPasswordPagePro
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-pink-50 p-4 sm:p-8">
       <Link
-        href="/"
+        href={`/${locale}/auth/signin`}
         className="absolute top-4 left-4 rtl:right-4 rtl:left-auto text-gray-600 hover:text-gray-800 transition-colors flex items-center gap-1 text-sm z-20"
       >
         <ArrowLeft
           className={`h-4 w-4 ${locale === 'he' ? 'transform rotate-180' : ''}`}
         />{' '}
-        חזרה לדף הבית
+        {locale === 'he' ? 'חזרה להתחברות' : 'Back to Sign In'}
       </Link>
       <Suspense fallback={<Loading />}>
         <ResetPasswordClient

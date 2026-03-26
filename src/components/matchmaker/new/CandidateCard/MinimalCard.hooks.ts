@@ -14,7 +14,7 @@ import {
   GROOMING_STYLE_LABELS,
   SMOKING_LABELS,
 } from './MinimalCard.constants';
-import { calculateAge, formatLanguages } from './MinimalCard.utils';
+import { calculateAge, formatLanguages, getWaitingConfig } from './MinimalCard.utils';
 import {
   Sparkles,
   Heart,
@@ -33,9 +33,18 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
   const [showReasoning, setShowReasoning] = useState(false);
   const [suggestionOverride, setSuggestionOverride] = useState(false);
   const [showAllFlags, setShowAllFlags] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
   // ── Derived values ────────────────────────────────────────────────────────
   const mainImage = candidate.images.find((img) => img.isMain);
+
+  // Ordered images: main first, then the rest
+  const allImages = useMemo(() => {
+    const main = candidate.images.find((img) => img.isMain);
+    const rest = candidate.images.filter((img) => !img.isMain);
+    return main ? [main, ...rest] : rest;
+  }, [candidate.images]);
   const age = calculateAge(candidate.profile.birthDate);
 
   const hasExistingSuggestion = !!existingSuggestion;
@@ -160,6 +169,13 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
   const appearanceToneLabel = APPEARANCE_TONE_LABELS[(candidate.profile as any).appearanceTone] ?? null;
   const groomingStyleLabel = GROOMING_STYLE_LABELS[(candidate.profile as any).groomingStyle] ?? null;
 
+  // ── Waiting time config ──────────────────────────────────────────────────
+  const lastSuggestedAt = (candidate.profile as any).lastSuggestedAt as string | null | undefined;
+  const waitingConfig = useMemo(
+    () => getWaitingConfig(lastSuggestedAt, suggestionsReceived, candidate.createdAt),
+    [lastSuggestedAt, suggestionsReceived, candidate.createdAt]
+  );
+
   const maritalLabel = useMemo(() => {
     const ms = candidate.profile.maritalStatus as string | null;
     const hasKids = candidate.profile.hasChildrenFromPrevious;
@@ -176,9 +192,12 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
     showReasoning, setShowReasoning,
     suggestionOverride, setSuggestionOverride,
     showAllFlags, setShowAllFlags,
+    showNotes, setShowNotes,
+    activePhotoIndex, setActivePhotoIndex,
 
     // Derived
     mainImage,
+    allImages,
     age,
     hasExistingSuggestion,
     isSuggestionBlocked,
@@ -202,6 +221,7 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
     suggestionsDeclined,
     hasEngagementStats,
     wantsToBeFirst,
+    waitingConfig,
     maritalLabel,
     serviceTypeLabel,
     headCoveringLabel,

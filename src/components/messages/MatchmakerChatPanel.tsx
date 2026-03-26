@@ -31,15 +31,16 @@ import {
   ChevronUp,
   Inbox,
   Clock,
-  Send,
   Search,
   X,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
-import { toast } from 'sonner';
+import { useChatMessages } from '@/hooks/useChatMessages';
 import SuggestionChatTab from '../matchmaker/suggestions/details/SuggestionChatTab';
+import ChatArea from './ChatArea';
+import ChatInput from './ChatInput';
 import type { Locale } from '../../../i18n-config';
 
 // ==========================================
@@ -70,14 +71,6 @@ interface DirectChatSummary {
   lastMessageTime?: string;
   lastMessageIsMine?: boolean;
   unreadCount: number;
-}
-
-interface ChatMessage {
-  id: string;
-  content: string;
-  senderType: 'user' | 'matchmaker' | 'system';
-  senderId: string;
-  createdAt: string;
 }
 
 interface SelectedChat {
@@ -191,7 +184,7 @@ const HighlightText = React.memo(function HighlightText({
 });
 
 // ==========================================
-// DirectChatView Sub-Component
+// DirectChatView Sub-Component (uses shared ChatArea + ChatInput)
 // ==========================================
 
 function DirectChatView({
@@ -205,61 +198,27 @@ function DirectChatView({
   locale: Locale;
   onBack: () => void;
 }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const isHe = locale === 'he';
 
-  const loadMessages = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/matchmaker/direct-chats/${userId}`);
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
-      if (data.success) setMessages(data.messages || []);
-    } catch (error) {
-      console.error('Error loading direct messages:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
+  const {
+    messages,
+    isLoading,
+    isSending,
+    sendMessage,
+  } = useChatMessages({
+    endpoint: `/api/matchmaker/direct-chats/${userId}`,
+    enabled: true,
+    pollInterval: 12000,
+    locale,
+  });
 
-  useEffect(() => {
-    loadMessages();
-    fetch(`/api/matchmaker/direct-chats/${userId}`, { method: 'PATCH' }).catch(
-      console.error
-    );
-    const interval = setInterval(loadMessages, 12000);
-    return () => clearInterval(interval);
-  }, [loadMessages, userId]);
-
-  useEffect(() => {
-    if (scrollRef.current)
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!newMessage.trim() || isSending) return;
-    setIsSending(true);
-    try {
-      const res = await fetch(`/api/matchmaker/direct-chats/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newMessage.trim() }),
-      });
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
-      if (data.success && data.message) {
-        setMessages((prev) => [...prev, data.message]);
-        setNewMessage('');
-      }
-    } catch {
-      toast.error(isHe ? 'שגיאה בשליחה' : 'Send error');
-    } finally {
-      setIsSending(false);
-    }
-  };
+  const handleSend = useCallback(async () => {
+    if (!newMessage.trim()) return;
+    const content = newMessage;
+    setNewMessage('');
+    await sendMessage(content);
+  }, [newMessage, sendMessage]);
 
   return (
     <Card className="shadow-lg border-0 overflow-hidden bg-white">
@@ -290,96 +249,25 @@ function DirectChatView({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0 flex flex-col h-[500px]">
-        {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
-          </div>
-        ) : (
-          <>
-            <div
-              ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 space-y-3"
-            >
-              {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center mb-3">
-                    <MessageCircle className="w-7 h-7 text-purple-300" />
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    {isHe
-                      ? 'אין הודעות עדיין. שלח/י הודעה ראשונה!'
-                      : 'No messages yet. Send the first message!'}
-                  </p>
-                </div>
-              ) : (
-                messages.map((msg) => {
-                  const isMine = msg.senderType === 'matchmaker';
-                  return (
-                    <div
-                      key={msg.id}
-                      className={cn(
-                        'flex',
-                        isMine ? 'justify-end' : 'justify-start'
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          'max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm',
-                          isMine
-                            ? 'bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-br-md'
-                            : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md'
-                        )}
-                      >
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                          {msg.content}
-                        </p>
-                        <p
-                          className={cn(
-                            'text-[10px] mt-1',
-                            isMine ? 'text-purple-200' : 'text-gray-400'
-                          )}
-                        >
-                          {formatTime(msg.createdAt, locale)}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-            <div className="border-t bg-gray-50/50 p-3">
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder={isHe ? 'כתוב/י הודעה...' : 'Type a message...'}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
-                  dir={isHe ? 'rtl' : 'ltr'}
-                />
-                <Button
-                  size="sm"
-                  onClick={handleSend}
-                  disabled={!newMessage.trim() || isSending}
-                  className="rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 h-10 shadow-sm"
-                >
-                  {isSending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4 rtl:-scale-x-100" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
+      <CardContent className="p-0">
+        <ChatArea
+          messages={messages}
+          isLoading={isLoading}
+          locale={locale}
+          heightClass="h-[440px]"
+          emptySubtitle={
+            isHe
+              ? 'אין הודעות עדיין. שלח/י הודעה ראשונה!'
+              : 'No messages yet. Send the first message!'
+          }
+        />
+        <ChatInput
+          value={newMessage}
+          onChange={setNewMessage}
+          onSend={handleSend}
+          isSending={isSending}
+          locale={locale}
+        />
       </CardContent>
     </Card>
   );
@@ -860,7 +748,7 @@ const MatchmakerChatPanel = forwardRef<
                         )}
                       </div>
                       {dc.unreadCount > 0 && (
-                        <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5 border-0 shadow-sm animate-pulse">
+                        <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5 border-0 shadow-sm animate-zoom-in">
                           {dc.unreadCount}
                         </Badge>
                       )}
@@ -973,7 +861,7 @@ const MatchmakerChatPanel = forwardRef<
 
                       <div className="flex items-center gap-2">
                         {summary.totalUnread > 0 && (
-                          <Badge className="bg-amber-500 text-white text-xs px-2 py-0.5 border-0 shadow-sm animate-pulse">
+                          <Badge className="bg-amber-500 text-white text-xs px-2 py-0.5 border-0 shadow-sm animate-zoom-in">
                             {summary.totalUnread}
                           </Badge>
                         )}

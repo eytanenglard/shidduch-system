@@ -691,6 +691,22 @@ export const authOptions: NextAuthOptions = {
         });
       }
 
+      // Session invalidation: check if password was changed after token was issued
+      if (typedToken.id && !typedUserFromCallback) {
+        const passwordCheck = await prisma.user.findUnique({
+          where: { id: typedToken.id },
+          select: { passwordChangedAt: true },
+        });
+        const tokenIat = (token as { iat?: number }).iat;
+        if (passwordCheck?.passwordChangedAt && tokenIat) {
+          const tokenIssuedAt = tokenIat * 1000; // JWT iat is in seconds
+          if (passwordCheck.passwordChangedAt.getTime() > tokenIssuedAt) {
+            // Password was changed after this token was issued — invalidate session
+            return {} as ExtendedUserJWT;
+          }
+        }
+      }
+
       if (typedToken.id && trigger === "update") {
         if (isDev) console.log('[JWT] Update trigger — refreshing from DB');
 

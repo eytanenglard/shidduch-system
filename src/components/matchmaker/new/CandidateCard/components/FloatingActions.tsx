@@ -27,6 +27,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { CandidateWithAiData, MinimalCardDict } from '../MinimalCard.types';
 import type { Candidate } from '../../types/candidates';
+import QuickNotePopover from './QuickNotePopover';
 
 interface FloatingActionsProps {
   candidate: CandidateWithAiData;
@@ -38,6 +39,9 @@ interface FloatingActionsProps {
   onAnalyze?: (candidate: Candidate, e: React.MouseEvent) => void;
   onSendProfileFeedback?: (candidate: Candidate, e: React.MouseEvent) => void;
   onShowReasoning: () => void;
+  notesCount?: number;
+  showNotes?: boolean;
+  onShowNotesChange?: (open: boolean) => void;
   dict: MinimalCardDict;
 }
 
@@ -51,8 +55,14 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   onAnalyze,
   onSendProfileFeedback,
   onShowReasoning,
+  notesCount = 0,
+  showNotes = false,
+  onShowNotesChange,
   dict,
-}) => (
+}) => {
+  const isHe = !!(dict.heightLabel && /[\u0590-\u05FF]/.test(dict.heightLabel));
+
+  return (
   <div
     className={cn(
       'absolute bottom-2.5 start-2.5 z-20 flex items-center gap-1.5 transition-all duration-200',
@@ -108,6 +118,44 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       </TooltipProvider>
     )}
 
+    {/* WhatsApp direct button */}
+    {candidate.phone && (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 min-h-[44px] min-w-[44px] bg-green-500 shadow-xl border-0 hover:bg-green-600 hover:scale-105 transition-all duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
+                if (cleanPhone.startsWith('0')) cleanPhone = '972' + cleanPhone.substring(1);
+                if (cleanPhone) {
+                  const message = `היי ${candidate.firstName} 👋\n\nזה איתן מנשמהטק.\n\nעברתי על הפרופיל שלך ויש לי רעיון שאולי יתאים לך.\n\nבלי שום לחץ - רוצה לשמוע? 🙂\n\n🌐 https://neshamatech.com\n📘 https://www.facebook.com/profile.php?id=61584869664974`;
+                  window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+                }
+              }}
+            >
+              <MessageCircle className="h-3 w-3 text-white" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent><p>{dict.tooltips.whatsapp ?? 'שלח וואטסאפ'}</p></TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )}
+
+    {/* Notes */}
+    {onShowNotesChange && (
+      <QuickNotePopover
+        userId={candidate.id}
+        isHe={isHe}
+        notesCount={notesCount}
+        open={showNotes}
+        onOpenChange={onShowNotesChange}
+      />
+    )}
+
     {/* More actions dropdown */}
     <DropdownMenu>
       <TooltipProvider>
@@ -129,23 +177,6 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       </TooltipProvider>
 
       <DropdownMenuContent onClick={(e) => e.stopPropagation()} align="start" className="shadow-2xl">
-        {candidate.phone && (
-          <DropdownMenuItem
-            onClick={(e) => {
-              e.stopPropagation();
-              let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
-              if (cleanPhone.startsWith('0')) cleanPhone = '972' + cleanPhone.substring(1);
-              if (cleanPhone) {
-                const message = `היי ${candidate.firstName} 👋\n\nזה איתן מנשמהטק.\n\nעברתי על הפרופיל שלך ויש לי רעיון שאולי יתאים לך.\n\nבלי שום לחץ - רוצה לשמוע? 🙂\n\n🌐 https://neshamatech.com\n📘 https://www.facebook.com/profile.php?id=61584869664974`;
-                window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
-              }
-            }}
-            className="text-green-700 hover:text-green-800 hover:bg-green-50"
-          >
-            <MessageCircle className="h-4 w-4 ms-2" />
-            <span>{dict.tooltips.whatsapp ?? 'שלח וואטסאפ'}</span>
-          </DropdownMenuItem>
-        )}
         {onEdit && (
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(candidate, e); }}>
             <Edit2 className="h-4 w-4 ms-2" />
@@ -193,6 +224,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       </TooltipProvider>
     )}
   </div>
-);
+  );
+};
 
 export default React.memo(FloatingActions);

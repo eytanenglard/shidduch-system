@@ -48,7 +48,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.draft,
       currentParty: "matchmaker",
       icon: FileText,
-      className: "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-700 border-gray-200",
+      className: "bg-gray-50 text-gray-700 border-gray-200",
       pulse: false,
       category: "pending"
     },
@@ -62,7 +62,7 @@ export function getEnhancedStatusInfo(
         : dict.statusDescriptions.pendingFirstPartyOther,
       currentParty: "first",
       icon: Clock,
-      className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
+      className: "bg-orange-50 text-orange-700 border-orange-200",
       pulse: true,
       category: "pending"
     },
@@ -82,8 +82,8 @@ export function getEnhancedStatusInfo(
       currentParty: isFirstParty ? "first" : "none",
       icon: isFirstParty ? Bookmark : Clock,
       className: isFirstParty
-        ? "bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700 border-amber-200"
-        : "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-600 border-gray-200",
+        ? "bg-amber-50 text-amber-700 border-amber-200"
+        : "bg-gray-50 text-gray-600 border-gray-200",
       pulse: false,
       category: "interested"
     },
@@ -97,7 +97,7 @@ export function getEnhancedStatusInfo(
         : dict.statusDescriptions.firstPartyApprovedOther,
       currentParty: "matchmaker",
       icon: CheckCircle,
-      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      className: "bg-teal-50 text-teal-700 border-teal-200",
       pulse: false,
       category: "approved"
     },
@@ -111,7 +111,7 @@ export function getEnhancedStatusInfo(
         : dict.statusDescriptions.firstPartyDeclinedOther,
       currentParty: "none",
       icon: XCircle,
-      className: "bg-gradient-to-r from-rose-50 to-red-50 text-rose-700 border-rose-200",
+      className: "bg-rose-50 text-rose-700 border-rose-200",
       pulse: false,
       category: "declined"
     },
@@ -125,7 +125,7 @@ export function getEnhancedStatusInfo(
         : dict.statusDescriptions.pendingSecondPartyOther,
       currentParty: "second",
       icon: UserPlus,
-      className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
+      className: "bg-amber-50 text-amber-700 border-amber-200",
       pulse: true,
       category: "pending"
     },
@@ -147,7 +147,7 @@ export function getEnhancedStatusInfo(
           "סימנת שאת/ה לא זמין/ה כרגע. כשתחזור/י — ההצעה תחכה לך."),
       currentParty: isFirstParty ? "none" : "second",
       icon: Pause,
-      className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
+      className: "bg-amber-50 text-amber-700 border-amber-200",
       pulse: false,
       category: "pending"
     },
@@ -161,7 +161,7 @@ export function getEnhancedStatusInfo(
         : dict.statusDescriptions.secondPartyApprovedOther,
       currentParty: "matchmaker",
       icon: Heart,
-      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      className: "bg-teal-50 text-teal-700 border-teal-200",
       pulse: true,
       category: "approved"
     },
@@ -175,7 +175,7 @@ export function getEnhancedStatusInfo(
         : dict.statusDescriptions.secondPartyDeclinedOther,
       currentParty: "none",
       icon: XCircle,
-      className: "bg-gradient-to-r from-rose-50 to-red-50 text-rose-700 border-rose-200",
+      className: "bg-rose-50 text-rose-700 border-rose-200",
       pulse: false,
       category: "declined"
     },
@@ -198,8 +198,8 @@ export function getEnhancedStatusInfo(
       currentParty: "first",
       icon: RefreshCw,
       className: isFirstParty
-        ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-200"
-        : "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-600 border-gray-200",
+        ? "bg-blue-50 text-blue-700 border-blue-200"
+        : "bg-gray-50 text-gray-600 border-gray-200",
       pulse: isFirstParty,
       category: "pending"
     },
@@ -211,7 +211,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.awaitingMatchmakerApproval,
       currentParty: "matchmaker",
       icon: Handshake,
-      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      className: "bg-teal-50 text-teal-700 border-teal-200",
       pulse: true,
       category: "pending"
     },
@@ -223,7 +223,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.contactDetailsShared,
       currentParty: "both",
       icon: Phone,
-      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      className: "bg-teal-50 text-teal-700 border-teal-200",
       pulse: false,
       category: "progress"
     },
@@ -235,7 +235,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.awaitingFirstDateFeedback,
       currentParty: "both",
       icon: Calendar,
-      className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
+      className: "bg-orange-50 text-orange-700 border-orange-200",
       pulse: true,
       category: "pending"
     },
@@ -247,7 +247,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.thinkingAfterDate,
       currentParty: "both",
       icon: Brain,
-      className: "bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border-amber-200",
+      className: "bg-amber-50 text-amber-700 border-amber-200",
       pulse: false,
       category: "pending"
     },
@@ -259,7 +259,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.proceedingToSecondDate,
       currentParty: "both",
       icon: ArrowRight,
-      className: "bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border-emerald-200",
+      className: "bg-emerald-50 text-emerald-700 border-emerald-200",
       pulse: false,
       category: "progress"
     },
@@ -271,7 +271,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.endedAfterFirstDate,
       currentParty: "none",
       icon: XCircle,
-      className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
+      className: "bg-gray-50 text-gray-700 border-gray-200",
       pulse: false,
       category: "completed"
     },
@@ -283,7 +283,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.meetingPending,
       currentParty: "matchmaker",
       icon: Clock,
-      className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
+      className: "bg-orange-50 text-orange-700 border-orange-200",
       pulse: true,
       category: "pending"
     },
@@ -295,7 +295,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.meetingScheduled,
       currentParty: "both",
       icon: Calendar,
-      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      className: "bg-teal-50 text-teal-700 border-teal-200",
       pulse: false,
       category: "progress"
     },
@@ -307,7 +307,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.matchApproved,
       currentParty: "both",
       icon: CheckCircle,
-      className: "bg-gradient-to-r from-teal-50 to-emerald-50 text-teal-700 border-teal-200",
+      className: "bg-teal-50 text-teal-700 border-teal-200",
       pulse: false,
       category: "approved"
     },
@@ -319,7 +319,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.matchDeclined,
       currentParty: "none",
       icon: XCircle,
-      className: "bg-gradient-to-r from-rose-50 to-red-50 text-rose-700 border-rose-200",
+      className: "bg-rose-50 text-rose-700 border-rose-200",
       pulse: false,
       category: "declined"
     },
@@ -331,7 +331,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.dating,
       currentParty: "both",
       icon: Heart,
-      className: "bg-gradient-to-r from-rose-50 to-pink-50 text-rose-700 border-rose-200",
+      className: "bg-rose-50 text-rose-700 border-rose-200",
       pulse: false,
       category: "progress"
     },
@@ -343,7 +343,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.engaged,
       currentParty: "both",
       icon: Star,
-      className: "bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border-orange-200",
+      className: "bg-orange-50 text-orange-700 border-orange-200",
       pulse: true,
       category: "completed"
     },
@@ -355,7 +355,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.married,
       currentParty: "both",
       icon: Gift,
-      className: "bg-gradient-to-r from-teal-50 to-orange-50 text-teal-700 border-teal-200",
+      className: "bg-teal-50 text-teal-700 border-teal-200",
       pulse: true,
       category: "completed"
     },
@@ -367,7 +367,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.expired,
       currentParty: "none",
       icon: AlertTriangle,
-      className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
+      className: "bg-gray-50 text-gray-700 border-gray-200",
       pulse: false,
       category: "completed"
     },
@@ -379,7 +379,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.closed,
       currentParty: "none",
       icon: FileX,
-      className: "bg-gradient-to-r from-slate-50 to-gray-50 text-slate-700 border-slate-200",
+      className: "bg-slate-50 text-slate-700 border-slate-200",
       pulse: false,
       category: "completed"
     },
@@ -391,7 +391,7 @@ export function getEnhancedStatusInfo(
       description: dict.statusDescriptions.cancelled,
       currentParty: "none",
       icon: Ban,
-      className: "bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border-gray-200",
+      className: "bg-gray-50 text-gray-700 border-gray-200",
       pulse: false,
       category: "completed"
     }
@@ -483,7 +483,7 @@ export function getPartyIndicator(
       return {
         show: true,
         text: dict.statusIndicator.bothParties,
-        className: "bg-gradient-to-r from-teal-500 to-orange-500 text-white"
+        className: "bg-teal-600 text-white"
       };
     default:
       return {
