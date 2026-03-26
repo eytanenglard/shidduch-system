@@ -108,6 +108,10 @@ function buildQueryParams(
   // Boolean filters
   if (filters.isVerified) params.set('isVerified', 'true');
   if (filters.isProfileComplete) params.set('isProfileComplete', 'true');
+  if (filters.hasNoSuggestions) params.set('hasNoSuggestions', 'true');
+
+  // Custom tags
+  if (filters.customTags?.length) params.set('customTags', filters.customTags.join(','));
 
   // Last active days
   if (filters.lastActiveDays) params.set('lastActiveDays', String(filters.lastActiveDays));

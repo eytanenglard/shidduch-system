@@ -16,36 +16,39 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
   const detailsDict = dict.modal.detailsTab;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      {/* Mini Timeline — collapsible */}
+    <div className="max-w-6xl mx-auto space-y-4">
+      {/* Mini Timeline — full width */}
       <MiniTimeline
         statusHistory={statusHistory}
         dict={dict.timeline}
         locale={locale}
       />
 
-      {/* AI Chat Assistant */}
-      <AiChatPanel
-        locale={locale}
-        suggestionId={suggestionId}
-        title={detailsDict.aiChatTitle}
-        subtitle={detailsDict.aiChatSubtitle}
-      />
+      {/* Chats — side by side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* AI Chat Assistant */}
+        <AiChatPanel
+          locale={locale}
+          suggestionId={suggestionId}
+          title={detailsDict.aiChatTitle}
+          subtitle={detailsDict.aiChatSubtitle}
+        />
 
-      {/* Chat with matchmaker */}
-      <SuggestionChat
-        suggestionId={suggestionId}
-        locale={locale}
-        compact
-        heightClass="h-[calc(60vh-120px)] min-h-[350px]"
-        header={{
-          title: detailsDict.chatTitle.replace(
-            '{{name}}',
-            matchmakerFirstName || detailsDict.chatTitleFallback
-          ),
-          subtitle: detailsDict.chatSubtitle,
-        }}
-      />
+        {/* Chat with matchmaker */}
+        <SuggestionChat
+          suggestionId={suggestionId}
+          locale={locale}
+          compact
+          heightClass="h-[450px] min-h-[350px]"
+          header={{
+            title: detailsDict.chatTitle.replace(
+              '{{name}}',
+              matchmakerFirstName || detailsDict.chatTitleFallback
+            ),
+            subtitle: detailsDict.chatSubtitle,
+          }}
+        />
+      </div>
     </div>
   );
 };

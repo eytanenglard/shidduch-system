@@ -10,6 +10,7 @@ import {
   Sparkles,
   Star,
   MessageCircle,
+  UsersRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,6 +29,7 @@ import { cn } from '@/lib/utils';
 import type { CandidateWithAiData, MinimalCardDict } from '../MinimalCard.types';
 import type { Candidate } from '../../types/candidates';
 import QuickNotePopover from './QuickNotePopover';
+import QuickTagPopover from './QuickTagPopover';
 
 interface FloatingActionsProps {
   candidate: CandidateWithAiData;
@@ -38,10 +40,15 @@ interface FloatingActionsProps {
   onEdit?: (candidate: Candidate, e: React.MouseEvent) => void;
   onAnalyze?: (candidate: Candidate, e: React.MouseEvent) => void;
   onSendProfileFeedback?: (candidate: Candidate, e: React.MouseEvent) => void;
+  onShowSimilar?: (candidate: Candidate, e: React.MouseEvent) => void;
   onShowReasoning: () => void;
   notesCount?: number;
   showNotes?: boolean;
   onShowNotesChange?: (open: boolean) => void;
+  showTags?: boolean;
+  onShowTagsChange?: (open: boolean) => void;
+  assignedTagIds?: string[];
+  onTagsChanged?: () => void;
   dict: MinimalCardDict;
 }
 
@@ -54,10 +61,15 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   onEdit,
   onAnalyze,
   onSendProfileFeedback,
+  onShowSimilar,
   onShowReasoning,
   notesCount = 0,
   showNotes = false,
   onShowNotesChange,
+  showTags = false,
+  onShowTagsChange,
+  assignedTagIds = [],
+  onTagsChanged,
   dict,
 }) => {
   const isHe = !!(dict.heightLabel && /[\u0590-\u05FF]/.test(dict.heightLabel));
@@ -156,6 +168,17 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       />
     )}
 
+    {/* Tags */}
+    {onShowTagsChange && onTagsChanged && (
+      <QuickTagPopover
+        userId={candidate.id}
+        assignedTagIds={assignedTagIds}
+        onTagsChanged={onTagsChanged}
+        open={showTags}
+        onOpenChange={onShowTagsChange}
+      />
+    )}
+
     {/* More actions dropdown */}
     <DropdownMenu>
       <TooltipProvider>
@@ -193,6 +216,12 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onSendProfileFeedback(candidate, e); }}>
             <Mail className="h-4 w-4 ms-2" />
             <span>שלח דוח פרופיל</span>
+          </DropdownMenuItem>
+        )}
+        {onShowSimilar && (
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onShowSimilar(candidate, e); }}>
+            <UsersRound className="h-4 w-4 ms-2" />
+            <span>הצג דומים</span>
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

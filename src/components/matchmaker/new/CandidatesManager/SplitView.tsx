@@ -98,6 +98,12 @@ interface SplitViewProps {
   profileDict: ProfilePageDictionary;
   /** Callback when user scrolls to end (for infinite scroll) */
   onEndReached?: () => void;
+  /** Whether more items are being loaded (infinite scroll) */
+  isLoadingMore?: boolean;
+  /** Callback to show similar candidates */
+  onShowSimilar?: (candidate: import('../types/candidates').Candidate, e: React.MouseEvent) => void;
+  /** Callback when tags are changed on a candidate */
+  onTagsChanged?: () => void;
 }
 
 // ============================================================================
@@ -981,6 +987,9 @@ const SplitView: React.FC<SplitViewProps> = ({
     existingSuggestions,
     separateFiltering,
     onEndReached,
+    isLoadingMore,
+    onShowSimilar,
+    onTagsChanged,
   } = props;
 
   // 🆕 Use global context
@@ -1445,6 +1454,9 @@ const SplitView: React.FC<SplitViewProps> = ({
         profileDict={profileDict}
         locale={locale}
         onEndReached={onEndReached}
+        isLoadingMore={isLoadingMore}
+        onShowSimilar={onShowSimilar}
+        onTagsChanged={onTagsChanged}
       />
     );
   };
@@ -1498,7 +1510,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               )}
               <div
                 id="candidates-results"
-                className="flex-grow min-h-0 overflow-y-auto"
+                className="flex-grow min-h-0 overflow-hidden flex flex-col"
               >
                 {renderCandidatesListForMobile(
                   maleCandidatesWithScores,
@@ -1534,7 +1546,7 @@ const SplitView: React.FC<SplitViewProps> = ({
               )}
               <div
                 id="candidates-results"
-                className="flex-grow min-h-0 overflow-y-auto"
+                className="flex-grow min-h-0 overflow-hidden flex flex-col"
               >
                 {renderCandidatesListForMobile(
                   femaleCandidatesWithScores,
@@ -1574,7 +1586,7 @@ const SplitView: React.FC<SplitViewProps> = ({
             )}
             <div
               id="candidates-results"
-              className="flex-grow min-h-0 overflow-y-auto p-4"
+              className="flex-grow min-h-0 overflow-hidden p-4 flex flex-col"
             >
               <CandidatesList
                 candidates={maleCandidatesWithScores}
@@ -1598,6 +1610,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 profileDict={profileDict}
                 locale={locale}
                 onEndReached={onEndReached}
+                onTagsChanged={onTagsChanged}
               />
             </div>
           </div>
@@ -1625,7 +1638,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 />
               </div>
             )}
-            <div className="flex-grow min-h-0 overflow-y-auto p-4">
+            <div className="flex-grow min-h-0 overflow-hidden p-4 flex flex-col">
               <CandidatesList
                 candidates={femaleCandidatesWithScores}
                 allCandidates={allCandidates}
@@ -1648,6 +1661,7 @@ const SplitView: React.FC<SplitViewProps> = ({
                 profileDict={profileDict}
                 locale={locale}
                 onEndReached={onEndReached}
+                onTagsChanged={onTagsChanged}
               />
             </div>
           </div>

@@ -230,7 +230,7 @@ function DirectChatView({
             onClick={onBack}
             className="gap-1 text-gray-600 hover:text-gray-900 hover:bg-purple-50"
           >
-            <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" />
+            {isHe ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             {isHe ? 'חזרה' : 'Back'}
           </Button>
           <div className="h-6 w-px bg-gray-200" />
@@ -498,7 +498,7 @@ const MatchmakerChatPanel = forwardRef<
               onClick={closeChat}
               className="gap-1 text-gray-600 hover:text-gray-900 hover:bg-teal-50"
             >
-              <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" />
+              {isHe ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
               {isHe ? 'חזרה' : 'Back'}
             </Button>
             <div className="h-6 w-px bg-gray-200" />
@@ -610,7 +610,7 @@ const MatchmakerChatPanel = forwardRef<
                 'w-full py-2.5 rounded-xl border bg-white text-sm transition-all duration-200',
                 'focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-400',
                 'placeholder:text-gray-400',
-                isHe ? 'pr-10 pl-10' : 'pl-10 pr-10',
+                'px-10',
                 isSearchFocused
                   ? 'border-teal-300 shadow-sm'
                   : 'border-gray-200'
@@ -942,7 +942,7 @@ const MatchmakerChatPanel = forwardRef<
                               </p>
                             )}
                           </div>
-                          <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 rtl:-scale-x-100" />
+                          {isHe ? <ChevronLeft className="w-4 h-4 text-gray-300 flex-shrink-0" /> : <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />}
                         </button>
 
                         {/* Second Party */}
@@ -1011,7 +1011,7 @@ const MatchmakerChatPanel = forwardRef<
                               </p>
                             )}
                           </div>
-                          <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 rtl:-scale-x-100" />
+                          {isHe ? <ChevronLeft className="w-4 h-4 text-gray-300 flex-shrink-0" /> : <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />}
                         </button>
                       </div>
                     )}

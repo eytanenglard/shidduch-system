@@ -181,6 +181,8 @@ export async function GET(request: NextRequest) {
       ? parseInt(searchParams.get('lastActiveDays')!, 10)
       : null;
     const searchQuery = searchParams.get('searchQuery');
+    const hasNoSuggestions = searchParams.get('hasNoSuggestions');
+    const customTags = searchParams.get('customTags');
     const sortBy = searchParams.get('sortBy');
     const sortDirection = searchParams.get('sortDirection');
 
@@ -220,6 +222,33 @@ export async function GET(request: NextRequest) {
       isProfileComplete !== ''
     ) {
       userWhere.isProfileComplete = isProfileComplete === 'true';
+    }
+
+    // Filter: candidates with no suggestions at all
+    if (hasNoSuggestions === 'true') {
+      userWhere.AND = [
+        ...(Array.isArray(userWhere.AND) ? userWhere.AND : userWhere.AND ? [userWhere.AND] : []),
+        { firstPartySuggestions: { none: {} } },
+        { secondPartySuggestions: { none: {} } },
+      ];
+    }
+
+    // Filter: candidates with specific custom tags (from current matchmaker)
+    if (customTags) {
+      const tagIds = customTags.split(',').filter(Boolean);
+      if (tagIds.length > 0) {
+        userWhere.AND = [
+          ...(Array.isArray(userWhere.AND) ? userWhere.AND : userWhere.AND ? [userWhere.AND] : []),
+          {
+            candidateCustomTags: {
+              some: {
+                tagId: { in: tagIds },
+                tag: { matchmakerId: session.user.id },
+              },
+            },
+          },
+        ];
+      }
     }
 
     // ─── Build Profile-Level WHERE ───────────────────────────────────────
@@ -521,6 +550,25 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Step 2c: Fetch custom tags for these candidates (from current matchmaker)
+    const candidateTagsRaw = await prisma.candidateTag.findMany({
+      where: {
+        userId: { in: userIds },
+        tag: { matchmakerId: session.user.id },
+      },
+      select: {
+        userId: true,
+        tag: { select: { id: true, name: true, color: true } },
+      },
+    });
+
+    const candidateTagsMap = new Map<string, Array<{ id: string; name: string; color: string }>>();
+    for (const ct of candidateTagsRaw) {
+      const list = candidateTagsMap.get(ct.userId) ?? [];
+      list.push({ id: ct.tag.id, name: ct.tag.name, color: ct.tag.color });
+      candidateTagsMap.set(ct.userId, list);
+    }
+
     // Step 3: Fetch all relevant suggestions in a single query
     const allSuggestions = await prisma.matchSuggestion.findMany({
       where: {
@@ -584,6 +632,7 @@ export async function GET(request: NextRequest) {
       return {
         ...user,
         notesCount: (user as any)._count?.notesAboutUser ?? 0,
+        customTags: candidateTagsMap.get(user.id) ?? [],
         recentSuggestions: recentSuggestionsMap.get(user.id) ?? [],
         suggestionStatus: suggestionInfo,
         profile: profile

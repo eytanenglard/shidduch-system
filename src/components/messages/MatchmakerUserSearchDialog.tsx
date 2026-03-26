@@ -334,7 +334,7 @@ export default function MatchmakerUserSearchDialog({
               placeholder={t.searchPlaceholder}
               className={cn(
                 'rounded-xl border-gray-200 focus:border-purple-300 focus:ring-purple-200',
-                isHe ? 'pr-10' : 'pl-10'
+                'ps-10'
               )}
               dir={isHe ? 'rtl' : 'ltr'}
             />

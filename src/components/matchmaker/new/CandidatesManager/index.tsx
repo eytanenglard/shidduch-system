@@ -2,10 +2,11 @@
 
 'use client';
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Users, Activity } from 'lucide-react';
 
 // --- Custom Hooks ---
 import { useCandidates } from '../hooks/useCandidates';
@@ -161,6 +162,58 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     return { total, male, female, verified, activeToday, profilesComplete };
   }, [candidates, pagination.total]);
 
+  // --- System-wide stats (unfiltered, fetched once on mount) ---
+  const [systemStats, setSystemStats] = useState<{
+    totalActive: number;
+    maleCount: number;
+    femaleCount: number;
+    newThisWeek: number;
+  } | null>(null);
+  const systemStatsFetched = useRef(false);
+
+  useEffect(() => {
+    if (systemStatsFetched.current) return;
+    systemStatsFetched.current = true;
+
+    fetch('/api/matchmaker/dashboard?section=stats')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.stats) {
+          setSystemStats({
+            totalActive: data.stats.totalActiveUsers ?? 0,
+            maleCount: data.stats.maleCount ?? 0,
+            femaleCount: data.stats.femaleCount ?? 0,
+            newThisWeek: data.stats.newUsersThisWeek ?? 0,
+          });
+        }
+      })
+      .catch(() => { /* silent */ });
+  }, []);
+
+  // --- Matchmaker custom tags ---
+  const [matchmakerTags, setMatchmakerTags] = useState<Array<{ id: string; name: string; color: string; candidateCount: number }>>([]);
+  const tagsFetched = useRef(false);
+
+  const fetchMatchmakerTags = useCallback(() => {
+    fetch('/api/matchmaker/tags')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.success) setMatchmakerTags(data.tags);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (tagsFetched.current) return;
+    tagsFetched.current = true;
+    fetchMatchmakerTags();
+  }, [fetchMatchmakerTags]);
+
+  const handleTagsChanged = useCallback(() => {
+    refresh();
+    fetchMatchmakerTags();
+  }, [refresh, fetchMatchmakerTags]);
+
   // --- Effects ---
   useEffect(() => {
     const mqlMobile = window.matchMedia('(max-width: 767px)');
@@ -233,6 +286,52 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     },
     []
   );
+
+  // --- Show Similar Candidates ---
+  const [similarCandidateIds, setSimilarCandidateIds] = useState<Set<string> | null>(null);
+
+  const handleShowSimilar = useCallback(
+    async (candidate: Candidate, e: React.MouseEvent) => {
+      e.stopPropagation();
+      const toastId = toast.loading(`מחפש מועמדים דומים ל${candidate.firstName}...`);
+      try {
+        const res = await fetch(`/api/matchmaker/candidates/similar?userId=${candidate.id}`);
+        const data = await res.json();
+        if (data.success && data.similarIds?.length > 0) {
+          setSimilarCandidateIds(new Set(data.similarIds));
+          toast.success(`נמצאו ${data.similarIds.length} מועמדים דומים ל${candidate.firstName}`, {
+            id: toastId,
+            duration: 4000,
+            action: {
+              label: 'נקה סינון',
+              onClick: () => setSimilarCandidateIds(null),
+            },
+          });
+        } else {
+          toast.info('לא נמצאו מועמדים דומים (אין וקטור זמין)', { id: toastId });
+        }
+      } catch {
+        toast.error('שגיאה בחיפוש מועמדים דומים', { id: toastId });
+      }
+    },
+    []
+  );
+
+  // Apply similar filter to candidates
+  const displayCandidates = useMemo(() => {
+    if (!similarCandidateIds) return candidates;
+    return candidates.filter((c) => similarCandidateIds.has(c.id));
+  }, [candidates, similarCandidateIds]);
+
+  const displayMaleCandidates = useMemo(() => {
+    if (!similarCandidateIds) return maleCandidates;
+    return maleCandidates.filter((c) => similarCandidateIds.has(c.id));
+  }, [maleCandidates, similarCandidateIds]);
+
+  const displayFemaleCandidates = useMemo(() => {
+    if (!similarCandidateIds) return femaleCandidates;
+    return femaleCandidates.filter((c) => similarCandidateIds.has(c.id));
+  }, [femaleCandidates, similarCandidateIds]);
 
   const handleFilterSave = useCallback(
     async (name: string) => {
@@ -445,21 +544,78 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             onToggleFiltersPanel={() => setShowFiltersPanel(!showFiltersPanel)}
             showFiltersMobile={showFiltersMobile}
             onSetFiltersMobile={setShowFiltersMobile}
+            matchmakerTags={matchmakerTags}
             locale={locale}
             dict={matchmakerDict}
           />
         )}
 
+        {/* System Stats Bar — always visible */}
+        {systemStats && (
+          <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+            <div className="container mx-auto px-6 py-2">
+              <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 rounded-md bg-blue-100">
+                    <Users className="w-3.5 h-3.5 text-blue-600" />
+                  </div>
+                  <span className="text-gray-500">מועמדים פעילים:</span>
+                  <span className="font-bold text-blue-700">{systemStats.totalActive}</span>
+                </div>
+                <div className="hidden sm:flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-indigo-400" />
+                  <span className="text-gray-500">גברים:</span>
+                  <span className="font-semibold text-indigo-700">{systemStats.maleCount}</span>
+                </div>
+                <div className="hidden sm:flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-purple-400" />
+                  <span className="text-gray-500">נשים:</span>
+                  <span className="font-semibold text-purple-700">{systemStats.femaleCount}</span>
+                </div>
+                {systemStats.newThisWeek > 0 && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <div className="p-1 rounded-md bg-emerald-100">
+                      <Activity className="w-3.5 h-3.5 text-emerald-600" />
+                    </div>
+                    <span className="text-gray-500">חדשים השבוע:</span>
+                    <span className="font-semibold text-emerald-700">+{systemStats.newThisWeek}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Similar filter active banner */}
+        {similarCandidateIds && (
+          <div className="bg-indigo-50 border-b border-indigo-200">
+            <div className="container mx-auto px-6 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-indigo-700">
+                <Users className="w-4 h-4" />
+                <span className="font-medium">
+                  מציג {similarCandidateIds.size} מועמדים דומים
+                </span>
+              </div>
+              <button
+                onClick={() => setSimilarCandidateIds(null)}
+                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-3 py-1 rounded-md hover:bg-indigo-100 transition-colors"
+              >
+                נקה סינון
+              </button>
+            </div>
+          </div>
+        )}
+
         <main
           className={cn(
-            'flex-1 min-h-0 container mx-auto px-6 pb-4 pt-4',
+            'flex-1 container mx-auto px-6 pb-4 pt-4',
             !isHeaderCompact && 'mt-32'
           )}
         >
-          <div className="flex gap-4 h-full">
+          <div className="flex gap-4" style={{ minHeight: 'calc(100vh - 10rem)' }}>
             {showFiltersPanel && (
               <aside className="hidden lg:block w-72 flex-shrink-0">
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 h-full flex flex-col">
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 sticky top-20 max-h-[calc(100vh-6rem)] flex flex-col overflow-hidden">
                   <FilterPanel
                     filters={filters}
                     onFiltersChange={setFilters}
@@ -483,18 +639,18 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
               </aside>
             )}
 
-            <div className="flex-1 min-w-0 h-full">
+            <div className="flex-1 min-w-0" style={{ minHeight: 'calc(100vh - 10rem)' }}>
               {loading ? (
                 <LoadingContainer>
-                  <div className="h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl animate-pulse shadow-lg" />
+                  <div className="h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl animate-pulse shadow-lg" />
                 </LoadingContainer>
               ) : (
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 overflow-hidden h-full">
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border-0 overflow-hidden" style={{ height: 'calc(100vh - 10rem)' }}>
                   <SplitView
                     onOpenAiAnalysis={(c) => setAnalyzedCandidate(c)}
                     onSendProfileFeedback={(c) => setFeedbackCandidate(c)}
-                    maleCandidates={maleCandidates}
-                    femaleCandidates={femaleCandidates}
+                    maleCandidates={displayMaleCandidates}
+                    femaleCandidates={displayFemaleCandidates}
                     allCandidates={candidates}
                     onCandidateAction={handleCandidateAction}
                     onCandidateClick={() => {}}
@@ -527,6 +683,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     isQuickViewEnabled={isQuickViewEnabled}
                     locale={locale}
                     onEndReached={loadMore}
+                    isLoadingMore={isLoadingMore}
+                    onShowSimilar={handleShowSimilar}
+                    onTagsChanged={handleTagsChanged}
                   />
                 </div>
               )}

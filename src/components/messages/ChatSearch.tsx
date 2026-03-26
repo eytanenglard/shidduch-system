@@ -282,7 +282,7 @@ export default function ChatSearch({
               'text-sm text-gray-800 placeholder:text-gray-400',
               'focus:outline-none focus:ring-2 focus:ring-teal-200 focus:border-teal-300',
               'transition-colors',
-              isHe ? 'pr-10 pl-10' : 'pl-10 pr-10'
+              'px-10'
             )}
             dir={isHe ? 'rtl' : 'ltr'}
           />

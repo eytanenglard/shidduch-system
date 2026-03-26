@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { User, Sparkles, Clock, AlertTriangle } from 'lucide-react';
+import { User, Sparkles, Clock, AlertTriangle, MapPin, Briefcase, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn, getRelativeCloudinaryPath, calculateAge } from '@/lib/utils';
 import {
@@ -72,162 +72,203 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
   const isUrgent = hoursLeft !== null && hoursLeft < 12;
 
   const matchingReason = suggestion.matchingReason
-    ? suggestion.matchingReason.length > 60
-      ? `${suggestion.matchingReason.substring(0, 60)}...`
+    ? suggestion.matchingReason.length > 100
+      ? `${suggestion.matchingReason.substring(0, 100)}...`
       : suggestion.matchingReason
     : null;
 
+  const Chevron = isRtl ? ChevronLeft : ChevronRight;
+
   return (
-    <button
-      type="button"
-      onClick={() => onClick(suggestion)}
+    <div
       className={cn(
-        'w-full bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer text-start',
-        !isViewed && !isHistory && 'border-teal-300 bg-teal-50/30',
-        isUrgent && !isDaily && 'border-amber-300',
+        'group w-full bg-white rounded-2xl shadow-sm border overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5',
+        !isViewed && !isHistory ? 'border-teal-200 ring-1 ring-teal-100' : 'border-gray-100',
+        isUrgent && !isDaily && 'border-amber-200 ring-1 ring-amber-100',
+        isDaily && 'border-violet-200 ring-1 ring-violet-100',
         className,
       )}
     >
-      <div className="flex items-center gap-3 p-4 sm:gap-4">
-        {/* Unread dot */}
-        <div className="flex-shrink-0 w-2">
-          {!isViewed && !isHistory && (
-            <span className="block w-2 h-2 rounded-full bg-teal-500" />
-          )}
-        </div>
-
-        {/* Photo */}
-        <div className="relative flex-shrink-0">
-          <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100">
-            {mainImage?.url ? (
-              <Image
-                src={getRelativeCloudinaryPath(mainImage.url)}
-                alt={targetParty.firstName}
-                width={56}
-                height={56}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <User className="w-6 h-6 text-gray-400" />
-              </div>
-            )}
-          </div>
-          {isDaily && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-white" />
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm font-semibold text-gray-900 truncate">
-              {targetParty.firstName}
-              {targetParty.lastName ? ` ${targetParty.lastName.charAt(0)}.` : ''}
-            </h3>
-            {age > 0 && (
-              <span className="text-sm text-gray-500">{age}</span>
-            )}
-            {/* Status badge */}
-            <Badge
-              variant="outline"
-              className={cn(
-                'text-[10px] px-1.5 py-0 h-5 font-medium border',
-                statusInfo.className,
-              )}
-            >
-              <statusInfo.icon className={cn('w-2.5 h-2.5', isRtl ? 'ml-0.5' : 'mr-0.5')} />
-              {statusInfo.shortLabel}
-            </Badge>
-            {partyIndicator.show && (
-              <Badge className={cn('text-[10px] px-1.5 py-0 h-5 font-semibold', partyIndicator.className)}>
-                {partyIndicator.text}
-              </Badge>
-            )}
-          </div>
-
-          {/* Location + Occupation */}
-          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
-            {targetParty.profile?.city && (
-              <span className="truncate max-w-[120px]">{targetParty.profile.city}</span>
-            )}
-            {targetParty.profile?.city && targetParty.profile?.occupation && (
-              <span className="text-gray-300">·</span>
-            )}
-            {targetParty.profile?.occupation && (
-              <span className="truncate max-w-[120px]">{targetParty.profile.occupation}</span>
-            )}
-          </div>
-
-          {/* Matching reason */}
-          {matchingReason && (
-            <p className="mt-1 text-xs text-gray-400 truncate leading-snug">
-              {matchingReason}
-            </p>
-          )}
-
-          {/* Deadline badge */}
-          {hasDeadline && !isHistory && hoursLeft !== null && (
-            <div className="mt-1.5 inline-flex items-center gap-1">
-              {isUrgent ? (
-                <AlertTriangle className="w-3 h-3 text-amber-500" />
+      {/* Main clickable area */}
+      <button
+        type="button"
+        onClick={() => onClick(suggestion)}
+        className="w-full text-start cursor-pointer focus:outline-none"
+      >
+        <div className="flex">
+          {/* Image Section */}
+          <div className="relative flex-shrink-0 w-28 sm:w-36">
+            <div className="h-full min-h-[140px]">
+              {mainImage?.url ? (
+                <Image
+                  src={getRelativeCloudinaryPath(mainImage.url)}
+                  alt={targetParty.firstName}
+                  fill
+                  className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 640px) 112px, 144px"
+                />
               ) : (
-                <Clock className="w-3 h-3 text-gray-400" />
+                <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                  <User className="w-10 h-10 text-slate-300" />
+                </div>
               )}
-              <span className={cn('text-[10px] font-medium', isUrgent ? 'text-amber-600' : 'text-gray-400')}>
-                {hoursLeft < 1
-                  ? (locale === 'he' ? 'פוקע בקרוב' : 'Expiring soon')
-                  : hoursLeft < 24
-                    ? (locale === 'he' ? `עוד ${hoursLeft} שעות` : `${hoursLeft}h left`)
-                    : (locale === 'he' ? `עוד ${Math.floor(hoursLeft / 24)} ימים` : `${Math.floor(hoursLeft / 24)}d left`)}
-              </span>
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/5" />
+
+              {/* Daily badge on image */}
+              {isDaily && (
+                <div className="absolute top-2 start-2">
+                  <div className="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center shadow-md">
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  </div>
+                </div>
+              )}
+
+              {/* Unread indicator */}
+              {!isViewed && !isHistory && (
+                <div className="absolute top-2 end-2">
+                  <span className="block w-2.5 h-2.5 rounded-full bg-teal-500 shadow-md ring-2 ring-white" />
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Content Section */}
+          <div className="flex-1 min-w-0 p-3.5 sm:p-4 flex flex-col justify-between">
+            {/* Top: Name + Status */}
+            <div>
+              <div className="flex items-start justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <h3 className="text-base font-bold text-gray-900 truncate">
+                    {targetParty.firstName}
+                    {targetParty.lastName ? ` ${targetParty.lastName.charAt(0)}.` : ''}
+                  </h3>
+                  {age > 0 && (
+                    <span className="text-sm text-gray-500 font-medium flex-shrink-0">{age}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'text-[10px] px-1.5 py-0 h-5 font-medium border',
+                      statusInfo.className,
+                    )}
+                  >
+                    <statusInfo.icon className={cn('w-2.5 h-2.5', isRtl ? 'ml-0.5' : 'mr-0.5')} />
+                    {statusInfo.shortLabel}
+                  </Badge>
+                  {partyIndicator.show && (
+                    <Badge className={cn('text-[10px] px-1.5 py-0 h-5 font-semibold', partyIndicator.className)}>
+                      {partyIndicator.text}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Location + Occupation */}
+              <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
+                {targetParty.profile?.city && (
+                  <span className="inline-flex items-center gap-1 truncate">
+                    <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    <span className="truncate">{targetParty.profile.city}</span>
+                  </span>
+                )}
+                {targetParty.profile?.occupation && (
+                  <span className="inline-flex items-center gap-1 truncate">
+                    <Briefcase className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    <span className="truncate">{targetParty.profile.occupation}</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Matching reason */}
+              {matchingReason && (
+                <div className={cn(
+                  'flex items-start gap-1.5 px-2.5 py-2 rounded-lg text-xs leading-relaxed',
+                  isDaily
+                    ? 'bg-violet-50/70 text-violet-700'
+                    : 'bg-teal-50/70 text-teal-700',
+                )}>
+                  <Quote className={cn(
+                    'w-3 h-3 mt-0.5 flex-shrink-0',
+                    isDaily ? 'text-violet-400' : 'text-teal-400',
+                  )} />
+                  <span>{matchingReason}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom: Deadline + Matchmaker */}
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center gap-2">
+                {/* Matchmaker info */}
+                {!isDaily && suggestion.matchmaker && (
+                  <span className="text-[10px] text-gray-400">
+                    {dict.suggestedBy} {suggestion.matchmaker.firstName} {suggestion.matchmaker.lastName}
+                  </span>
+                )}
+                {isDaily && (
+                  <span className="text-[10px] text-violet-400 font-medium">
+                    {locale === 'he' ? 'הצעה חכמה' : 'Smart Match'}
+                  </span>
+                )}
+              </div>
+
+              {/* Deadline */}
+              {hasDeadline && !isHistory && hoursLeft !== null && (
+                <div className="inline-flex items-center gap-1">
+                  {isUrgent ? (
+                    <AlertTriangle className="w-3 h-3 text-amber-500" />
+                  ) : (
+                    <Clock className="w-3 h-3 text-gray-400" />
+                  )}
+                  <span className={cn('text-[10px] font-medium', isUrgent ? 'text-amber-600' : 'text-gray-400')}>
+                    {hoursLeft < 1
+                      ? (locale === 'he' ? 'פוקע בקרוב' : 'Expiring soon')
+                      : hoursLeft < 24
+                        ? (locale === 'he' ? `עוד ${hoursLeft} שעות` : `${hoursLeft}h left`)
+                        : (locale === 'he' ? `עוד ${Math.floor(hoursLeft / 24)} ימים` : `${Math.floor(hoursLeft / 24)}d left`)}
+                  </span>
+                </div>
+              )}
+
+              {/* History arrow */}
+              {isHistory && (
+                <Chevron className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+              )}
+            </div>
+          </div>
         </div>
+      </button>
 
-        {/* Actions */}
-        {!isHistory && (
-          <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-            <CompactCardActions
-              suggestion={suggestion}
-              isFirstParty={isFirstParty}
-              isUserInActiveProcess={isUserInActiveProcess}
-              onApprove={onApprove}
-              onInterested={onInterested}
-              onInquiry={onInquiry}
-              onDecline={onDecline}
-              onClick={onClick}
-              isLoading={actionLoading}
-              dict={dict}
-              locale={locale}
-            />
-          </div>
-        )}
-
-        {/* History status indicator */}
-        {isHistory && (
-          <div className="flex-shrink-0">
-            <Badge
-              variant="outline"
-              className={cn('text-xs font-medium', statusInfo.className)}
-            >
-              {statusInfo.shortLabel}
-            </Badge>
-          </div>
-        )}
-      </div>
-
-      {/* Matchmaker info (subtle) */}
-      {!isDaily && suggestion.matchmaker && (
-        <div className="px-4 pb-3 -mt-1">
-          <span className="text-[10px] text-gray-400">
-            {dict.suggestedBy} {suggestion.matchmaker.firstName} {suggestion.matchmaker.lastName}
-          </span>
+      {/* Action buttons footer */}
+      {!isHistory && (
+        <div
+          className={cn(
+            'px-3.5 sm:px-4 py-2.5 border-t flex items-center justify-between',
+            isDaily
+              ? 'bg-violet-50/30 border-violet-100'
+              : 'bg-gray-50/50 border-gray-100',
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <CompactCardActions
+            suggestion={suggestion}
+            isFirstParty={isFirstParty}
+            isUserInActiveProcess={isUserInActiveProcess}
+            onApprove={onApprove}
+            onInterested={onInterested}
+            onInquiry={onInquiry}
+            onDecline={onDecline}
+            onClick={onClick}
+            isLoading={actionLoading}
+            dict={dict}
+            locale={locale}
+          />
         </div>
       )}
-    </button>
+    </div>
   );
 };
 

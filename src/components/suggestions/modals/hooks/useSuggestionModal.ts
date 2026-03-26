@@ -22,10 +22,14 @@ export const useSuggestionModal = (
   } = props;
 
   const [activeTab, setActiveTab] = useState('presentation');
+  const [tabDirection, setTabDirection] = useState(0);
   const [showAskDialog, setShowAskDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQuestionnaireLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const TAB_ORDER = ['presentation', 'profile', 'compatibility', 'details'];
 
   const isMobile = useIsMobile();
   const { isFullscreen, isTransitioning, toggleFullscreen } = useFullscreenModal(isOpen);
@@ -57,8 +61,38 @@ export const useSuggestionModal = (
         setActiveTab(view === 'chat' ? 'details' : 'presentation');
       }
       setIsActionsExpanded(false);
+      setIsInitialLoad(true);
+      const timer = setTimeout(() => setIsInitialLoad(false), 250);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, searchParams, suggestion?.id, initialTab]);
+
+  // Directional tab change
+  const handleTabChange = useCallback((newTab: string) => {
+    const oldIdx = TAB_ORDER.indexOf(activeTab);
+    const newIdx = TAB_ORDER.indexOf(newTab);
+    setTabDirection(newIdx > oldIdx ? 1 : -1);
+    setActiveTab(newTab);
+  }, [activeTab, TAB_ORDER]);
+
+  // Keyboard arrow navigation for tabs
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      // In RTL: right = previous, left = next
+      const direction = isHe
+        ? (e.key === 'ArrowRight' ? -1 : 1)
+        : (e.key === 'ArrowLeft' ? -1 : 1);
+      const currentIdx = TAB_ORDER.indexOf(activeTab);
+      const nextIdx = currentIdx + direction;
+      if (nextIdx >= 0 && nextIdx < TAB_ORDER.length) {
+        handleTabChange(TAB_ORDER[nextIdx]);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, activeTab, handleTabChange, isHe]);
 
   // Derived values
   const isFirstParty = suggestion?.firstPartyId === userId;
@@ -85,20 +119,17 @@ export const useSuggestionModal = (
   const handleApprove = useCallback(() => {
     if (!suggestion) return;
     onActionRequest(suggestion, 'approve');
-    onClose();
-  }, [suggestion, onActionRequest, onClose]);
+  }, [suggestion, onActionRequest]);
 
   const handleDecline = useCallback(() => {
     if (!suggestion) return;
     onActionRequest(suggestion, 'decline');
-    onClose();
-  }, [suggestion, onActionRequest, onClose]);
+  }, [suggestion, onActionRequest]);
 
   const handleInterested = useCallback(() => {
     if (!suggestion) return;
     onActionRequest(suggestion, 'interested');
-    onClose();
-  }, [suggestion, onActionRequest, onClose]);
+  }, [suggestion, onActionRequest]);
 
   const handleWithdraw = useCallback(
     async (type: 'grace_period' | 'before_second_party') => {
@@ -162,12 +193,15 @@ export const useSuggestionModal = (
   return {
     activeTab,
     setActiveTab,
+    tabDirection,
+    handleTabChange,
     showAskDialog,
     setShowAskDialog,
     isSubmitting,
     isQuestionnaireLoading,
     isActionsExpanded,
     setIsActionsExpanded,
+    isInitialLoad,
     isMobile,
     isFullscreen,
     isTransitioning,

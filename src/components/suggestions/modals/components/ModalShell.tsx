@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogPrimitive } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { ModalShellProps } from '../types/modal.types';
@@ -35,6 +35,12 @@ const ModalShell: React.FC<ModalShellProps> = ({
         data-fullscreen={isFullscreen}
         data-mobile={isMobile}
       >
+        <DialogPrimitive.Title className="sr-only">
+          {locale === 'he' ? 'פרטי הצעה' : 'Suggestion Details'}
+        </DialogPrimitive.Title>
+        <DialogPrimitive.Description className="sr-only">
+          {locale === 'he' ? 'פרטים מלאים על ההצעה' : 'Full suggestion details'}
+        </DialogPrimitive.Description>
         {children}
       </DialogContent>
     </Dialog>

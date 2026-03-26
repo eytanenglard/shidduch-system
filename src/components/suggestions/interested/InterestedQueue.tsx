@@ -165,10 +165,10 @@ const SortableItem: React.FC<SortableItemProps> = ({
       className={cn(
         'group relative flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200',
         isFirst
-          ? 'bg-gradient-to-r from-amber-50 via-white to-orange-50 border border-amber-200/50 shadow-sm'
+          ? 'bg-amber-50 border border-amber-200/50 shadow-sm'
           : 'bg-white border border-gray-100',
         isDragging &&
-          'bg-amber-100 shadow-xl ring-2 ring-amber-400/50 scale-[1.02]',
+          'bg-amber-100 shadow-md ring-2 ring-amber-400/50 scale-[1.02]',
         !isDragging &&
           'hover:bg-amber-50/30 hover:border-amber-200/50 hover:shadow-sm'
       )}
@@ -200,7 +200,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
       {/* Rank Badge */}
       {isFirst ? (
-        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md flex-shrink-0">
+        <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center shadow-sm flex-shrink-0">
           <Crown className="w-3 h-3 text-white" />
         </div>
       ) : (
@@ -224,7 +224,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
               <User className="w-5 h-5 text-slate-400" />
             </div>
           )}
@@ -256,7 +256,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           )}
         </div>
         {isFirst && !isUserInActiveProcess && (
-          <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0 text-[9px] px-1.5 py-0 mt-0.5 inline-flex">
+          <Badge className="bg-amber-500 text-white border-0 text-[9px] px-1.5 py-0 mt-0.5 inline-flex">
             <ArrowUpCircle className="w-2.5 h-2.5 mr-0.5" />
             {texts.nextInLine}
           </Badge>
@@ -396,18 +396,18 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
   return (
     <Card
       className={cn(
-        'border-0 shadow-lg bg-gradient-to-br from-amber-50/80 via-white to-orange-50/50 rounded-2xl overflow-hidden',
+        'border-0 shadow-sm bg-white rounded-xl overflow-hidden',
         className
       )}
     >
       {/* Header */}
       <CardHeader className="pb-3 border-b border-amber-100/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center shadow-sm">
             <Bookmark className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
-            <CardTitle className="text-lg font-bold bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 bg-clip-text text-transparent">
+            <CardTitle className="text-lg font-bold text-amber-800 font-bold">
               {texts.title}
             </CardTitle>
             <p className="text-sm text-amber-600/80">{texts.subtitle}</p>
@@ -462,7 +462,7 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
 
         {/* CTA: Activate next suggestion */}
         {!isUserInActiveProcess && items.length > 0 && (
-          <div className="mt-3 p-3 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200/50 rounded-xl">
+          <div className="mt-3 p-3 bg-teal-50 border border-teal-200/50 rounded-xl">
             <div className="flex items-center gap-2">
               <ArrowUpCircle className="w-4 h-4 text-teal-600 flex-shrink-0" />
               <span className="text-sm text-teal-800 font-medium flex-1">
@@ -472,7 +472,7 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
               </span>
               <Button
                 size="sm"
-                className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-lg text-xs px-3 h-8 shadow-md hover:shadow-lg transition-all"
+                className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs px-3 h-8 shadow-sm hover:shadow-sm transition-all"
                 onClick={() => {
                   onActivate(firstSuggestion);
                   toast.success(texts.activateSuccess);

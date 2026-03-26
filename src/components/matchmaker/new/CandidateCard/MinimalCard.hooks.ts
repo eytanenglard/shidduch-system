@@ -34,6 +34,7 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
   const [suggestionOverride, setSuggestionOverride] = useState(false);
   const [showAllFlags, setShowAllFlags] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [showTags, setShowTags] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
   // ── Derived values ────────────────────────────────────────────────────────
@@ -193,6 +194,7 @@ export function useMinimalCard(props: MinimalCandidateCardProps) {
     suggestionOverride, setSuggestionOverride,
     showAllFlags, setShowAllFlags,
     showNotes, setShowNotes,
+    showTags, setShowTags,
     activePhotoIndex, setActivePhotoIndex,
 
     // Derived

@@ -1,11 +1,11 @@
 // =============================================================================
-// 25. User Messages Page — Two Tabs Layout
+// User Messages Page — Two Tabs Layout with date grouping & tab animation
 // File: src/app/[locale]/(authenticated)/messages/MessagesClientPage.tsx
 // =============================================================================
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { Inbox, Zap, RefreshCw, MessageCircle, Bell } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -17,6 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { isToday, isYesterday, format } from 'date-fns';
+import { he, enUS } from 'date-fns/locale';
 import type { MessagesPageDict } from '@/types/dictionary';
 import type { Locale } from '../../../../../i18n-config';
 
@@ -28,12 +30,73 @@ interface MessagesClientPageProps {
   locale: Locale;
 }
 
+// ==========================================
+// Date Group Helper
+// ==========================================
+
+interface DateGroup {
+  label: string;
+  items: FeedItem[];
+}
+
+function groupByDate(items: FeedItem[], locale: Locale): DateGroup[] {
+  const isHe = locale === 'he';
+  const loc = isHe ? he : enUS;
+  const groups: DateGroup[] = [];
+
+  for (const item of items) {
+    const date = new Date(item.timestamp);
+    let label: string;
+
+    if (isToday(date)) {
+      label = isHe ? 'היום' : 'Today';
+    } else if (isYesterday(date)) {
+      label = isHe ? 'אתמול' : 'Yesterday';
+    } else {
+      label = format(date, isHe ? 'EEEE, d בMMMM' : 'EEEE, MMMM d', { locale: loc });
+    }
+
+    const lastGroup = groups[groups.length - 1];
+    if (lastGroup && lastGroup.label === label) {
+      lastGroup.items.push(item);
+    } else {
+      groups.push({ label, items: [item] });
+    }
+  }
+
+  return groups;
+}
+
+// ==========================================
+// Tab animation variants
+// ==========================================
+
+const tabVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 60 : -60,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -60 : 60,
+    opacity: 0,
+  }),
+};
+
+// ==========================================
+// Component
+// ==========================================
+
 export default function MessagesClientPage({
   dict,
   locale,
 }: MessagesClientPageProps) {
   const { data: session } = useSession();
   const [mainTab, setMainTab] = useState<MainTab>('chats');
+  const directionRef = useRef(0);
 
   // ==========================================
   // Feed state (for updates tab)
@@ -48,6 +111,11 @@ export default function MessagesClientPage({
 
   const userId = session?.user?.id;
   const isHe = locale === 'he';
+
+  const switchTab = useCallback((tab: MainTab) => {
+    directionRef.current = tab === 'updates' ? 1 : -1;
+    setMainTab(tab);
+  }, []);
 
   const fetchFeed = useCallback(async () => {
     setIsLoading(true);
@@ -83,7 +151,7 @@ export default function MessagesClientPage({
     }
   }, [userId, fetchFeed]);
 
-  const filteredItems = React.useMemo(() => {
+  const filteredItems = useMemo(() => {
     if (activeFilter === 'all') return feedItems;
     if (activeFilter === 'action_required')
       return feedItems.filter((item) => item.type === 'ACTION_REQUIRED');
@@ -94,6 +162,11 @@ export default function MessagesClientPage({
       );
     return feedItems;
   }, [feedItems, activeFilter]);
+
+  const dateGroups = useMemo(
+    () => groupByDate(filteredItems, locale),
+    [filteredItems, locale]
+  );
 
   const actionRequiredCount = feedItems.filter(
     (item) => item.type === 'ACTION_REQUIRED'
@@ -129,7 +202,7 @@ export default function MessagesClientPage({
         {/* Main Tabs */}
         <div className="flex items-center justify-center gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-gray-200 mb-8 max-w-md mx-auto">
           <button
-            onClick={() => setMainTab('chats')}
+            onClick={() => switchTab('chats')}
             className={cn(
               'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200',
               mainTab === 'chats'
@@ -153,7 +226,7 @@ export default function MessagesClientPage({
             )}
           </button>
           <button
-            onClick={() => setMainTab('updates')}
+            onClick={() => switchTab('updates')}
             className={cn(
               'flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200',
               mainTab === 'updates'
@@ -178,135 +251,169 @@ export default function MessagesClientPage({
           </button>
         </div>
 
-        {/* Tab Content */}
-        {mainTab === 'chats' && (
-          <UserChatPanel
-            locale={locale}
-            onUnreadUpdate={handleChatUnreadUpdate}
-          />
-        )}
+        {/* Tab Content — animated */}
+        <AnimatePresence mode="wait" custom={directionRef.current}>
+          {mainTab === 'chats' && (
+            <motion.div
+              key="chats"
+              custom={directionRef.current}
+              variants={tabVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+            >
+              <UserChatPanel
+                locale={locale}
+                onUnreadUpdate={handleChatUnreadUpdate}
+              />
+            </motion.div>
+          )}
 
-        {mainTab === 'updates' && (
-          <div>
-            {/* Action Required Banner */}
-            <AnimatePresence>
-              {actionRequiredCount > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: 'auto' }}
-                  exit={{ opacity: 0, y: -20, height: 0 }}
-                  transition={{ duration: 0.5, ease: 'easeInOut' }}
-                  className="mb-8"
-                >
-                  <Alert className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 shadow-2xl rounded-2xl">
-                    <Zap className="h-5 w-5 text-white" />
-                    <AlertTitle className="font-bold text-lg">
-                      {actionRequiredCount === 1
-                        ? dict.actionBanner?.titleSingle
-                        : dict.actionBanner?.titleMultiple?.replace(
-                            '{{count}}',
-                            actionRequiredCount.toString()
-                          )}
-                    </AlertTitle>
-                    <AlertDescription>
-                      {dict.actionBanner?.description}
-                    </AlertDescription>
-                  </Alert>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
-              <div className="flex items-center gap-2 p-1 bg-white/80 backdrop-blur-sm rounded-full shadow-md border border-gray-200">
-                <Button
-                  variant={activeFilter === 'all' ? 'default' : 'ghost'}
-                  onClick={() => setActiveFilter('all')}
-                  className="rounded-full"
-                >
-                  {dict.filters?.all || (isHe ? 'הכל' : 'All')}
-                </Button>
-                <Button
-                  variant={
-                    activeFilter === 'action_required' ? 'default' : 'ghost'
-                  }
-                  onClick={() => setActiveFilter('action_required')}
-                  className="rounded-full relative"
-                >
-                  {dict.filters?.actionRequired ||
-                    (isHe ? 'דורש תגובה' : 'Action Required')}
-                  {actionRequiredCount > 0 && (
-                    <Badge className="absolute -top-1 -right-2 bg-orange-500 text-white animate-zoom-in">
-                      {actionRequiredCount}
-                    </Badge>
-                  )}
-                </Button>
-                <Button
-                  variant={activeFilter === 'updates' ? 'default' : 'ghost'}
-                  onClick={() => setActiveFilter('updates')}
-                  className="rounded-full"
-                >
-                  {dict.filters?.updates || (isHe ? 'עדכונים' : 'Updates')}
-                </Button>
-              </div>
-              <Button
-                variant="outline"
-                onClick={fetchFeed}
-                disabled={isLoading}
-              >
-                <RefreshCw
-                  className={cn(
-                    'w-4 h-4',
-                    isHe ? 'ml-2' : 'mr-2',
-                    isLoading && 'animate-spin'
-                  )}
-                />
-                {dict.filters?.refresh || (isHe ? 'רענון' : 'Refresh')}
-              </Button>
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div className="text-center p-4 bg-red-50 text-red-700 rounded-lg mb-4">
-                {error}
-              </div>
-            )}
-
-            {/* Feed — CSS animations instead of AnimatePresence */}
-            {isLoading ? (
-              <StandardizedLoadingSpinner className="h-64" />
-            ) : filteredItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-2xl shadow-inner border border-gray-200/50">
-                <Inbox className="w-20 h-20 text-gray-300 mb-6" />
-                <h3 className="text-2xl font-bold text-gray-700">
-                  {dict.emptyState?.title ||
-                    (isHe ? 'אין עדכונים' : 'No updates')}
-                </h3>
-                <p className="text-gray-500 mt-2 max-w-md">
-                  {activeFilter === 'all'
-                    ? dict.emptyState?.descriptionAll
-                    : dict.emptyState?.descriptionFiltered}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+          {mainTab === 'updates' && (
+            <motion.div
+              key="updates"
+              custom={directionRef.current}
+              variants={tabVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+            >
+              {/* Action Required Banner */}
+              <AnimatePresence>
+                {actionRequiredCount > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, y: -20, height: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    className="mb-8"
                   >
-                    <NotificationCard
-                      item={item}
-                      userId={userId!}
-                      dict={dict.notificationCard}
-                      locale={locale}
-                    />
-                  </div>
-                ))}
+                    <Alert className="bg-gradient-to-r from-orange-400 to-amber-400 text-white border-0 shadow-2xl rounded-2xl">
+                      <Zap className="h-5 w-5 text-white" />
+                      <AlertTitle className="font-bold text-lg">
+                        {actionRequiredCount === 1
+                          ? dict.actionBanner?.titleSingle
+                          : dict.actionBanner?.titleMultiple?.replace(
+                              '{{count}}',
+                              actionRequiredCount.toString()
+                            )}
+                      </AlertTitle>
+                      <AlertDescription>
+                        {dict.actionBanner?.description}
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8">
+                <div className="flex items-center gap-2 p-1 bg-white/80 backdrop-blur-sm rounded-full shadow-md border border-gray-200">
+                  <Button
+                    variant={activeFilter === 'all' ? 'default' : 'ghost'}
+                    onClick={() => setActiveFilter('all')}
+                    className="rounded-full"
+                  >
+                    {dict.filters?.all || (isHe ? 'הכל' : 'All')}
+                  </Button>
+                  <Button
+                    variant={
+                      activeFilter === 'action_required' ? 'default' : 'ghost'
+                    }
+                    onClick={() => setActiveFilter('action_required')}
+                    className="rounded-full relative"
+                  >
+                    {dict.filters?.actionRequired ||
+                      (isHe ? 'דורש תגובה' : 'Action Required')}
+                    {actionRequiredCount > 0 && (
+                      <Badge className="absolute -top-1 -end-2 bg-orange-500 text-white animate-zoom-in">
+                        {actionRequiredCount}
+                      </Badge>
+                    )}
+                  </Button>
+                  <Button
+                    variant={activeFilter === 'updates' ? 'default' : 'ghost'}
+                    onClick={() => setActiveFilter('updates')}
+                    className="rounded-full"
+                  >
+                    {dict.filters?.updates || (isHe ? 'עדכונים' : 'Updates')}
+                  </Button>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={fetchFeed}
+                  disabled={isLoading}
+                >
+                  <RefreshCw
+                    className={cn(
+                      'w-4 h-4 me-2',
+                      isLoading && 'animate-spin'
+                    )}
+                  />
+                  {dict.filters?.refresh || (isHe ? 'רענון' : 'Refresh')}
+                </Button>
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Error */}
+              {error && (
+                <div className="text-center p-4 bg-red-50 text-red-700 rounded-lg mb-4">
+                  {error}
+                </div>
+              )}
+
+              {/* Feed — grouped by date */}
+              {isLoading ? (
+                <StandardizedLoadingSpinner className="h-64" />
+              ) : filteredItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-white/50 rounded-2xl shadow-inner border border-gray-200/50">
+                  <Inbox className="w-20 h-20 text-gray-300 mb-6" />
+                  <h3 className="text-2xl font-bold text-gray-700">
+                    {dict.emptyState?.title ||
+                      (isHe ? 'אין עדכונים' : 'No updates')}
+                  </h3>
+                  <p className="text-gray-500 mt-2 max-w-md">
+                    {activeFilter === 'all'
+                      ? dict.emptyState?.descriptionAll
+                      : dict.emptyState?.descriptionFiltered}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {dateGroups.map((group) => (
+                    <div key={group.label}>
+                      {/* Date Group Header */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="h-px flex-1 bg-gray-200" />
+                        <span className="text-xs font-semibold text-gray-500 bg-white/80 px-3 py-1 rounded-full border border-gray-200 shadow-sm">
+                          {group.label}
+                        </span>
+                        <div className="h-px flex-1 bg-gray-200" />
+                      </div>
+                      {/* Items */}
+                      <div className="space-y-4">
+                        {group.items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+                          >
+                            <NotificationCard
+                              item={item}
+                              userId={userId!}
+                              dict={dict.notificationCard}
+                              locale={locale}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -34,7 +34,7 @@ export function shouldShowDateSeparator(
 
 export default function DateSeparator({ dateStr, locale }: DateSeparatorProps) {
   return (
-    <div className="flex items-center justify-center my-4">
+    <div className="sticky top-0 z-10 flex items-center justify-center my-4 pointer-events-none">
       <div className="bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-sm">
         <span className="text-xs font-medium text-gray-500">
           {formatDateSeparator(dateStr, locale)}

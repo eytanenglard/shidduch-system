@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
@@ -21,6 +22,53 @@ import {
 } from 'lucide-react';
 import type { MessagesPageDict } from '@/types/dictionary';
 import type { Locale } from '../../../i18n-config';
+
+// ==========================================
+// Status Badge Config
+// ==========================================
+
+const statusBadgeMap: Record<string, { label: { he: string; en: string }; className: string }> = {
+  PENDING_FIRST_PARTY: {
+    label: { he: 'ממתין לתגובתך', en: 'Awaiting your response' },
+    className: 'bg-orange-100 text-orange-700 border-orange-200',
+  },
+  PENDING_SECOND_PARTY: {
+    label: { he: 'ממתין לצד השני', en: 'Awaiting other party' },
+    className: 'bg-amber-100 text-amber-700 border-amber-200',
+  },
+  FIRST_PARTY_APPROVED: {
+    label: { he: 'אישרת', en: 'You approved' },
+    className: 'bg-green-100 text-green-700 border-green-200',
+  },
+  FIRST_PARTY_INTERESTED: {
+    label: { he: 'מתעניין/ת', en: 'Interested' },
+    className: 'bg-teal-100 text-teal-700 border-teal-200',
+  },
+  SECOND_PARTY_APPROVED: {
+    label: { he: 'אושר!', en: 'Approved!' },
+    className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  },
+  CONTACT_DETAILS_SHARED: {
+    label: { he: 'פרטים שותפו', en: 'Details shared' },
+    className: 'bg-blue-100 text-blue-700 border-blue-200',
+  },
+  DATING: {
+    label: { he: 'בתהליך', en: 'Dating' },
+    className: 'bg-purple-100 text-purple-700 border-purple-200',
+  },
+  FIRST_PARTY_DECLINED: {
+    label: { he: 'נדחתה', en: 'Declined' },
+    className: 'bg-gray-100 text-gray-500 border-gray-200',
+  },
+  SECOND_PARTY_DECLINED: {
+    label: { he: 'נדחתה', en: 'Declined' },
+    className: 'bg-gray-100 text-gray-500 border-gray-200',
+  },
+  CLOSED: {
+    label: { he: 'נסגרה', en: 'Closed' },
+    className: 'bg-gray-100 text-gray-500 border-gray-200',
+  },
+};
 
 interface NotificationCardProps {
   item: FeedItem;
@@ -88,7 +136,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
   const mainImage = otherParty?.images?.find((img) => img.isMain);
 
   return (
-    <Card className="shadow-lg border-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white">
+    <Card className="shadow-lg border-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white" dir={locale === 'he' ? 'rtl' : 'ltr'}>
       <CardContent className="p-5 flex items-start gap-4">
         <div className="flex flex-col items-center gap-2 flex-shrink-0">
           <div
@@ -118,8 +166,20 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
                 {item.title}
               </h3>
               <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+              {/* Status Badge */}
+              {suggestion?.status && statusBadgeMap[suggestion.status] && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'mt-2 text-[11px] font-medium px-2.5 py-0.5',
+                    statusBadgeMap[suggestion.status].className
+                  )}
+                >
+                  {statusBadgeMap[suggestion.status].label[locale === 'he' ? 'he' : 'en']}
+                </Badge>
+              )}
             </div>
-            <span className="text-xs text-gray-400 flex-shrink-0 pl-2">
+            <span className="text-xs text-gray-400 flex-shrink-0 ps-2">
               {/* ✨ LOCALE UPDATE: שימוש ב-locale עבור תאריך */}
               {formatDistanceToNow(new Date(item.timestamp), {
                 addSuffix: true,

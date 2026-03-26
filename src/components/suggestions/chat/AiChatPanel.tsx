@@ -87,13 +87,13 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
             onClick={() => setIsOpen(true)}
             className={cn(
               'w-full rounded-xl p-4',
-              'bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-violet-500/10',
+              'bg-violet-50',
               'border border-violet-200/50 hover:border-violet-300',
-              'flex items-center gap-3 transition-all hover:shadow-md',
+              'flex items-center gap-3 transition-all hover:shadow-sm',
               'group cursor-pointer'
             )}
           >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className={cn('flex-1', isHebrew ? 'text-right' : 'text-left')}>
@@ -122,11 +122,11 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
             <div
               className={cn(
                 'rounded-xl border border-violet-200 bg-gray-50 overflow-hidden',
-                'shadow-lg',
+                'shadow-sm',
               )}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-violet-500 to-purple-600 px-4 py-3 flex items-center justify-between">
+              <div className="bg-violet-600 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-white/90" />
                   <h3 className="text-sm font-semibold text-white">

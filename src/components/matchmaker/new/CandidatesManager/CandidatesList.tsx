@@ -106,6 +106,10 @@ interface CandidatesListProps {
   onEndReached?: () => void;
   /** Whether more items are being loaded (infinite scroll) */
   isLoadingMore?: boolean;
+  /** Callback to show similar candidates */
+  onShowSimilar?: (candidate: Candidate, e: React.MouseEvent) => void;
+  /** Callback when tags are changed on a candidate */
+  onTagsChanged?: () => void;
 }
 
 // ============================================================================
@@ -141,6 +145,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   onResetFilters,
   onEndReached,
   isLoadingMore = false,
+  onShowSimilar,
+  onTagsChanged,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -156,6 +162,23 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   // Store scroll position before opening dialogs
   const scrollPositionRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Dynamic Virtuoso height — measure available space via ResizeObserver
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [virtuosoHeight, setVirtuosoHeight] = useState(600);
+
+  useEffect(() => {
+    const el = scrollAreaRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const h = entry.contentRect.height;
+      if (h > 100) setVirtuosoHeight(h);
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Dialog states
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -493,6 +516,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             onToggleComparison={onToggleComparison}
             existingSuggestion={existingSuggestions[candidate.id] ?? null}
             isCompact={isCompact}
+            onShowSimilar={onShowSimilar}
+            onTagsChanged={onTagsChanged}
             dict={dict.candidatesManager.list.minimalCard}
           />
           <button
@@ -637,41 +662,52 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         role="grid"
         aria-label="רשימת מועמדים"
         aria-rowcount={candidates.length}
-        className={cn('outline-none', className || '')}
+        className={cn('outline-none flex flex-col flex-1 min-h-0', className || '')}
       >
-        {viewMode === 'list' || (isMobile && mobileView === 'single') ? (
-          // List view — Virtuoso (single column)
-          <Virtuoso
-            style={{ height: '70vh' }}
-            totalCount={candidates.length}
-            itemContent={(index) => (
-              <div className="mb-4">
-                {renderCard(index, candidates[index])}
-              </div>
-            )}
-            endReached={onEndReached}
-            overscan={200}
-            components={{
-              Footer: () =>
-                isLoadingMore ? (
-                  <div className="flex items-center justify-center py-6 gap-2 text-gray-500">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">טוען עוד מועמדים...</span>
-                  </div>
-                ) : null,
-            }}
-          />
-        ) : (
-          // Grid view — VirtuosoGrid
-          <VirtuosoGrid
-            style={{ height: '70vh' }}
-            totalCount={candidates.length}
-            listClassName={gridLayoutClass}
-            itemContent={(index) => renderCard(index, candidates[index])}
-            endReached={onEndReached}
-            overscan={200}
-          />
-        )}
+        <div ref={scrollAreaRef} className="flex-1 min-h-0">
+          {viewMode === 'list' || (isMobile && mobileView === 'single') ? (
+            // List view — Virtuoso (single column)
+            <Virtuoso
+              style={{ height: virtuosoHeight }}
+              totalCount={candidates.length}
+              itemContent={(index) => (
+                <div className="mb-4">
+                  {renderCard(index, candidates[index])}
+                </div>
+              )}
+              endReached={onEndReached}
+              overscan={200}
+              components={{
+                Footer: () =>
+                  isLoadingMore ? (
+                    <div className="flex items-center justify-center py-6 gap-2 text-gray-500">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">טוען עוד מועמדים...</span>
+                    </div>
+                  ) : null,
+              }}
+            />
+          ) : (
+            // Grid view — VirtuosoGrid
+            <VirtuosoGrid
+              style={{ height: virtuosoHeight }}
+              totalCount={candidates.length}
+              listClassName={gridLayoutClass}
+              itemContent={(index) => renderCard(index, candidates[index])}
+              endReached={onEndReached}
+              overscan={200}
+              components={{
+                Footer: () =>
+                  isLoadingMore ? (
+                    <div className="flex items-center justify-center py-6 gap-2 text-gray-500">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">טוען עוד מועמדים...</span>
+                    </div>
+                  ) : null,
+              }}
+            />
+          )}
+        </div>
       </div>
 
       {/* QuickView as Sheet drawer (replaces hover-positioned absolute div) */}

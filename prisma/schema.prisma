@@ -165,6 +165,10 @@ model User {
   // === Custom Sources ===
   customSources CustomSource[] @relation("CustomSourceCreator")
 
+  // === Matchmaker Custom Tags ===
+  matchmakerCustomTags MatchmakerCustomTag[] @relation("MatchmakerCustomTags")
+  candidateCustomTags  CandidateTag[]        @relation("CandidateCustomTags")
+
   // === Skipped Auto-Suggestions ===
   skippedSuggestionsForUser SkippedAutoSuggestion[] @relation("SkippedForUser")
   skippedSuggestionsAsOther SkippedAutoSuggestion[] @relation("SkippedOtherParty")
@@ -2231,4 +2235,38 @@ model CustomSource {
   createdAt DateTime @default(now())
 
   creator User @relation("CustomSourceCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+}
+
+// =============================================================================
+// Matchmaker Custom Tags
+// =============================================================================
+
+model MatchmakerCustomTag {
+  id           String   @id @default(cuid())
+  matchmakerId String
+  name         String
+  color        String   @default("#6366f1")
+  createdAt    DateTime @default(now())
+
+  matchmaker User           @relation("MatchmakerCustomTags", fields: [matchmakerId], references: [id], onDelete: Cascade)
+  candidates CandidateTag[]
+
+  @@unique([matchmakerId, name])
+  @@index([matchmakerId])
+  @@map("matchmaker_custom_tags")
+}
+
+model CandidateTag {
+  id        String   @id @default(cuid())
+  tagId     String
+  userId    String
+  createdAt DateTime @default(now())
+
+  tag  MatchmakerCustomTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  user User                @relation("CandidateCustomTags", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, userId])
+  @@index([userId])
+  @@index([tagId])
+  @@map("candidate_tags")
 }

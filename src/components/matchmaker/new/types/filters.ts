@@ -53,6 +53,8 @@ export interface FilterState {
   bodyType?: string[];
   appearanceTone?: string[];
   ethnicBackground?: string[];
+  hasNoSuggestions?: boolean;
+  customTags?: string[];
 }
 
 // הגדרת אפשרות פילטר
@@ -152,7 +154,8 @@ ageRange: undefined,     // היה: { min: 18, max: 130}
   appearanceTone: [],
   ethnicBackground: [],
   searchQuery: '',
-  savedFilterId: undefined
+  savedFilterId: undefined,
+  customTags: [],
 };
 
 // קטגוריות פילטרים מוגדרות מראש

@@ -55,6 +55,8 @@ export interface MinimalCandidateCardProps {
   existingSuggestion?: { status: string; createdAt: string } | null;
   aiTargetName?: string;
   isCompact?: boolean;
+  onShowSimilar?: (candidate: Candidate, e: React.MouseEvent) => void;
+  onTagsChanged?: () => void;
   dict: MinimalCardDict;
 }
 

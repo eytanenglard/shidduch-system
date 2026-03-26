@@ -98,7 +98,7 @@ export default function AiChatInput({
           className={cn(
             'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all',
             value.trim() && !isStreaming
-              ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white hover:from-violet-600 hover:to-purple-700 shadow-md'
+              ? 'bg-violet-600 text-white hover:bg-violet-700 shadow-sm'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed',
           )}
         >

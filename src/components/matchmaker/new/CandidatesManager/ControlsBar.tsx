@@ -12,6 +12,9 @@ import {
   View,
   Columns,
   Users,
+  UserX,
+  Tag,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -83,6 +86,9 @@ interface ControlsBarProps {
   showFiltersMobile: boolean;
   onSetFiltersMobile: (show: boolean) => void;
 
+  // Tags
+  matchmakerTags?: Array<{ id: string; name: string; color: string; candidateCount: number }>;
+
   // Locale & dict
   locale: string;
   dict: MatchmakerPageDictionary;
@@ -120,6 +126,7 @@ const ControlsBar: React.FC<ControlsBarProps> = ({
   onToggleFiltersPanel,
   showFiltersMobile,
   onSetFiltersMobile,
+  matchmakerTags = [],
   locale,
   dict,
 }) => {
@@ -210,6 +217,103 @@ const ControlsBar: React.FC<ControlsBarProps> = ({
                 ? cmDict.controls.disableQuickView
                 : cmDict.controls.enableQuickView}
             </Button>
+
+            {/* Quick filter: No suggestions */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                onFiltersChange({
+                  hasNoSuggestions: !filters.hasNoSuggestions,
+                })
+              }
+              className={cn(
+                'shadow-sm border',
+                filters.hasNoSuggestions
+                  ? 'bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200'
+                  : 'bg-white/90 border-gray-200'
+              )}
+            >
+              <UserX
+                className={cn(
+                  'w-4 h-4',
+                  locale === 'he' ? 'ml-1' : 'mr-1'
+                )}
+              />
+              ללא הצעות
+            </Button>
+
+            {/* Tag filter */}
+            {matchmakerTags.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      'shadow-sm border',
+                      filters.customTags?.length
+                        ? 'bg-indigo-100 border-indigo-300 text-indigo-700 hover:bg-indigo-200'
+                        : 'bg-white/90 border-gray-200'
+                    )}
+                  >
+                    <Tag
+                      className={cn(
+                        'w-4 h-4',
+                        locale === 'he' ? 'ml-1' : 'mr-1'
+                      )}
+                    />
+                    תגיות
+                    {filters.customTags?.length ? (
+                      <Badge className="h-4 px-1 ms-1 bg-indigo-500 text-white text-[10px]">
+                        {filters.customTags.length}
+                      </Badge>
+                    ) : null}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>סנן לפי תגית</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {matchmakerTags.map((tag) => {
+                    const isActive = filters.customTags?.includes(tag.id);
+                    return (
+                      <DropdownMenuItem
+                        key={tag.id}
+                        onClick={() => {
+                          const current = filters.customTags ?? [];
+                          const next = isActive
+                            ? current.filter((id) => id !== tag.id)
+                            : [...current, tag.id];
+                          onFiltersChange({ customTags: next });
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        <span className="flex-1">{tag.name}</span>
+                        {isActive && (
+                          <span className="text-indigo-500 font-bold text-xs">✓</span>
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                  {filters.customTags?.length ? (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => onFiltersChange({ customTags: [] })}
+                        className="text-red-500"
+                      >
+                        <X className="w-3 h-3 me-1" />
+                        נקה סינון תגיות
+                      </DropdownMenuItem>
+                    </>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {/* Virtual search */}
             <Button

@@ -3,6 +3,7 @@ import type { AiSuggestionAnalysisResult } from '@/lib/services/aiService';
 import type { ExtendedMatchSuggestion } from '@/types/suggestions';
 import type {
   SuggestionsDictionary,
+  SuggestionsCompatibilityDict,
   ProfileCardDict,
 } from '@/types/dictionary';
 
@@ -34,12 +35,15 @@ export interface SuggestionModalState {
   // State
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  tabDirection: number;
+  handleTabChange: (tab: string) => void;
   showAskDialog: boolean;
   setShowAskDialog: (show: boolean) => void;
   isSubmitting: boolean;
   isQuestionnaireLoading: boolean;
   isActionsExpanded: boolean;
   setIsActionsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
+  isInitialLoad: boolean;
 
   // Device & fullscreen
   isMobile: boolean;
@@ -105,6 +109,7 @@ export interface PresentationTabProps {
   onViewProfile: () => void;
   onStartConversation: () => void;
   dict: SuggestionsDictionary['modal']['header'];
+  profileCardDict?: ProfileCardDict;
 }
 
 export interface ProfileTabProps {
@@ -121,6 +126,9 @@ export interface ProfileTabProps {
 }
 
 export interface CompatibilityTabProps {
+  firstParty: ExtendedMatchSuggestion['firstParty'];
+  secondParty: ExtendedMatchSuggestion['secondParty'];
+  matchingReason?: string | null;
   targetPartyId: string;
   isDemo: boolean;
   demoAnalysisData?: AiSuggestionAnalysisResult | null;
@@ -130,6 +138,7 @@ export interface CompatibilityTabProps {
   dict: {
     aiAnalysisCta: SuggestionsDictionary['modal']['aiAnalysisCta'];
     aiAnalysis: SuggestionsDictionary['aiAnalysis'];
+    compatibility: SuggestionsCompatibilityDict;
   };
 }
 
@@ -159,5 +168,15 @@ export interface QuickActionsBarProps {
   approvedAt?: Date | string | null;
   secondPartySent?: Date | string | null;
   locale: 'he' | 'en';
+  dict: SuggestionsDictionary['modal']['actions'];
+}
+
+// --- Action State Shared Props ---
+export interface ActionStateProps {
+  isSubmitting: boolean;
+  isHe: boolean;
+  onApprove: () => void;
+  onDecline: () => void;
+  onInterested: () => void;
   dict: SuggestionsDictionary['modal']['actions'];
 }

@@ -7,7 +7,6 @@ import { Progress } from '@/components/ui/progress';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 import type { ExtendedAvailabilityInquiry } from '@/types/messages';
 import type { AvailabilityRequestCardDict } from '@/types/dictionary';
-import { cn } from '@/lib/utils';
 import type { Locale } from '../../../i18n-config';
 
 interface AvailabilityRequestCardProps {
@@ -23,7 +22,6 @@ export default function AvailabilityRequestCard({
   currentUserId,
   onRespond,
   dict,
-  locale,
 }: AvailabilityRequestCardProps) {
   const isFirstParty = inquiry.firstPartyId === currentUserId;
   const isSecondParty = inquiry.secondPartyId === currentUserId;
@@ -57,26 +55,11 @@ export default function AvailabilityRequestCard({
               </div>
               <div className="flex items-center mt-1">
                 {inquiry.firstPartyResponse === null ? (
-                  <Clock
-                    className={cn(
-                      'w-4 h-4 text-yellow-500',
-                      locale === 'he' ? 'ml-1' : 'mr-1'
-                    )}
-                  />
+                  <Clock className="w-4 h-4 text-yellow-500 me-1" />
                 ) : inquiry.firstPartyResponse ? (
-                  <CheckCircle
-                    className={cn(
-                      'w-4 h-4 text-green-500',
-                      locale === 'he' ? 'ml-1' : 'mr-1'
-                    )}
-                  />
+                  <CheckCircle className="w-4 h-4 text-green-500 me-1" />
                 ) : (
-                  <XCircle
-                    className={cn(
-                      'w-4 h-4 text-red-500',
-                      locale === 'he' ? 'ml-1' : 'mr-1'
-                    )}
-                  />
+                  <XCircle className="w-4 h-4 text-red-500 me-1" />
                 )}
                 <span>
                   {inquiry.firstParty.firstName} {inquiry.firstParty.lastName}
@@ -89,26 +72,11 @@ export default function AvailabilityRequestCard({
               </div>
               <div className="flex items-center mt-1">
                 {inquiry.secondPartyResponse === null ? (
-                  <Clock
-                    className={cn(
-                      'w-4 h-4 text-yellow-500',
-                      locale === 'he' ? 'ml-1' : 'mr-1'
-                    )}
-                  />
+                  <Clock className="w-4 h-4 text-yellow-500 me-1" />
                 ) : inquiry.secondPartyResponse ? (
-                  <CheckCircle
-                    className={cn(
-                      'w-4 h-4 text-green-500',
-                      locale === 'he' ? 'ml-1' : 'mr-1'
-                    )}
-                  />
+                  <CheckCircle className="w-4 h-4 text-green-500 me-1" />
                 ) : (
-                  <XCircle
-                    className={cn(
-                      'w-4 h-4 text-red-500',
-                      locale === 'he' ? 'ml-1' : 'mr-1'
-                    )}
-                  />
+                  <XCircle className="w-4 h-4 text-red-500 me-1" />
                 )}
                 <span>
                   {inquiry.secondParty.firstName} {inquiry.secondParty.lastName}
@@ -138,9 +106,7 @@ export default function AvailabilityRequestCard({
                 onClick={() => onRespond(inquiry.id, true)}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
-                <CheckCircle
-                  className={cn('h-4 w-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-                />{' '}
+                <CheckCircle className="h-4 w-4 me-2" />{' '}
                 {dict.buttons.available}
               </Button>
               <Button
@@ -148,9 +114,7 @@ export default function AvailabilityRequestCard({
                 variant="outline"
                 className="flex-1"
               >
-                <XCircle
-                  className={cn('h-4 w-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-                />{' '}
+                <XCircle className="h-4 w-4 me-2" />{' '}
                 {dict.buttons.unavailable}
               </Button>
             </div>

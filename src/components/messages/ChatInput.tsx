@@ -91,7 +91,7 @@ export default function ChatInput({
           {isSending ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            <Send className={cn('w-4 h-4', isHe && '-scale-x-100')} />
+            <Send className="w-4 h-4 rtl:-scale-x-100" />
           )}
         </Button>
       </div>

@@ -45,8 +45,8 @@ export default function AiChatBubble({
           isUser
             ? 'bg-violet-100 text-violet-600'
             : isMatchmaker
-              ? 'bg-gradient-to-br from-teal-500 to-emerald-600 text-white'
-              : 'bg-gradient-to-br from-violet-500 to-purple-600 text-white'
+              ? 'bg-teal-600 text-white'
+              : 'bg-violet-600 text-white'
         )}
       >
         {isUser ? <User className="w-3.5 h-3.5" /> : isMatchmaker ? <UserCheck className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}

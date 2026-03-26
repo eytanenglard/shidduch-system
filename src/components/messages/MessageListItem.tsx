@@ -121,9 +121,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
         {message.type === 'STATUS_UPDATE' &&
           suggestion.status === 'CONTACT_DETAILS_SHARED' && (
             <Badge className="mt-1 bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 text-xs shadow-md">
-              <CheckCircle
-                className={cn('w-3 h-3', locale === 'he' ? 'ml-1' : 'mr-1')}
-              />
+              <CheckCircle className="w-3 h-3 me-1" />
               {dict.matchBadge}
             </Badge>
           )}

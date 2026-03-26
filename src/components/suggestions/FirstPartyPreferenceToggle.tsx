@@ -72,92 +72,53 @@ const FirstPartyPreferenceToggle: React.FC<FirstPartyPreferenceToggleProps> = ({
   return (
     <div
       className={cn(
-        'p-4 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-sm',
+        'flex items-center gap-3 px-4 py-3 bg-white border border-gray-100 rounded-xl',
         className
       )}
       dir={isHe ? 'rtl' : 'ltr'}
     >
-      {/* כותרת */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-sm">
-          <Bell className="w-4 h-4 text-white" />
-        </div>
-        <p className="text-sm font-semibold text-gray-700">
-          {isHe ? 'הצעות מהסריקה האוטומטית' : 'Auto-Scan Suggestions'}
+      {/* Icon */}
+      <div className={cn(
+        'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-200',
+        wantsToBeFirst ? 'bg-teal-50 text-teal-600' : 'bg-gray-100 text-gray-400'
+      )}>
+        {wantsToBeFirst ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+      </div>
+
+      {/* Label */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-700">
+          {isHe ? 'הצעות אוטומטיות' : 'Auto Suggestions'}
+        </p>
+        <p className="text-[11px] text-gray-400 leading-tight">
+          {wantsToBeFirst
+            ? (isHe ? 'המערכת שולחת לך הצעות' : 'System sends you suggestions')
+            : (isHe ? 'רק דרך שדכן/ית' : 'Matchmaker only')}
         </p>
       </div>
 
-      <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-        {isHe
-          ? 'האם תרצה/י לקבל הצעות שידוך ישירות מהסריקה הכללית היומית?'
-          : 'Would you like to receive match suggestions directly from the daily auto-scan?'}
-      </p>
-
-      {/* שני כפתורים */}
-      <div className="grid grid-cols-2 gap-2">
-        {/* כפתור: כן */}
-        <button
-          onClick={() => handleToggle(true)}
-          disabled={isSaving}
+      {/* Toggle switch */}
+      <button
+        onClick={() => handleToggle(!wantsToBeFirst)}
+        disabled={isSaving}
+        className={cn(
+          'relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2',
+          wantsToBeFirst
+            ? 'bg-teal-500 focus:ring-teal-400'
+            : 'bg-gray-300 focus:ring-gray-300',
+          isSaving && 'opacity-60'
+        )}
+        aria-label={isHe ? 'הצעות אוטומטיות' : 'Auto suggestions toggle'}
+      >
+        <span
           className={cn(
-            'relative flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200',
-            wantsToBeFirst
-              ? 'bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg shadow-teal-200 scale-[1.02]'
-              : 'bg-gray-50 text-gray-500 hover:bg-teal-50 hover:text-teal-600 border border-gray-200'
+            'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 flex items-center justify-center',
+            wantsToBeFirst && 'translate-x-5',
           )}
         >
-          {isSaving && wantsToBeFirst ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Bell className="w-4 h-4" />
-          )}
-          <span className="text-xs leading-tight text-center">
-            {isHe ? 'כן, אשמח לקבל' : 'Yes, receive them'}
-          </span>
-          {wantsToBeFirst && (
-            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-sm">
-              <span className="text-[9px] font-bold text-white">✓</span>
-            </span>
-          )}
-        </button>
-
-        {/* כפתור: לא */}
-        <button
-          onClick={() => handleToggle(false)}
-          disabled={isSaving}
-          className={cn(
-            'relative flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200',
-            !wantsToBeFirst
-              ? 'bg-gradient-to-br from-rose-400 to-red-500 text-white shadow-lg shadow-rose-200 scale-[1.02]'
-              : 'bg-gray-50 text-gray-500 hover:bg-rose-50 hover:text-rose-600 border border-gray-200'
-          )}
-        >
-          {isSaving && !wantsToBeFirst ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <BellOff className="w-4 h-4" />
-          )}
-          <span className="text-xs leading-tight text-center">
-            {isHe ? 'לא, רק דרך שדכן' : 'No, matchmaker only'}
-          </span>
-          {!wantsToBeFirst && (
-            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center shadow-sm">
-              <span className="text-[9px] font-bold text-white">✓</span>
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* הסבר מצב נוכחי */}
-      <p className="text-[11px] text-center mt-3 text-gray-400 leading-relaxed">
-        {wantsToBeFirst
-          ? isHe
-            ? 'הגדרה נוכחית: המערכת יכולה לשלוח לך הצעות ישירות'
-            : 'Current: The system may send you suggestions directly'
-          : isHe
-            ? 'הגדרה נוכחית: הצעות יגיעו רק דרך שדכן אנושי'
-            : 'Current: Suggestions will only come via a matchmaker'}
-      </p>
+          {isSaving && <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />}
+        </span>
+      </button>
     </div>
   );
 };

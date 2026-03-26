@@ -31,6 +31,8 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
       onEdit,
       onAnalyze,
       onSendProfileFeedback,
+      onShowSimilar,
+      onTagsChanged,
       isHighlighted = false,
       highlightTerm = '',
       className,
@@ -135,6 +137,21 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
               dict={dict}
             />
 
+            {/* Custom tags */}
+            {(candidate as any).customTags?.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {((candidate as any).customTags as Array<{ id: string; name: string; color: string }>).map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium text-white"
+                    style={{ backgroundColor: tag.color }}
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Deal-breakers */}
             {(candidate.profile as any).metrics && (
               <DealBreakersBadges
@@ -167,10 +184,15 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
             onEdit={onEdit}
             onAnalyze={onAnalyze}
             onSendProfileFeedback={onSendProfileFeedback}
+            onShowSimilar={onShowSimilar}
             onShowReasoning={() => state.setShowReasoning(true)}
             notesCount={(candidate as any).notesCount ?? 0}
             showNotes={state.showNotes}
             onShowNotesChange={state.setShowNotes}
+            showTags={state.showTags}
+            onShowTagsChange={state.setShowTags}
+            assignedTagIds={((candidate as any).customTags ?? []).map((t: any) => t.id)}
+            onTagsChanged={onTagsChanged}
             dict={dict}
           />
 

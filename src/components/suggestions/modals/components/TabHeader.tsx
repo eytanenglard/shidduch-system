@@ -17,7 +17,6 @@ import {
   X,
   Maximize,
   Minimize,
-  Heart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { TabHeaderProps } from '../types/modal.types';
@@ -35,14 +34,11 @@ const TabHeader: React.FC<TabHeaderProps> = ({
   statusBadgeClass,
 }) => {
   return (
-    <div className="border-b border-gray-200/80 px-3 sm:px-5 pt-3 pb-2 bg-white/95 backdrop-blur-sm sticky top-0 z-20">
+    <div className="border-b border-gray-200 px-3 sm:px-5 pt-3 pb-2 bg-white sticky top-0 z-20">
       {/* Person identity row */}
       {personName && (
         <div className="flex items-center justify-between mb-2.5 px-0.5">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center flex-shrink-0">
-              <Heart className="w-3 h-3 text-white" />
-            </div>
             <span className="text-sm font-bold text-gray-800 truncate">
               {personName}
               {personAge ? ` (${personAge})` : ''}
@@ -62,11 +58,11 @@ const TabHeader: React.FC<TabHeaderProps> = ({
       )}
 
       <div className="flex items-center gap-3">
-        {/* Compact pill tabs */}
-        <TabsList className="flex-1 flex bg-gray-50 rounded-xl p-1 h-11 border border-gray-200/60">
+        {/* Tab pills */}
+        <TabsList className="flex-1 flex bg-gray-100 rounded-xl p-1 h-12 border border-gray-200/60">
           <TabsTrigger
             value="presentation"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-orange-500 font-semibold text-gray-500 hover:text-gray-700"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-medium text-gray-500 hover:text-gray-700"
           >
             <Sparkles className="w-4 h-4" />
             <span className="hidden sm:inline">{dict.presentation}</span>
@@ -74,7 +70,7 @@ const TabHeader: React.FC<TabHeaderProps> = ({
           </TabsTrigger>
           <TabsTrigger
             value="profile"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-teal-500 font-semibold text-gray-500 hover:text-gray-700"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-medium text-gray-500 hover:text-gray-700"
           >
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">{dict.profile}</span>
@@ -82,7 +78,7 @@ const TabHeader: React.FC<TabHeaderProps> = ({
           </TabsTrigger>
           <TabsTrigger
             value="compatibility"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-rose-500 font-semibold text-gray-500 hover:text-gray-700"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-medium text-gray-500 hover:text-gray-700"
           >
             <GitCompareArrows className="w-4 h-4" />
             <span className="hidden sm:inline">{dict.compatibility}</span>
@@ -90,7 +86,7 @@ const TabHeader: React.FC<TabHeaderProps> = ({
           </TabsTrigger>
           <TabsTrigger
             value="details"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-slate-600 data-[state=active]:shadow-sm data-[state=active]:border-b-2 data-[state=active]:border-slate-500 font-semibold text-gray-500 hover:text-gray-700"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-medium text-gray-500 hover:text-gray-700"
           >
             <MessageCircle className="w-4 h-4" />
             <span className="hidden sm:inline">{dict.details}</span>

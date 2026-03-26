@@ -15,7 +15,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Bot } from 'lucide-react';
+import { Bot, Heart, CheckCircle, XCircle, Share2, CalendarHeart, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
@@ -200,6 +200,44 @@ function ReactionsBar({
 }
 
 // ==========================================
+// System Message Styling
+// ==========================================
+
+function getSystemMessageStyle(content: string): {
+  Icon: React.ElementType;
+  bgClass: string;
+  iconClass: string;
+  textClass: string;
+} {
+  // Match approval / positive status
+  if (content.includes('אישר') || content.includes('approved') || content.includes('אושר')) {
+    return { Icon: CheckCircle, bgClass: 'bg-green-50/90', iconClass: 'text-green-500', textClass: 'text-green-700' };
+  }
+  // Match decline / rejection
+  if (content.includes('דח') || content.includes('declined') || content.includes('סירב')) {
+    return { Icon: XCircle, bgClass: 'bg-red-50/90', iconClass: 'text-red-400', textClass: 'text-red-600' };
+  }
+  // Contact details shared
+  if (content.includes('פרטי') || content.includes('contact') || content.includes('שותפו') || content.includes('shared')) {
+    return { Icon: Share2, bgClass: 'bg-blue-50/90', iconClass: 'text-blue-500', textClass: 'text-blue-700' };
+  }
+  // New suggestion / match
+  if (content.includes('הצעה') || content.includes('suggestion') || content.includes('שידוך')) {
+    return { Icon: Heart, bgClass: 'bg-pink-50/90', iconClass: 'text-pink-500', textClass: 'text-pink-700' };
+  }
+  // Dating / meeting
+  if (content.includes('פגישה') || content.includes('dating') || content.includes('בתהליך')) {
+    return { Icon: CalendarHeart, bgClass: 'bg-purple-50/90', iconClass: 'text-purple-500', textClass: 'text-purple-700' };
+  }
+  // Notification / reminder
+  if (content.includes('תזכורת') || content.includes('reminder') || content.includes('notification')) {
+    return { Icon: Bell, bgClass: 'bg-amber-50/90', iconClass: 'text-amber-500', textClass: 'text-amber-700' };
+  }
+  // Default
+  return { Icon: Bot, bgClass: 'bg-white/80', iconClass: 'text-gray-400', textClass: 'text-gray-500' };
+}
+
+// ==========================================
 // ChatBubble Props
 // ==========================================
 
@@ -242,13 +280,21 @@ export default function ChatBubble({
     [contentType, msg.content]
   );
 
-  // System message — centered pill
+  // System message — centered pill with type-specific styling
   if (msg.senderType === 'system') {
+    const content = msg.content.toLowerCase();
+    const systemStyle = getSystemMessageStyle(content);
+
     return (
       <div className="flex items-center justify-center my-3" role="status">
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm max-w-[85%]">
-          <Bot className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
-          <span className="text-center">{msg.content}</span>
+        <div
+          className={cn(
+            'flex items-center gap-1.5 text-xs backdrop-blur-sm px-4 py-2 rounded-full shadow-sm max-w-[85%]',
+            systemStyle.bgClass
+          )}
+        >
+          <systemStyle.Icon className={cn('w-3.5 h-3.5 flex-shrink-0', systemStyle.iconClass)} aria-hidden="true" />
+          <span className={cn('text-center', systemStyle.textClass)}>{msg.content}</span>
         </div>
       </div>
     );

@@ -87,6 +87,8 @@ export interface CandidatesFilter {
   searchQuery?: string;
   savedFilterId?: string;
   separateFiltering?: boolean;
+  hasNoSuggestions?: boolean;
+  customTags?: string[];
 
   // הוספת שדות חיפוש נפרדים
   maleSearchQuery?: string;

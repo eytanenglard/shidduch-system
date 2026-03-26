@@ -7,10 +7,11 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn, getRelativeCloudinaryPath } from '@/lib/utils';
 import {
   Sparkles,
   Calendar,
@@ -98,39 +99,6 @@ const calculateAge = (dateOfBirth?: Date | string | null): number | null => {
   return age;
 };
 
-/** Calculate days until next Sunday (0) or Wednesday (3) — using Israel time (UTC+2/+3) */
-const getNextSuggestionDay = (): { days: number; dayName: string } => {
-  // Use Israel time for accurate countdown (suggestions sent at 19:00 IST)
-  const now = new Date();
-  const israelTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }));
-  const currentDay = israelTime.getDay();
-  const currentHour = israelTime.getHours();
-
-  // Auto-suggestion days: Sunday (0) and Wednesday (3), sent at 19:00 IST
-  const targetDays = [0, 3];
-  let minDays = 7;
-
-  for (const target of targetDays) {
-    let diff = (target - currentDay + 7) % 7;
-    // If today is a suggestion day but it's past 19:00 IST, count as next week
-    if (diff === 0 && currentHour >= 19) diff = 7;
-    if (diff < minDays) minDays = diff;
-  }
-
-  // If minDays is 7, it means both target days are today but past send time — next is in 3 or 4 days
-  if (minDays === 7) {
-    for (const target of targetDays) {
-      const diff = (target - currentDay + 7) % 7 || 7;
-      if (diff < minDays) minDays = diff;
-    }
-  }
-
-  return {
-    days: minDays,
-    dayName: minDays === 0 ? 'today' : minDays === 1 ? 'tomorrow' : `${minDays}`,
-  };
-};
-
 const getHistoryStatusBadge = (
   status: string,
   dict: { approved: string; declined: string; interested: string; expired: string }
@@ -166,8 +134,6 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackDecision, setFeedbackDecision] = useState<'APPROVED' | 'DECLINED' | 'INTERESTED'>('APPROVED');
 
-  const nextSuggestion = useMemo(() => getNextSuggestionDay(), []);
-
   // Get other party info from active suggestion
   const otherParty = useMemo(() => {
     if (!activeSuggestion) return null;
@@ -184,13 +150,6 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
     const mainImg = otherParty.images.find((img: { isMain?: boolean }) => img.isMain);
     return (mainImg || otherParty.images[0])?.url || null;
   }, [otherParty]);
-
-  // Countdown text
-  const countdownText = useMemo(() => {
-    if (nextSuggestion.days === 0) return dict.nextSuggestionToday;
-    if (nextSuggestion.days === 1) return dict.nextSuggestionTomorrow;
-    return dict.nextSuggestionIn.replace('{days}', `${nextSuggestion.days}`);
-  }, [nextSuggestion, dict]);
 
   // Handle action buttons
   const handleAction = useCallback((decision: 'APPROVED' | 'DECLINED' | 'INTERESTED') => {
@@ -237,29 +196,32 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
     [activeSuggestion, userId, onStatusChange]
   );
 
+  // Don't render anything if there's no active suggestion
+  if (!activeSuggestion) return null;
+
   return (
     <div className="mb-6">
-      <Card className="border-0 shadow-lg bg-gradient-to-r from-violet-50/80 via-purple-50/50 to-indigo-50/80 overflow-hidden">
+      <Card className="border-0 shadow-sm bg-violet-50 overflow-hidden">
         <CardContent className="p-4 sm:p-5">
           {/* Header */}
           <div className="flex items-center gap-3 mb-3" dir={isRtl ? 'rtl' : 'ltr'}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-indigo-600 flex items-center justify-center shadow-md flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center shadow-sm flex-shrink-0">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <h3 className="text-base font-bold text-violet-700">
                 {dict.title}
               </h3>
               <p className="text-xs text-gray-500 leading-tight">{dict.subtitle}</p>
             </div>
-            <Badge className="bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 text-[10px] px-2 py-0.5 flex-shrink-0">
+            <Badge className="bg-violet-600 text-white border-0 text-[10px] px-2 py-0.5 flex-shrink-0">
               AI
             </Badge>
           </div>
 
           {/* Schedule info banner */}
           <div
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 border border-violet-100/50 mb-3"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-violet-100 mb-3"
             dir={isRtl ? 'rtl' : 'ltr'}
           >
             <Calendar className="w-3.5 h-3.5 text-violet-500 flex-shrink-0" />
@@ -267,59 +229,80 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
           </div>
 
           {/* Active auto-suggestion card */}
-          {activeSuggestion ? (
+          {activeSuggestion && (
             <div
-              className="rounded-xl bg-white/80 border border-violet-100/50 p-4 space-y-3"
+              className="rounded-2xl bg-white border border-violet-100 overflow-hidden"
               dir={isRtl ? 'rtl' : 'ltr'}
             >
-              {/* Other party info */}
-              <div className="flex items-center gap-3">
-                {otherPartyImage ? (
-                  <img
-                    src={otherPartyImage}
-                    alt={otherParty?.firstName || ''}
-                    className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-violet-200"
-                  />
-                ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-200 to-purple-300 flex items-center justify-center text-lg font-bold text-violet-700 flex-shrink-0">
-                  {otherParty?.firstName?.[0] || '?'}
-                </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-800 truncate">
-                    {otherParty?.firstName}
-                    {otherPartyAge ? ` (${otherPartyAge})` : ''}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {otherParty?.profile?.city || ''}
-                    {otherParty?.profile?.occupation ? ` • ${otherParty.profile.occupation}` : ''}
-                  </p>
-                </div>
-              </div>
-
-              {/* Matching reason */}
-              {activeSuggestion.matchingReason && (
-                <p className="text-sm text-gray-600 leading-relaxed bg-violet-50/50 rounded-lg px-3 py-2">
-                  {activeSuggestion.matchingReason}
-                </p>
-              )}
-
-              {/* View details */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full border-violet-200 text-violet-700 hover:bg-violet-50"
+              {/* Card with image */}
+              <button
+                type="button"
                 onClick={() => onViewDetails(activeSuggestion)}
+                className="w-full text-start cursor-pointer focus:outline-none group"
               >
-                {dict.viewSuggestion}
-              </Button>
+                <div className="flex">
+                  {/* Image */}
+                  <div className="relative flex-shrink-0 w-28 sm:w-32 overflow-hidden">
+                    <div className="relative h-full min-h-[130px]">
+                      {otherPartyImage ? (
+                        <Image
+                          src={getRelativeCloudinaryPath(otherPartyImage)}
+                          alt={otherParty?.firstName || ''}
+                          fill
+                          className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                          sizes="(max-width: 640px) 112px, 128px"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-violet-100 to-violet-200 flex items-center justify-center">
+                          <span className="text-3xl font-bold text-violet-400">
+                            {otherParty?.firstName?.[0] || '?'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0 p-3.5">
+                    <p className="text-base font-bold text-gray-900 truncate">
+                      {otherParty?.firstName}
+                      {otherPartyAge ? <span className="text-sm font-medium text-gray-500 ms-1.5">{otherPartyAge}</span> : ''}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">
+                      {otherParty?.profile?.city || ''}
+                      {otherParty?.profile?.occupation ? ` · ${otherParty.profile.occupation}` : ''}
+                    </p>
+
+                    {/* Matching reason */}
+                    {activeSuggestion.matchingReason && (
+                      <p className="mt-2 text-xs text-violet-700 leading-relaxed bg-violet-50 rounded-lg px-2.5 py-1.5 line-clamp-2">
+                        {activeSuggestion.matchingReason}
+                      </p>
+                    )}
+
+                    {/* Deadline */}
+                    {activeSuggestion.decisionDeadline && (
+                      <div className="flex items-center gap-1 mt-2 text-xs text-gray-400">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          {isRtl ? 'יש להגיב עד' : 'Respond by'}{' '}
+                          {new Date(activeSuggestion.decisionDeadline).toLocaleDateString(
+                            isRtl ? 'he-IL' : 'en-US',
+                            { day: 'numeric', month: 'short' }
+                          )}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
 
               {/* Action buttons */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 px-3.5 py-2.5 border-t border-violet-100 bg-violet-50/30">
                 <Button
                   size="sm"
                   onClick={() => handleAction('APPROVED')}
-                  className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-xs"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg"
                 >
                   <Check className={cn('w-3.5 h-3.5', isRtl ? 'ml-1' : 'mr-1')} />
                   {dict.approve}
@@ -328,7 +311,7 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
                   size="sm"
                   variant="outline"
                   onClick={() => handleAction('INTERESTED')}
-                  className="border-amber-300 text-amber-700 hover:bg-amber-50 text-xs"
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50 text-xs rounded-lg"
                 >
                   <Bookmark className={cn('w-3.5 h-3.5', isRtl ? 'ml-1' : 'mr-1')} />
                   {dict.saveForLater}
@@ -337,39 +320,12 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
                   size="sm"
                   variant="outline"
                   onClick={() => handleAction('DECLINED')}
-                  className="border-rose-200 text-rose-600 hover:bg-rose-50 text-xs"
+                  className="border-rose-200 text-rose-600 hover:bg-rose-50 text-xs rounded-lg"
                 >
                   <X className={cn('w-3.5 h-3.5', isRtl ? 'ml-1' : 'mr-1')} />
                   {dict.decline}
                 </Button>
               </div>
-
-              {/* Deadline */}
-              {activeSuggestion.decisionDeadline && (
-                <div className="flex items-center justify-center gap-1 text-xs text-gray-400">
-                  <Clock className="w-3 h-3" />
-                  <span>
-                    {isRtl ? 'יש להגיב עד' : 'Respond by'}{' '}
-                    {new Date(activeSuggestion.decisionDeadline).toLocaleDateString(
-                      isRtl ? 'he-IL' : 'en-US',
-                      { day: 'numeric', month: 'short' }
-                    )}
-                  </span>
-                </div>
-              )}
-            </div>
-          ) : (
-            /* No active suggestion - show countdown */
-            <div
-              className="rounded-xl bg-white/60 border border-violet-100/50 p-4 text-center space-y-2"
-              dir={isRtl ? 'rtl' : 'ltr'}
-            >
-              <p className="text-sm text-gray-500">{dict.noActiveSuggestion}</p>
-              <div className="flex items-center justify-center gap-1.5 text-violet-600 font-medium text-sm">
-                <Clock className="w-4 h-4" />
-                <span>{countdownText}</span>
-              </div>
-              <p className="text-xs text-gray-400">{dict.waitingForSuggestion}</p>
             </div>
           )}
 
@@ -402,7 +358,7 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
                       <button
                         key={s.id}
                         onClick={() => onViewDetails(s)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/50 hover:bg-white/80 border border-violet-100/30 transition-colors text-start"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white hover:bg-violet-50 border border-violet-100 transition-colors text-start"
                         dir={isRtl ? 'rtl' : 'ltr'}
                       >
                         <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-600 flex-shrink-0">
