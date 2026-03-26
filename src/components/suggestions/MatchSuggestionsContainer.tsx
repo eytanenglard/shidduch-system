@@ -2,8 +2,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import Image from 'next/image';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParams } from 'next/navigation';
 
@@ -22,9 +21,7 @@ import {
   Zap,
   Heart,
   MessageCircle,
-  ChevronRight,
-  ChevronLeft,
-  User,
+  Sparkles,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -33,7 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import SuggestionsList from './list/SuggestionsList';
 import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
 import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
-import { cn, calculateAge, getRelativeCloudinaryPath } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 import {
@@ -55,6 +52,7 @@ import type {
 import FirstPartyPreferenceToggle from '@/components/suggestions/FirstPartyPreferenceToggle';
 import AutoSuggestionsZone from '@/components/suggestions/auto/AutoSuggestionsZone';
 import AiChatPanel from '@/components/suggestions/chat/AiChatPanel';
+import ActiveSuggestionHero from '@/components/suggestions/ActiveSuggestionHero';
 import AutoSuggestionFeedbackDialog from '@/components/suggestions/auto/AutoSuggestionFeedbackDialog';
 import DateFeedbackDialog from '@/components/suggestions/feedback/DateFeedbackDialog';
 
@@ -170,22 +168,33 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   // --- Local UI state ---
   const [activeTab, setActiveTab] = useState('active');
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showChatFab, setShowChatFab] = useState(false);
+  const chatPanelRef = useRef<HTMLDivElement | null>(null);
+
+  // Show FAB when chat panel is scrolled out of view and chat is closed
+  useEffect(() => {
+    const el = chatPanelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowChatFab(!entry.isIntersecting && !isChatOpen),
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isChatOpen]);
+
+  const handleOpenChat = useCallback(() => {
+    chatPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Small delay for scroll, then the panel will pick up the open state
+    setTimeout(() => {
+      setIsChatOpen(true);
+    }, 300);
+  }, []);
 
   const handleFilterToggle = (filter: ActiveFilter) => {
     setActiveFilter((prev) => (prev === filter ? 'all' : filter));
   };
-
-  // --- Active process banner data ---
-  const activeProcessParty = useMemo(() => {
-    if (!suggestions.activeProcessSuggestion) return null;
-    const isFirst = suggestions.activeProcessSuggestion.firstPartyId === userId;
-    return isFirst
-      ? suggestions.activeProcessSuggestion.secondParty
-      : suggestions.activeProcessSuggestion.firstParty;
-  }, [suggestions.activeProcessSuggestion, userId]);
-
-  const activeProcessImage = activeProcessParty?.images?.find((img) => img.isMain);
-  const activeProcessAge = calculateAge(activeProcessParty?.profile?.birthDate ?? null);
 
   // --- Filter visibility ---
   const showInterestedQueue = activeFilter === 'all' || activeFilter === 'backup';
@@ -273,56 +282,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         <FirstPartyPreferenceToggle initialValue={wantsToBeFirstParty} locale={locale} />
 
         {/* Active Process Banner */}
-        {suggestions.activeProcessSuggestion && activeProcessParty && (
-          <button
-            type="button"
-            onClick={() => actions.handleViewDetails(suggestions.activeProcessSuggestion!)}
-            className="group w-full bg-white border border-teal-200 rounded-2xl shadow-sm hover:shadow-lg overflow-hidden transition-all duration-300 cursor-pointer text-start"
-          >
-            <div className="flex">
-              {/* Image */}
-              <div className="relative flex-shrink-0 w-24 sm:w-28">
-                <div className="h-full min-h-[100px]">
-                  {activeProcessImage?.url ? (
-                    <Image
-                      src={getRelativeCloudinaryPath(activeProcessImage.url)}
-                      alt={activeProcessParty.firstName}
-                      fill
-                      className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                      sizes="112px"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-teal-50 to-teal-100 flex items-center justify-center">
-                      <User className="w-8 h-8 text-teal-300" />
-                    </div>
-                  )}
-                </div>
-              </div>
-              {/* Info */}
-              <div className="flex-1 min-w-0 p-3.5 flex flex-col justify-center">
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge className="bg-teal-600 text-white border-0 text-[10px] px-2 py-0">
-                    {isRtl ? 'הצעה פעילה' : 'Active'}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-bold text-gray-900">
-                    {activeProcessParty.firstName}
-                    {activeProcessParty.lastName ? ` ${activeProcessParty.lastName.charAt(0)}.` : ''}
-                  </span>
-                  {activeProcessAge > 0 && <span className="text-sm text-gray-500">{activeProcessAge}</span>}
-                </div>
-                <p className="text-xs text-teal-600 font-medium mt-0.5">
-                  {isRtl ? 'לחצ/י לצפייה בפרטים' : 'Tap to view details'}
-                </p>
-              </div>
-              {isRtl ? (
-                <ChevronLeft className="w-5 h-5 text-gray-300 self-center me-3 group-hover:text-teal-500 transition-colors" />
-              ) : (
-                <ChevronRight className="w-5 h-5 text-gray-300 self-center me-3 group-hover:text-teal-500 transition-colors" />
-              )}
-            </div>
-          </button>
+        {suggestions.activeProcessSuggestion && (
+          <ActiveSuggestionHero
+            suggestion={suggestions.activeProcessSuggestion}
+            userId={userId}
+            locale={locale}
+            onViewDetails={actions.handleViewDetails}
+            onContactMatchmaker={(s) => {
+              actions.handleViewDetails(s);
+            }}
+          />
         )}
 
         {/* Date Feedback CTA */}
@@ -353,7 +322,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         {/* Tabs */}
         <Tabs
           value={activeTab}
-          onValueChange={(val) => { setActiveTab(val); setActiveFilter('all'); }}
+          onValueChange={(val) => { setActiveTab(val); }}
           dir={isRtl ? 'rtl' : 'ltr'}
           className="space-y-4"
         >
@@ -516,7 +485,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         </Tabs>
 
         {/* AI Chat - at the bottom */}
-        <AiChatPanel locale={locale} />
+        <AiChatPanel
+          locale={locale}
+          panelRef={chatPanelRef}
+          initialOpen={isChatOpen}
+          onOpenChange={setIsChatOpen}
+        />
       </div>
 
       {/* Detail Modal */}
@@ -651,6 +625,23 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         locale={locale}
         onSubmit={actions.handleDateFeedbackSubmit}
       />
+
+      {/* Floating AI Chat FAB */}
+      {showChatFab && (
+        <button
+          onClick={handleOpenChat}
+          className={cn(
+            'fixed bottom-6 z-50 w-12 h-12 rounded-full bg-violet-600 text-white shadow-lg',
+            'hover:bg-violet-700 hover:shadow-xl hover:scale-105',
+            'transition-all duration-200 flex items-center justify-center',
+            'animate-in fade-in-0 slide-in-from-bottom-4 duration-300',
+            isRtl ? 'left-6' : 'right-6',
+          )}
+          aria-label={isRtl ? 'עוזר חכם' : 'Smart assistant'}
+        >
+          <Sparkles className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };

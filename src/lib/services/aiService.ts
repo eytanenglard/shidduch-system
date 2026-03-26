@@ -376,15 +376,48 @@ export interface AiSuggestionAnalysisResult {
   matchSummary: string;
   compatibilityPoints: Array<{ area: string; explanation: string }>;
   pointsToConsider: Array<{ area: string; explanation: string }>;
+  worldInsights: Array<{
+    world: string;
+    chemistry: 'high' | 'medium' | 'low';
+    insight: string;
+  }>;
   suggestedConversationStarters: string[];
+}
+
+/** Profile tags from Soul Fingerprint / Heart Map */
+interface ProfileTagsData {
+  sectorTags?: string[];
+  backgroundTags?: string[];
+  personalityTags?: string[];
+  careerTags?: string[];
+  lifestyleTags?: string[];
+  familyVisionTags?: string[];
+  relationshipTags?: string[];
+}
+
+/** Extra context passed to enrich the AI analysis beyond narrative profiles */
+export interface SuggestionAnalysisContext {
+  matchmakerReason?: string;
+  scoreBreakdown?: Record<string, number>;
+  systemScore?: number;
+  systemReasoning?: string;
+  /** Soul Fingerprint tags for both users */
+  profileTags?: {
+    currentUser?: ProfileTagsData;
+    otherUser?: ProfileTagsData;
+  };
+  /** Current user's rejection patterns (why they tend to reject/be rejected) */
+  rejectionPatterns?: string[];
 }
 
 /**
  * מנתח התאמה בין שני פרופילים ומחזיר ניתוח מותאם למשתמש הקצה.
+ * Enhanced: accepts optional context with system scoring data, matchmaker notes, etc.
  */
 export async function analyzeSuggestionForUser(
   currentUserProfileText: string,
-  suggestedUserProfileText: string
+  suggestedUserProfileText: string,
+  context?: SuggestionAnalysisContext
 ): Promise<AiSuggestionAnalysisResult | null> {
   console.log(
     '--- [AI Suggestion Advisor] Starting suggestion analysis for user ---'
@@ -407,17 +440,111 @@ export async function analyzeSuggestionForUser(
     },
   });
 
-  const prompt = `
-    You are a 'Matchmaking AI Advisor'. Your tone is positive, warm, and encouraging. Your goal is to help a user understand the potential of a match suggestion they received. Analyze the compatibility between 'My Profile' and the 'Suggested Profile'.
-    Your entire output MUST be a valid JSON object in Hebrew.
-    IMPORTANT: Do NOT wrap the JSON in markdown backticks (e.g., \`\`\`json). Output ONLY the raw JSON object.
-    The JSON structure must be: { "overallScore": number, "matchTitle": "string", "matchSummary": "string", "compatibilityPoints": [{ "area": "string", "explanation": "string (user-friendly explanation)" }], "pointsToConsider": [{ "area": "string", "explanation": "string (rephrased positively)" }], "suggestedConversationStarters": ["string"] }
-    
-    --- My Profile ---
-    ${currentUserProfileText}
+  // Build optional context sections
+  let contextSection = '';
 
-    --- Suggested Profile ---
-    ${suggestedUserProfileText}
+  if (context?.matchmakerReason) {
+    contextSection += `\n--- נימוק השדכן/ית ---\n${context.matchmakerReason}\n`;
+  }
+
+  if (context?.scoreBreakdown && Object.keys(context.scoreBreakdown).length > 0) {
+    const breakdownLines = Object.entries(context.scoreBreakdown)
+      .map(([key, val]) => `  ${key}: ${val}`)
+      .join('\n');
+    contextSection += `\n--- ציוני התאמה לפי תחום (מחושבים ע"י המערכת) ---\n${breakdownLines}\n`;
+  }
+
+  if (context?.systemScore != null) {
+    contextSection += `\nציון התאמה כולל של המערכת: ${context.systemScore}/100\n`;
+  }
+
+  if (context?.systemReasoning) {
+    contextSection += `\n--- נימוק המערכת ---\n${context.systemReasoning}\n`;
+  }
+
+  // Soul Fingerprint (Heart Map) tags
+  if (context?.profileTags) {
+    const formatTags = (tags: ProfileTagsData | undefined, label: string) => {
+      if (!tags) return '';
+      const entries: string[] = [];
+      if (tags.sectorTags?.length) entries.push(`  מגזר: ${tags.sectorTags.join(', ')}`);
+      if (tags.backgroundTags?.length) entries.push(`  רקע: ${tags.backgroundTags.join(', ')}`);
+      if (tags.personalityTags?.length) entries.push(`  אישיות: ${tags.personalityTags.join(', ')}`);
+      if (tags.careerTags?.length) entries.push(`  קריירה: ${tags.careerTags.join(', ')}`);
+      if (tags.lifestyleTags?.length) entries.push(`  סגנון חיים: ${tags.lifestyleTags.join(', ')}`);
+      if (tags.familyVisionTags?.length) entries.push(`  חזון משפחתי: ${tags.familyVisionTags.join(', ')}`);
+      if (tags.relationshipTags?.length) entries.push(`  זוגיות: ${tags.relationshipTags.join(', ')}`);
+      if (entries.length === 0) return '';
+      return `\n--- תגיות מפת הלב — ${label} ---\n${entries.join('\n')}\n`;
+    };
+
+    contextSection += formatTags(context.profileTags.currentUser, 'שלי');
+    contextSection += formatTags(context.profileTags.otherUser, 'של המוצע/ת');
+  }
+
+  // Rejection feedback patterns
+  if (context?.rejectionPatterns && context.rejectionPatterns.length > 0) {
+    contextSection += `\n--- דפוסי דחייה של המשתמש (לתשומת לבך) ---\n`;
+    contextSection += `המשתמש נוטה לדחות הצעות בגלל: ${context.rejectionPatterns.join(', ')}\n`;
+    contextSection += `התייחס בעדינות לנקודות אלו בניתוח — אם ההצעה חזקה בתחומים שבדרך כלל מדאיגים אותו, ציין זאת.\n`;
+  }
+
+  const prompt = `
+אתה "יועץ התאמה AI" בפלטפורמת שידוכים מקצועית. הטון שלך חם, מעודד ואותנטי.
+המטרה: לעזור למשתמש להבין את הפוטנציאל של הצעת שידוך שקיבל.
+
+═══════════════════════════════════════════════════════════════
+הנחיות קריטיות:
+═══════════════════════════════════════════════════════════════
+1. נתח את ההתאמה לעומק - לא רק נתונים יבשים, אלא דינמיקה, אנרגיה, וחיבור רגשי אפשרי
+2. השתמש במידע מהשאלונים (ערכים, אישיות, זוגיות, דת) כדי לייצר תובנות ספציפיות
+3. אם יש נימוק שדכן או ציוני מערכת - התייחס אליהם והעשר אותם, אל תתעלם
+4. נקודות למחשבה צריכות להיות מנוסחות בחיוב (הזדמנות לצמיחה, לא בעיה)
+5. פתיחות שיחה צריכות להיות ספציפיות ומבוססות על נקודות משותפות מהפרופילים
+
+═══════════════════════════════════════════════════════════════
+worldInsights - ניתוח לפי תחומי חיים:
+═══════════════════════════════════════════════════════════════
+חובה לספק בדיוק 4 תובנות, אחת לכל תחום:
+- "דת ורוחניות" — התאמה ברמה דתית, השקפה, אורח חיים דתי
+- "אישיות וסגנון חיים" — אנרגיה חברתית, תכונות אופי, סדר יום, תחביבים
+- "ערכים ומשפחה" — סדרי עדיפויות, חזון משפחתי, יחס לכסף וקריירה
+- "זוגיות ותקשורת" — שפות אהבה, סגנון תקשורת, התמודדות עם קונפליקטים
+
+לכל תחום, ציין chemistry:
+- "high" = חיבור חזק וטבעי
+- "medium" = יש בסיס טוב אבל יש מה לבנות
+- "low" = הבדל שדורש שימת לב (נסח בחיוב!)
+
+═══════════════════════════════════════════════════════════════
+
+הפלט חייב להיות JSON תקין בעברית בלבד.
+
+{
+  "overallScore": number (0-100),
+  "matchTitle": "כותרת קצרה וחמה (עד 6 מילים)",
+  "matchSummary": "סיכום של 2-3 משפטים — למה ההתאמה הזו מעניינת",
+  "compatibilityPoints": [
+    { "area": "שם התחום", "explanation": "הסבר ידידותי" }
+  ],
+  "pointsToConsider": [
+    { "area": "שם התחום", "explanation": "הסבר חיובי (הזדמנות, לא בעיה)" }
+  ],
+  "worldInsights": [
+    { "world": "דת ורוחניות", "chemistry": "high|medium|low", "insight": "תובנה ספציפית" },
+    { "world": "אישיות וסגנון חיים", "chemistry": "high|medium|low", "insight": "תובנה ספציפית" },
+    { "world": "ערכים ומשפחה", "chemistry": "high|medium|low", "insight": "תובנה ספציפית" },
+    { "world": "זוגיות ותקשורת", "chemistry": "high|medium|low", "insight": "תובנה ספציפית" }
+  ],
+  "suggestedConversationStarters": ["5-7 פתיחות שיחה ספציפיות ומותאמות"]
+}
+
+--- הפרופיל שלי ---
+${currentUserProfileText}
+
+--- הפרופיל המוצע ---
+${suggestedUserProfileText}
+${contextSection}
   `;
 
   try {
@@ -432,7 +559,14 @@ export async function analyzeSuggestionForUser(
       return null;
     }
 
-    return JSON.parse(jsonString) as AiSuggestionAnalysisResult;
+    const parsed = JSON.parse(jsonString) as AiSuggestionAnalysisResult;
+
+    // Ensure worldInsights exists (backward compat if AI omits it)
+    if (!parsed.worldInsights) {
+      parsed.worldInsights = [];
+    }
+
+    return parsed;
   } catch (error) {
     console.error(
       '[AI Suggestion Advisor] Error generating suggestion analysis:',

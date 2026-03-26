@@ -44,6 +44,8 @@ export interface SuggestionModalState {
   isActionsExpanded: boolean;
   setIsActionsExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   isInitialLoad: boolean;
+  visitedTabs: Set<string>;
+  actionFeedback: 'success' | 'declined' | null;
 
   // Device & fullscreen
   isMobile: boolean;
@@ -98,6 +100,7 @@ export interface TabHeaderProps {
   personAge?: number | null;
   statusLabel?: string;
   statusBadgeClass?: string;
+  visitedTabs?: Set<string>;
 }
 
 export interface PresentationTabProps {
@@ -146,6 +149,13 @@ export interface DetailsTabProps {
   suggestionId: string;
   statusHistory: ExtendedMatchSuggestion['statusHistory'];
   matchmakerFirstName: string;
+  status: string;
+  targetPartyContact?: {
+    firstName: string;
+    lastName: string;
+    phone?: string | null;
+    email: string;
+  };
   locale: 'he' | 'en';
   dict: {
     timeline: SuggestionsDictionary['timeline'];

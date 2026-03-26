@@ -13,12 +13,14 @@ interface AiChatInputProps {
   onSend: (message: string) => void;
   isStreaming: boolean;
   locale: 'he' | 'en';
+  placeholder?: string;
 }
 
 export default function AiChatInput({
   onSend,
   isStreaming,
   locale,
+  placeholder,
 }: AiChatInputProps) {
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -79,7 +81,7 @@ export default function AiChatInput({
             handleInput();
           }}
           onKeyDown={handleKeyDown}
-          placeholder={isHebrew ? 'כתוב/כתבי הודעה...' : 'Type a message...'}
+          placeholder={placeholder || (isHebrew ? 'כתוב/כתבי הודעה...' : 'Type a message...')}
           className={cn(
             'flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm',
             'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-transparent',

@@ -15,6 +15,11 @@ export interface CachedUserAnalysis {
   matchSummary: string;
   compatibilityPoints: Array<{ area: string; explanation: string }>;
   pointsToConsider: Array<{ area: string; explanation: string }>;
+  worldInsights?: Array<{
+    world: string;
+    chemistry: 'high' | 'medium' | 'low';
+    insight: string;
+  }>;
   suggestedConversationStarters: string[];
   /** ISO date — when this analysis was generated */
   generatedAt: string;
@@ -25,6 +30,11 @@ export interface CachedUserAnalysis {
    * at the time of generation. Used to detect staleness.
    */
   otherPartyProfileUpdatedAt: string | null;
+  /**
+   * ISO date — snapshot of the CURRENT user's profile.contentUpdatedAt
+   * at the time of generation. Used for bidirectional staleness detection.
+   */
+  currentUserProfileUpdatedAt?: string | null;
 }
 
 /**
@@ -82,7 +92,8 @@ const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
  */
 export function isCacheValid(
   cached: CachedUserAnalysis | undefined,
-  otherPartyContentUpdatedAt: Date | string | null | undefined
+  otherPartyContentUpdatedAt: Date | string | null | undefined,
+  currentUserContentUpdatedAt?: Date | string | null | undefined
 ): boolean {
   if (!cached) return false;
 
@@ -98,7 +109,16 @@ export function isCacheValid(
     const profileUpdated = new Date(otherPartyContentUpdatedAt).getTime();
     const snapshotTime = new Date(cached.otherPartyProfileUpdatedAt).getTime();
     if (profileUpdated > snapshotTime) {
-      return false; // Profile changed → stale
+      return false; // Other party's profile changed → stale
+    }
+  }
+
+  // 3. Check if the current user's profile changed since generation (bidirectional)
+  if (currentUserContentUpdatedAt && cached.currentUserProfileUpdatedAt) {
+    const profileUpdated = new Date(currentUserContentUpdatedAt).getTime();
+    const snapshotTime = new Date(cached.currentUserProfileUpdatedAt).getTime();
+    if (profileUpdated > snapshotTime) {
+      return false; // Current user's profile changed → stale
     }
   }
 

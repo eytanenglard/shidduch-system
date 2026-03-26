@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Sparkles, X, AlertCircle, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,9 +22,13 @@ interface AiChatPanelProps {
   initialOpen?: boolean;
   title?: string;
   subtitle?: string;
+  onOpenChange?: (open: boolean) => void;
+  panelRef?: React.RefObject<HTMLDivElement | null>;
+  /** When true, removes outer margin, hides close button, and always stays open */
+  embedded?: boolean;
 }
 
-export default function AiChatPanel({ locale, suggestionId, proactiveMessage, initialOpen, title, subtitle }: AiChatPanelProps) {
+export default function AiChatPanel({ locale, suggestionId, proactiveMessage, initialOpen, title, subtitle, onOpenChange, panelRef, embedded }: AiChatPanelProps) {
   const isHebrew = locale === 'he';
   const {
     messages,
@@ -43,9 +47,20 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
     executeAction,
     quickReplies,
     rateMessage,
+    // Smart assistant
+    phase,
+    actionButtons,
+    executeChatAction,
+    isGeneralChat,
+    isLoadingDiscovery,
   } = useAiChat({ locale, suggestionId, proactiveMessage, initialOpen });
 
   const [isEscalating, setIsEscalating] = useState(false);
+
+  // Notify parent when open state changes
+  useEffect(() => {
+    onOpenChange?.(isOpen);
+  }, [isOpen, onOpenChange]);
 
   const handleEscalate = useCallback(async () => {
     if (!suggestionId || !conversationId || isEscalating) return;
@@ -70,16 +85,24 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
 
   const panelTitle = title || (isHebrew ? 'העוזר החכם' : 'Smart Assistant');
   const panelSubtitle = subtitle || (
-    suggestionId
-      ? (isHebrew ? 'שאל/י אותי על ההצעה הזו' : 'Ask me about this suggestion')
-      : (isHebrew ? 'דבר/י איתי כדי לדייק את ההצעות שלך' : 'Chat with me to refine your suggestions')
+    isGeneralChat
+      ? (isHebrew ? 'שוחח/י איתי כדי למצוא התאמות טובות' : 'Chat with me to find great matches')
+      : (isHebrew ? 'שאל/י אותי על ההצעה הזו' : 'Ask me about this suggestion')
   );
 
+  // Phase indicator for general chat
+  const phaseLabel = isGeneralChat && phase ? {
+    discovery: isHebrew ? 'דיוק' : 'Discovery',
+    searching: isHebrew ? 'חיפוש...' : 'Searching...',
+    presenting: isHebrew ? 'הצגת מועמד/ת' : 'Presenting',
+    discussing: isHebrew ? 'דיון' : 'Discussing',
+  }[phase] : null;
+
   return (
-    <div className="mt-4">
-      {/* Toggle Button (when closed) */}
+    <div className={embedded ? '' : 'mt-4'} ref={panelRef}>
+      {/* Toggle Button (when closed, hidden in embedded mode) */}
       <AnimatePresence>
-        {!isOpen && (
+        {!isOpen && !embedded && (
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -109,9 +132,9 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
         )}
       </AnimatePresence>
 
-      {/* Chat Panel (when open) */}
+      {/* Chat Panel (when open, or always when embedded) */}
       <AnimatePresence>
-        {isOpen && (
+        {(isOpen || embedded) && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -135,13 +158,20 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20 text-white/90">
                     AI
                   </span>
+                  {phaseLabel && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/20">
+                      {phaseLabel}
+                    </span>
+                  )}
                 </div>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="w-7 h-7 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
-                >
-                  <X className="w-4 h-4 text-white" />
-                </button>
+                {!embedded && (
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="w-7 h-7 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                )}
               </div>
 
               {/* Escalation Notice */}
@@ -157,7 +187,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
               )}
 
               {/* Messages Area */}
-              <div className="h-[400px] flex flex-col">
+              <div className={cn('flex flex-col', isGeneralChat ? 'h-[550px]' : 'h-[450px]')}>
                 <AiChatMessages
                   messages={messages}
                   isStreaming={isStreaming}
@@ -170,10 +200,14 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                   quickReplies={quickReplies}
                   onQuickReply={sendMessage}
                   onRateMessage={rateMessage}
+                  isGeneralChat={isGeneralChat}
+                  actionButtons={actionButtons}
+                  onChatAction={executeChatAction}
+                  isLoadingDiscovery={isLoadingDiscovery}
                 />
 
-                {/* Search Results (shown after AI response with search) */}
-                {searchResults.length > 0 && (
+                {/* Legacy search results (for suggestion-specific chats only) */}
+                {!isGeneralChat && searchResults.length > 0 && (
                   <div className="px-4 pb-2">
                     <AiChatSearchResults results={searchResults} locale={locale} />
                   </div>
@@ -194,6 +228,13 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                   onSend={sendMessage}
                   isStreaming={isStreaming}
                   locale={locale}
+                  placeholder={
+                    isGeneralChat && phase === 'presenting'
+                      ? (isHebrew ? 'מה דעתך?' : 'What do you think?')
+                      : isGeneralChat && phase === 'discussing'
+                        ? (isHebrew ? 'שאל/י על ההתאמה...' : 'Ask about the match...')
+                        : undefined
+                  }
                 />
               </div>
 

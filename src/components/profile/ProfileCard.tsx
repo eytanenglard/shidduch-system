@@ -22,6 +22,8 @@ import {
   X,
   Camera,
   MessageSquareQuote,
+  MapPin,
+  Phone as PhoneIcon,
 } from 'lucide-react';
 
 // Hook
@@ -181,10 +183,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <Skeleton className="h-5 w-1/2" />
           </div>
         </div>
-        <div className="flex flex-1">
-          <div className="w-[38%] bg-gray-100">
-            <Skeleton className="w-full h-full" />
-          </div>
+        <div className="flex flex-col flex-1">
+          <Skeleton className="w-full h-[380px]" />
           <div className="flex-1 p-6 space-y-4">
             <Skeleton className="h-6 w-full rounded-xl" />
             <Skeleton className="h-24 w-full rounded-xl" />
@@ -195,38 +195,29 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     );
   }
 
-  // --- Desktop Layout: Photo Left (38%), Content Right (62%) ---
+  // --- Desktop Layout: Hero Image Top + Content Below ---
   const DesktopLayout = () => (
-    <div
-      className={cn(
-        'flex flex-grow min-h-0 max-w-full',
-        direction === 'rtl' ? 'flex-row-reverse' : 'flex-row'
-      )}
-    >
-      {/* Photo panel */}
-      <div className="w-[38%] flex-shrink-0 relative bg-gray-100 overflow-hidden group">
+    <div className="flex flex-col flex-grow min-h-0 max-w-full">
+      {/* Hero photo section */}
+      <div
+        className="relative w-full flex-shrink-0 bg-gray-100 overflow-hidden group cursor-pointer"
+        style={{ height: '380px' }}
+        onClick={() =>
+          orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])
+        }
+      >
         {mainImageToDisplay?.url ? (
           <>
             <Image
               src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
               alt={profile.user?.firstName || ''}
               fill
-              className="object-cover object-[50%_25%] cursor-pointer transition-transform duration-500 group-hover:scale-[1.03]"
-              sizes="38vw"
+              className="object-cover object-[50%_25%] transition-transform duration-500 group-hover:scale-[1.02]"
+              sizes="100vw"
               priority
-              onClick={() =>
-                orderedImages.length > 0 &&
-                handleOpenImageDialog(orderedImages[0])
-              }
             />
             {/* Hover overlay */}
-            <div
-              className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 cursor-pointer flex items-center justify-center"
-              onClick={() =>
-                orderedImages.length > 0 &&
-                handleOpenImageDialog(orderedImages[0])
-              }
-            >
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 shadow-lg">
                 <Eye className="w-4 h-4 text-gray-700" />
                 <span className="text-sm font-medium text-gray-700">
@@ -241,48 +232,89 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
         )}
 
-        {/* Thumbnail strip at bottom */}
-        {orderedImages.length > 1 && (
-          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 pt-12">
-            <div className="flex gap-2 justify-center">
-              {orderedImages.slice(0, 5).map((img, idx) => (
-                <div
-                  key={img.id}
-                  className={cn(
-                    'relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 transition-all duration-200',
-                    'border-2 hover:scale-110',
-                    idx === 0
-                      ? cn(THEME.accentBorderStrong, 'opacity-100 ring-1', THEME.accentRing)
-                      : 'border-white/40 opacity-75 hover:opacity-100 hover:border-white/80'
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenImageDialog(img);
-                  }}
-                >
-                  <Image
-                    src={getRelativeCloudinaryPath(img.url)}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="48px"
-                  />
-                </div>
-              ))}
-              {orderedImages.length > 5 && (
-                <div
-                  className="relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/30 hover:border-white/60 transition-all duration-200 hover:scale-110"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenImageDialog(orderedImages[5]);
-                  }}
-                >
-                  <span className="text-white text-sm font-semibold">
-                    +{orderedImages.length - 5}
-                  </span>
-                </div>
+        {/* Name overlay on gradient */}
+        <div
+          className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent px-6 pb-5 pt-20"
+          dir={direction}
+        >
+          <h1 className="text-3xl font-bold text-white drop-shadow-sm">
+            {profile.user?.firstName
+              ? `${profile.user.firstName} ${profile.user.lastName || ''}`.trim()
+              : ''}
+            {age > 0 ? `, ${age}` : ''}
+          </h1>
+          {(() => {
+            const subtitleParts = [
+              profile.occupation,
+              profile.city,
+            ].filter(Boolean);
+            return subtitleParts.length > 0 ? (
+              <p className="text-base text-white/85 mt-1 flex items-center gap-2 flex-wrap">
+                {profile.city && (
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                )}
+                {subtitleParts.join(' · ')}
+              </p>
+            ) : null;
+          })()}
+          <div className="mt-2 flex items-center gap-2">
+            <span
+              className={cn(
+                'w-2 h-2 rounded-full flex-shrink-0',
+                availability.dotColor
               )}
-            </div>
+            />
+            <span className="text-sm text-white/80">
+              {availability.text}
+            </span>
+          </div>
+        </div>
+
+        {/* Thumbnail strip at bottom-start */}
+        {orderedImages.length > 1 && (
+          <div
+            className={cn(
+              'absolute bottom-4 z-10 flex gap-2',
+              direction === 'rtl' ? 'left-6' : 'right-6'
+            )}
+          >
+            {orderedImages.slice(0, 5).map((img, idx) => (
+              <div
+                key={img.id}
+                className={cn(
+                  'relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 transition-all duration-200',
+                  'border-2 hover:scale-110',
+                  idx === 0
+                    ? cn('border-white opacity-100 ring-1 ring-white/50')
+                    : 'border-white/40 opacity-75 hover:opacity-100 hover:border-white/80'
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenImageDialog(img);
+                }}
+              >
+                <Image
+                  src={getRelativeCloudinaryPath(img.url)}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="48px"
+                />
+              </div>
+            ))}
+            {orderedImages.length > 5 && (
+              <div
+                className="relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/30 hover:border-white/60 transition-all duration-200 hover:scale-110"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenImageDialog(orderedImages[5]);
+                }}
+              >
+                <span className="text-white text-sm font-semibold">
+                  +{orderedImages.length - 5}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -302,11 +334,54 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         )}
       </div>
 
-      {/* Content panel */}
-      <div className="flex-1 min-w-0 flex flex-col bg-white" dir={direction}>
+      {/* Content panel below hero */}
+      <div className="flex-1 min-h-0 flex flex-col bg-white" dir={direction}>
         <ScrollArea className="flex-1 min-h-0">
-          <ProfileHeader mode="desktop" {...profileHeaderProps} />
-          <div className="px-6 pb-6">
+          {/* Matchmaker actions bar */}
+          {effectiveViewMode === 'matchmaker' && (
+            <div className="px-6 pt-4 pb-2 flex items-center gap-3 flex-wrap border-b border-gray-100">
+              {profile.user?.phone && (
+                <a
+                  href={`tel:${profile.user.phone}`}
+                  className="text-sm text-teal-600 hover:underline flex items-center gap-1.5"
+                  dir="ltr"
+                >
+                  <PhoneIcon className="w-4 h-4 text-teal-500 flex-shrink-0" />
+                  {profile.user.phone}
+                </a>
+              )}
+              <Button
+                onClick={() => setIsSuggestDialogOpen(true)}
+                className={cn(
+                  'text-white rounded-full px-5 py-2 transition-all shadow-sm hover:shadow-md text-sm',
+                  BRAND.primaryBg,
+                  BRAND.primaryBgHover
+                )}
+              >
+                <Heart
+                  className={cn(
+                    'w-4 h-4 flex-shrink-0',
+                    direction === 'rtl' ? 'ml-2' : 'mr-2'
+                  )}
+                />
+                {displayDict.header.suggestMatchButton}
+              </Button>
+            </div>
+          )}
+          {/* NeshamaTech summary */}
+          {profile.isNeshamaTechSummaryVisible && profile.manualEntryText && (
+            <p
+              className={cn(
+                'mx-6 mt-4 text-sm text-gray-600 italic leading-relaxed',
+                direction === 'rtl'
+                  ? 'border-r-2 border-gray-200 pr-3'
+                  : 'border-l-2 border-gray-200 pl-3'
+              )}
+            >
+              {profile.manualEntryText}
+            </p>
+          )}
+          <div className="px-6 pb-6 pt-2">
             <MainContentTabs isDesktop={true} {...mainContentTabsProps} />
           </div>
         </ScrollArea>

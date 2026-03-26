@@ -1,8 +1,8 @@
 // src/components/suggestions/cards/SuggestionRow.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { User, Sparkles, Clock, AlertTriangle, MapPin, Briefcase, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { User, Sparkles, MapPin, Briefcase, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn, getRelativeCloudinaryPath, calculateAge } from '@/lib/utils';
 import {
@@ -10,9 +10,11 @@ import {
   getPartyIndicator,
 } from '@/lib/utils/suggestionUtils';
 import CompactCardActions from './CompactCardActions';
+import CardCountdown from './CardCountdown';
+import MiniTimeline from '../timeline/MiniTimeline';
 import { SYSTEM_MATCHMAKER_ID } from '../constants';
 import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
-import type { SuggestionsCardDict } from '@/types/dictionary';
+import type { SuggestionsCardDict, SuggestionTimelineDict } from '@/types/dictionary';
 
 interface SuggestionRowProps {
   suggestion: ExtendedMatchSuggestion;
@@ -28,6 +30,7 @@ interface SuggestionRowProps {
   isViewed?: boolean;
   actionLoading?: string | null;
   dict: SuggestionsCardDict;
+  timelineDict?: SuggestionTimelineDict;
   locale: 'he' | 'en';
 }
 
@@ -45,9 +48,12 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
   isViewed = true,
   actionLoading,
   dict,
+  timelineDict,
   locale,
 }) => {
   const isRtl = locale === 'he';
+  const [isReasonExpanded, setIsReasonExpanded] = useState(false);
+
   const isFirstParty = suggestion.firstPartyId === userId;
   const targetParty = isFirstParty
     ? suggestion.secondParty
@@ -65,17 +71,9 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
   const hasDeadline =
     suggestion.decisionDeadline &&
     new Date(suggestion.decisionDeadline) > new Date();
-  const deadline = hasDeadline ? new Date(suggestion.decisionDeadline!) : null;
-  const hoursLeft = deadline
-    ? Math.max(0, Math.floor((deadline.getTime() - Date.now()) / (1000 * 60 * 60)))
-    : null;
-  const isUrgent = hoursLeft !== null && hoursLeft < 12;
 
-  const matchingReason = suggestion.matchingReason
-    ? suggestion.matchingReason.length > 100
-      ? `${suggestion.matchingReason.substring(0, 100)}...`
-      : suggestion.matchingReason
-    : null;
+  const matchingReason = suggestion.matchingReason || null;
+  const isLongReason = matchingReason ? matchingReason.length > 100 : false;
 
   const Chevron = isRtl ? ChevronLeft : ChevronRight;
 
@@ -84,7 +82,6 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
       className={cn(
         'group w-full bg-white rounded-2xl shadow-sm border overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5',
         !isViewed && !isHistory ? 'border-teal-200 ring-1 ring-teal-100' : 'border-gray-100',
-        isUrgent && !isDaily && 'border-amber-200 ring-1 ring-amber-100',
         isDaily && 'border-violet-200 ring-1 ring-violet-100',
         className,
       )}
@@ -194,8 +191,37 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
                     'w-3 h-3 mt-0.5 flex-shrink-0',
                     isDaily ? 'text-violet-400' : 'text-teal-400',
                   )} />
-                  <span>{matchingReason}</span>
+                  <span>
+                    {isReasonExpanded || !isLongReason
+                      ? matchingReason
+                      : `${matchingReason.substring(0, 100)}...`}
+                    {isLongReason && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsReasonExpanded((prev) => !prev);
+                        }}
+                        className={cn(
+                          'inline font-medium underline underline-offset-2 ms-1',
+                          isDaily ? 'text-violet-600' : 'text-teal-600',
+                        )}
+                      >
+                        {isReasonExpanded
+                          ? (locale === 'he' ? 'פחות' : 'less')
+                          : (locale === 'he' ? 'עוד' : 'more')}
+                      </button>
+                    )}
+                  </span>
                 </div>
+              )}
+
+              {/* Deadline countdown */}
+              {hasDeadline && !isHistory && (
+                <CardCountdown
+                  deadline={suggestion.decisionDeadline!}
+                  locale={locale}
+                />
               )}
             </div>
 
@@ -215,24 +241,6 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
                 )}
               </div>
 
-              {/* Deadline */}
-              {hasDeadline && !isHistory && hoursLeft !== null && (
-                <div className="inline-flex items-center gap-1">
-                  {isUrgent ? (
-                    <AlertTriangle className="w-3 h-3 text-amber-500" />
-                  ) : (
-                    <Clock className="w-3 h-3 text-gray-400" />
-                  )}
-                  <span className={cn('text-[10px] font-medium', isUrgent ? 'text-amber-600' : 'text-gray-400')}>
-                    {hoursLeft < 1
-                      ? (locale === 'he' ? 'פוקע בקרוב' : 'Expiring soon')
-                      : hoursLeft < 24
-                        ? (locale === 'he' ? `עוד ${hoursLeft} שעות` : `${hoursLeft}h left`)
-                        : (locale === 'he' ? `עוד ${Math.floor(hoursLeft / 24)} ימים` : `${Math.floor(hoursLeft / 24)}d left`)}
-                  </span>
-                </div>
-              )}
-
               {/* History arrow */}
               {isHistory && (
                 <Chevron className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
@@ -241,6 +249,18 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
           </div>
         </div>
       </button>
+
+      {/* Mini Timeline - show if statusHistory has multiple entries */}
+      {timelineDict && suggestion.statusHistory && suggestion.statusHistory.length > 1 && (
+        <div className="px-3.5 sm:px-4 py-1" onClick={(e) => e.stopPropagation()}>
+          <MiniTimeline
+            statusHistory={suggestion.statusHistory}
+            locale={locale}
+            dict={timelineDict}
+            className="!shadow-none !border-0 !bg-transparent !p-0"
+          />
+        </div>
+      )}
 
       {/* Action buttons footer */}
       {!isHistory && (

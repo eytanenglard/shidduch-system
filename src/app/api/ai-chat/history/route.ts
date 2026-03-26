@@ -87,6 +87,9 @@ export async function GET(req: NextRequest) {
       conversationId: conversation.id,
       title: conversation.title,
       messages: allMessages,
+      // Smart assistant phase data
+      phase: conversation.phase || 'discovery',
+      currentCandidateUserId: conversation.currentCandidateUserId || null,
     });
   } catch (error) {
     console.error('[AiChat History] Error:', error);

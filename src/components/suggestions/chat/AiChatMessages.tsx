@@ -1,13 +1,17 @@
 // src/components/suggestions/chat/AiChatMessages.tsx
 // =============================================================================
 // Scrollable message list with auto-scroll
+// Supports text bubbles, profile cards, and action buttons
 // =============================================================================
 
 'use client';
 
 import React, { useRef, useEffect } from 'react';
 import AiChatBubble from './AiChatBubble';
-import type { ChatMessage, ChatAction } from './useAiChat';
+import AiChatProfileCard from './AiChatProfileCard';
+import AiChatActionButtons from './AiChatActionButtons';
+import AiChatWelcome from './AiChatWelcome';
+import type { ChatMessage, ChatAction, ChatActionButton } from './useAiChat';
 import { Loader2, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +27,11 @@ interface AiChatMessagesProps {
   quickReplies?: string[];
   onQuickReply?: (text: string) => void;
   onRateMessage?: (messageId: string, rating: 'up' | 'down') => void;
+  // Smart assistant props
+  isGeneralChat?: boolean;
+  actionButtons?: ChatActionButton[];
+  onChatAction?: (type: ChatActionButton['type']) => void;
+  isLoadingDiscovery?: boolean;
 }
 
 export default function AiChatMessages({
@@ -37,6 +46,10 @@ export default function AiChatMessages({
   quickReplies,
   onQuickReply,
   onRateMessage,
+  isGeneralChat = false,
+  actionButtons,
+  onChatAction,
+  isLoadingDiscovery = false,
 }: AiChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isHebrew = locale === 'he';
@@ -63,59 +76,55 @@ export default function AiChatMessages({
     >
       {/* Welcome message if no history */}
       {messages.length === 0 && !isStreaming && (
-        <div className="text-center py-8">
-          <div className="text-4xl mb-3">✨</div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-1">
-            {isHebrew ? 'שלום! אני העוזר החכם שלך' : 'Hi! I\'m your smart assistant'}
-          </h3>
-          <p className="text-xs text-gray-500 max-w-[280px] mx-auto leading-relaxed">
-            {isHebrew
-              ? 'ספר/י לי מה חשוב לך בבן/בת זוג, ואני אעזור לדייק את ההצעות שלך'
-              : 'Tell me what matters to you in a partner, and I\'ll help refine your suggestions'}
-          </p>
-
-          {/* Quick prompts */}
-          <div className="flex flex-wrap gap-2 justify-center mt-4">
-            {(isHebrew
-              ? [
-                  'מה אני מחפש/ת?',
-                  'למה דחיתי הצעות?',
-                  'חפש לי התאמות',
-                ]
-              : [
-                  'What am I looking for?',
-                  'Why did I decline suggestions?',
-                  'Find me matches',
-                ]
-            ).map((prompt) => (
-              <button
-                key={prompt}
-                className="text-xs px-3 py-1.5 rounded-full bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors border border-violet-200"
-                onClick={() => {
-                  // Dispatch custom event for the input to pick up
-                  window.dispatchEvent(new CustomEvent('ai-chat-quick-prompt', { detail: prompt }));
-                }}
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        </div>
+        <AiChatWelcome
+          locale={locale}
+          isGeneralChat={isGeneralChat}
+          isLoadingDiscovery={isLoadingDiscovery}
+          onQuickPrompt={(text) => onQuickReply?.(text)}
+        />
       )}
 
       {/* Messages */}
-      {messages.map((msg) => (
-        <div key={msg.id} className="group">
-          <AiChatBubble
-            role={msg.role as 'user' | 'assistant' | 'matchmaker'}
-            content={msg.content}
-            createdAt={msg.createdAt}
-            messageId={msg.id}
-            userRating={msg.metadata?.userRating}
-            onRate={msg.role === 'assistant' ? onRateMessage : undefined}
-          />
-        </div>
-      ))}
+      {messages.map((msg) => {
+        // Profile card message
+        if (msg.metadata?.type === 'profile_card' && msg.metadata.candidateUserId) {
+          return (
+            <div key={msg.id}>
+              {/* Show text content before the card if any */}
+              {msg.content && (
+                <div className="group mb-2">
+                  <AiChatBubble
+                    role="assistant"
+                    content={msg.content}
+                    createdAt={msg.createdAt}
+                    messageId={msg.id}
+                    userRating={msg.metadata?.userRating}
+                    onRate={onRateMessage}
+                  />
+                </div>
+              )}
+              <AiChatProfileCard
+                candidateUserId={msg.metadata.candidateUserId}
+                locale={locale}
+              />
+            </div>
+          );
+        }
+
+        // Regular text message (including action confirmations, no_more_candidates, etc.)
+        return (
+          <div key={msg.id} className="group">
+            <AiChatBubble
+              role={msg.role as 'user' | 'assistant' | 'matchmaker'}
+              content={msg.content}
+              createdAt={msg.createdAt}
+              messageId={msg.id}
+              userRating={msg.metadata?.userRating}
+              onRate={msg.role === 'assistant' ? onRateMessage : undefined}
+            />
+          </div>
+        );
+      })}
 
       {/* Streaming message */}
       {isStreaming && streamingContent && (
@@ -142,7 +151,17 @@ export default function AiChatMessages({
         </div>
       )}
 
-      {/* Action buttons (approve/decline from chat) */}
+      {/* Smart assistant action buttons (interested/not_for_me/tell_me_more) */}
+      {actionButtons && actionButtons.length > 0 && !isStreaming && onChatAction && (
+        <AiChatActionButtons
+          buttons={actionButtons}
+          locale={locale}
+          onAction={onChatAction}
+          disabled={actionExecuting}
+        />
+      )}
+
+      {/* Legacy action buttons (approve/decline for existing suggestions) */}
       {pendingActions && pendingActions.length > 0 && !isStreaming && (
         <div className="flex gap-2 justify-center py-2">
           {pendingActions.map((action) => (

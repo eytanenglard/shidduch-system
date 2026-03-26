@@ -330,11 +330,17 @@
       "withdrawError": "Error withdrawing"
     },
     "detailsTab": {
+      "sectionTitle": "Communication & Consultation",
+      "sectionSubtitle": "Chat with the smart assistant or your matchmaker",
       "aiChatTitle": "Ask Smart Assistant",
       "aiChatSubtitle": "Ask me about this suggestion",
       "chatTitle": "Chat with {{name}}",
       "chatTitleFallback": "Matchmaker",
       "chatSubtitle": "Ask questions, get updates",
+      "contactTitle": "Contact Details",
+      "contactSubtitle": "Contact details have been shared — feel free to reach out!",
+      "contactPhone": "Phone",
+      "contactEmail": "Email",
       "toasts": {
         "sendSuccess": "Message sent successfully!",
         "sendSuccessDescription": "Your matchmaker will receive your message soon",

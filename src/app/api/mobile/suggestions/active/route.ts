@@ -117,6 +117,11 @@ export async function GET(req: NextRequest) {
             },
           },
         },
+        potentialMatch: {
+          select: {
+            aiScore: true,
+          },
+        },
       },
       orderBy: [
         { firstPartyRank: "asc" }, // INTERESTED suggestions sorted by rank
@@ -147,6 +152,9 @@ export async function GET(req: NextRequest) {
         // NEW: rank fields for INTERESTED suggestions
         firstPartyRank: suggestion.firstPartyRank,
         firstPartyInterestedAt: suggestion.firstPartyInterestedAt,
+        systemScore: suggestion.potentialMatch?.aiScore != null
+          ? Math.round(suggestion.potentialMatch.aiScore)
+          : null,
         otherParty: {
           id: otherParty.id,
           firstName: otherParty.firstName,

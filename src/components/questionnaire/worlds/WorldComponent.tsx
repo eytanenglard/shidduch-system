@@ -124,6 +124,38 @@ const worldConfig: Record<
   },
 };
 
+// Maps detailed registration religious-level values to simplified questionnaire tracks
+// so that question filtering works correctly for users who already set their level at registration.
+const RELIGIOUS_LEVEL_TO_TRACK: Record<string, string> = {
+  // Registration detailed values → questionnaire simplified tracks
+  dati_leumi_standard: 'dati',
+  dati_leumi_liberal: 'dati_lite',
+  dati_leumi_torani: 'dati',
+  masorti_strong: 'masorti',
+  masorti_light: 'masorti',
+  secular_traditional_connection: 'hiloni',
+  secular: 'hiloni',
+  spiritual_not_religious: 'hiloni',
+  charedi_modern: 'charedi_lite',
+  charedi_litvak: 'charedi',
+  charedi_sephardic: 'charedi',
+  charedi_hasidic: 'charedi',
+  chabad: 'charedi_lite',
+  breslov: 'charedi',
+  other: 'masorti',
+  // Simplified values map to themselves
+  charedi: 'charedi',
+  charedi_lite: 'charedi_lite',
+  dati: 'dati',
+  dati_lite: 'dati_lite',
+  masorti: 'masorti',
+  hiloni: 'hiloni',
+};
+
+function mapToQuestionnaireTrack(religiousLevel: string): string {
+  return RELIGIOUS_LEVEL_TO_TRACK[religiousLevel] ?? religiousLevel;
+}
+
 // Returns true if question should be shown based on user profile
 export function shouldShowQuestion(q: Question, profile: UserProfile): boolean {
   const { conditions } = q;
@@ -142,7 +174,8 @@ export function shouldShowQuestion(q: Question, profile: UserProfile): boolean {
   }
   if (conditions.religiousLevel && conditions.religiousLevel.length > 0) {
     if (!profile.religiousLevel) return true; // unknown — show by default
-    if (!conditions.religiousLevel.includes(profile.religiousLevel)) return false;
+    const track = mapToQuestionnaireTrack(profile.religiousLevel);
+    if (!conditions.religiousLevel.includes(track)) return false;
   }
   if (conditions.gender && conditions.gender.length > 0) {
     if (!profile.gender) return true; // unknown — show by default

@@ -489,11 +489,17 @@ export type SuggestionsModalDict = {
     withdrawError: string;
   };
   detailsTab: {
+    sectionTitle: string;
+    sectionSubtitle: string;
     aiChatTitle: string;
     aiChatSubtitle: string;
     chatTitle: string;
     chatTitleFallback: string;
     chatSubtitle: string;
+    contactTitle: string;
+    contactSubtitle: string;
+    contactPhone: string;
+    contactEmail: string;
     toasts: {
       sendSuccess: string;
       sendSuccessDescription: string;

@@ -1,6 +1,7 @@
 // src/components/suggestions/chat/useAiChat.ts
 // =============================================================================
 // Custom hook for AI Chat state management
+// Supports both suggestion-specific chat and smart assistant with phases
 // =============================================================================
 
 'use client';
@@ -16,6 +17,11 @@ export interface ChatMessage {
     matchSearchResults?: string[];
     toolUsed?: string;
     userRating?: 'up' | 'down';
+    // Smart assistant types
+    type?: 'text' | 'profile_card' | 'action_buttons' | 'action_confirmation' | 'no_more_candidates' | 'no_candidates_found' | 'decline_feedback';
+    candidateUserId?: string;
+    action?: string;
+    suggestionId?: string;
   };
 }
 
@@ -37,6 +43,13 @@ export interface ChatAction {
   status: string;
   variant: 'positive' | 'negative';
 }
+
+export interface ChatActionButton {
+  type: 'interested' | 'not_for_me' | 'tell_me_more';
+  label: { he: string; en: string };
+}
+
+export type ChatPhase = 'discovery' | 'searching' | 'presenting' | 'discussing';
 
 interface UseAiChatOptions {
   locale: 'he' | 'en';
@@ -60,7 +73,15 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
   const [actionExecuting, setActionExecuting] = useState(false);
   const [quickReplies, setQuickReplies] = useState<string[]>([]);
 
+  // Smart assistant state
+  const [phase, setPhase] = useState<ChatPhase>('discovery');
+  const [currentCandidateUserId, setCurrentCandidateUserId] = useState<string | null>(null);
+  const [actionButtons, setActionButtons] = useState<ChatActionButton[]>([]);
+  const [potentialMatchId, setPotentialMatchId] = useState<string | null>(null);
+  const [isLoadingDiscovery, setIsLoadingDiscovery] = useState(false);
+
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isGeneralChat = !suggestionId;
 
   // Load history on first open
   useEffect(() => {
@@ -80,6 +101,31 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
       const data = await res.json();
       if (data.success) {
         const loadedMessages = data.messages || [];
+
+        // For general chat with no history — generate discovery greeting
+        if (loadedMessages.length === 0 && isGeneralChat && !proactiveMessage) {
+          setIsLoadingDiscovery(true);
+          try {
+            const greetingRes = await fetch(`/api/ai-chat/discovery-greeting?locale=${locale}`);
+            if (greetingRes.ok) {
+              const greetingData = await greetingRes.json();
+              if (greetingData.greeting) {
+                loadedMessages.push({
+                  id: 'discovery-0',
+                  role: 'assistant',
+                  content: greetingData.greeting,
+                  createdAt: new Date().toISOString(),
+                  metadata: { type: 'text' },
+                });
+              }
+            }
+          } catch {
+            // Fallback to static greeting
+          } finally {
+            setIsLoadingDiscovery(false);
+          }
+        }
+
         // If no history and we have a proactive message, add it
         if (loadedMessages.length === 0 && proactiveMessage) {
           loadedMessages.push({
@@ -89,8 +135,23 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
             createdAt: new Date().toISOString(),
           });
         }
+
         setMessages(loadedMessages);
         setConversationId(data.conversationId || null);
+
+        // Restore phase from conversation data
+        if (data.phase) setPhase(data.phase as ChatPhase);
+        if (data.currentCandidateUserId) {
+          setCurrentCandidateUserId(data.currentCandidateUserId);
+          // If we have a candidate, show action buttons
+          if (data.phase === 'presenting') {
+            setActionButtons([
+              { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
+              { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
+              { type: 'tell_me_more', label: { he: 'ספר/י לי עוד', en: 'Tell me more' } },
+            ]);
+          }
+        }
       }
       setHistoryLoaded(true);
     } catch (err) {
@@ -99,7 +160,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     } finally {
       setIsLoading(false);
     }
-  }, [locale, suggestionId, proactiveMessage]);
+  }, [locale, suggestionId, proactiveMessage, isGeneralChat]);
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isStreaming) return;
@@ -107,6 +168,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     setError(null);
     setSearchResults([]);
     setQuickReplies([]);
+    setActionButtons([]);
 
     // Add user message optimistically
     const userMessage: ChatMessage = {
@@ -159,7 +221,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
 
         // Process SSE events
         const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
@@ -186,11 +248,37 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
               if (data.quickReplies && data.quickReplies.length > 0) {
                 setQuickReplies(data.quickReplies);
               }
+              // Smart assistant phase updates
+              if (data.phase) {
+                setPhase(data.phase as ChatPhase);
+              }
+              if (data.candidateUserId) {
+                setCurrentCandidateUserId(data.candidateUserId);
+              }
+              if (data.actionButtons && data.actionButtons.length > 0) {
+                setActionButtons(data.actionButtons);
+                // If we got a profile card, add it as a message
+                if (data.candidateUserId) {
+                  const profileMsg: ChatMessage = {
+                    id: `profile-${Date.now()}`,
+                    role: 'assistant',
+                    content: '',
+                    createdAt: new Date().toISOString(),
+                    metadata: { type: 'profile_card', candidateUserId: data.candidateUserId },
+                  };
+                  // Will be added after the text message below
+                  setTimeout(() => {
+                    setMessages((prev) => [...prev, profileMsg]);
+                  }, 100);
+                }
+              }
+              if (data.potentialMatchId) {
+                setPotentialMatchId(data.potentialMatchId);
+              }
             } else if (data.type === 'error') {
               throw new Error(data.error);
             }
           } catch (parseErr) {
-            // Skip malformed SSE events
             if (parseErr instanceof SyntaxError) continue;
             throw parseErr;
           }
@@ -224,6 +312,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     }
   }, [conversationId, locale, isStreaming, suggestionId]);
 
+  // Execute suggestion-specific actions (approve/decline existing suggestions)
   const executeAction = useCallback(async (action: ChatAction) => {
     if (!suggestionId || actionExecuting) return;
     setActionExecuting(true);
@@ -234,6 +323,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          actionType: 'suggestion_status',
           suggestionId,
           status: action.status,
           conversationId,
@@ -246,7 +336,6 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
         throw new Error(data.error || `HTTP ${res.status}`);
       }
 
-      // Add the confirmation message from the API (it was saved server-side)
       const confirmMsg: ChatMessage = {
         id: `action-${Date.now()}`,
         role: 'assistant',
@@ -257,7 +346,6 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
       };
       setMessages((prev) => [...prev, confirmMsg]);
 
-      // Dispatch event so suggestion list can refresh
       window.dispatchEvent(new CustomEvent('suggestion-status-changed', {
         detail: { suggestionId, status: action.status },
       }));
@@ -269,6 +357,145 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     }
   }, [suggestionId, conversationId, locale, actionExecuting]);
 
+  // Execute smart assistant actions (interested/not_for_me/tell_me_more/trigger_search)
+  const executeChatAction = useCallback(async (
+    actionType: 'interested' | 'not_for_me' | 'tell_me_more' | 'trigger_search',
+    feedback?: string,
+  ) => {
+    if (actionExecuting || !conversationId) return;
+    setActionExecuting(true);
+    setActionButtons([]);
+
+    try {
+      const body: Record<string, unknown> = {
+        actionType,
+        conversationId,
+      };
+
+      if (actionType === 'interested' && currentCandidateUserId && potentialMatchId) {
+        body.candidateUserId = currentCandidateUserId;
+        body.potentialMatchId = potentialMatchId;
+      } else if (actionType === 'not_for_me' && currentCandidateUserId) {
+        body.candidateUserId = currentCandidateUserId;
+        if (feedback) body.feedback = feedback;
+      }
+
+      const res = await fetch('/api/ai-chat/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      // Update phase
+      if (data.phase) {
+        setPhase(data.phase as ChatPhase);
+      }
+
+      // Handle response based on action type
+      if (actionType === 'interested') {
+        setCurrentCandidateUserId(null);
+        setPotentialMatchId(null);
+        const msg: ChatMessage = {
+          id: `action-${Date.now()}`,
+          role: 'assistant',
+          content: locale === 'he'
+            ? 'מצוין! יצרתי את ההצעה. השדכנית שלך תעודכן ותוכל ללוות את התהליך. 🎉'
+            : 'Excellent! The suggestion has been created. Your matchmaker will be notified. 🎉',
+          createdAt: new Date().toISOString(),
+          metadata: { type: 'action_confirmation', action: 'interested', suggestionId: data.suggestionId },
+        };
+        setMessages((prev) => [...prev, msg]);
+
+        // Refresh suggestions list
+        window.dispatchEvent(new CustomEvent('suggestion-status-changed', {
+          detail: { suggestionId: data.suggestionId, status: 'PENDING_FIRST_PARTY' },
+        }));
+      } else if (actionType === 'not_for_me') {
+        if (data.candidateUserId) {
+          // Next candidate available
+          setCurrentCandidateUserId(data.candidateUserId);
+          setPotentialMatchId(data.potentialMatchId || null);
+          if (data.actionButtons) setActionButtons(data.actionButtons);
+
+          // Add profile card message
+          const profileMsg: ChatMessage = {
+            id: `profile-${Date.now()}`,
+            role: 'assistant',
+            content: locale === 'he' ? 'הנה מישהו/י אחר/ת שיכול/ה להתאים:' : 'Here\'s someone else who might be a match:',
+            createdAt: new Date().toISOString(),
+          };
+          const cardMsg: ChatMessage = {
+            id: `card-${Date.now()}`,
+            role: 'assistant',
+            content: '',
+            createdAt: new Date().toISOString(),
+            metadata: { type: 'profile_card', candidateUserId: data.candidateUserId },
+          };
+          setMessages((prev) => [...prev, profileMsg, cardMsg]);
+        } else {
+          // No more candidates
+          setCurrentCandidateUserId(null);
+          setPotentialMatchId(null);
+          const msg: ChatMessage = {
+            id: `no-more-${Date.now()}`,
+            role: 'assistant',
+            content: locale === 'he'
+              ? 'כרגע אין לי עוד התאמות חדשות להציע. בואו נמשיך לדבר כדי שאוכל למצוא לך התאמות טובות יותר בהמשך. 💬'
+              : "I don't have more matches to suggest right now. Let's keep chatting so I can find better matches for you. 💬",
+            createdAt: new Date().toISOString(),
+            metadata: { type: 'no_more_candidates' },
+          };
+          setMessages((prev) => [...prev, msg]);
+        }
+      } else if (actionType === 'tell_me_more') {
+        // Phase changed to discussing, user can now chat about the candidate
+      } else if (actionType === 'trigger_search') {
+        if (data.candidateUserId) {
+          setCurrentCandidateUserId(data.candidateUserId);
+          setPotentialMatchId(data.potentialMatchId || null);
+          if (data.actionButtons) setActionButtons(data.actionButtons);
+
+          const introMsg: ChatMessage = {
+            id: `search-intro-${Date.now()}`,
+            role: 'assistant',
+            content: locale === 'he' ? 'מצאתי מישהו/י שיכול/ה להתאים לך:' : 'I found someone who might be a match:',
+            createdAt: new Date().toISOString(),
+          };
+          const cardMsg: ChatMessage = {
+            id: `card-${Date.now()}`,
+            role: 'assistant',
+            content: '',
+            createdAt: new Date().toISOString(),
+            metadata: { type: 'profile_card', candidateUserId: data.candidateUserId },
+          };
+          setMessages((prev) => [...prev, introMsg, cardMsg]);
+        } else {
+          const msg: ChatMessage = {
+            id: `no-found-${Date.now()}`,
+            role: 'assistant',
+            content: locale === 'he'
+              ? 'חיפשתי במאגר ולא מצאתי כרגע התאמות חדשות. ככל שנמשיך לדייק את מה שחשוב לך, יעלו התאמות חדשות. 🔍'
+              : "I searched the database but couldn't find new matches right now. As we keep refining what matters to you, new matches will come up. 🔍",
+            createdAt: new Date().toISOString(),
+            metadata: { type: 'no_candidates_found' },
+          };
+          setMessages((prev) => [...prev, msg]);
+        }
+      }
+    } catch (err) {
+      console.error('[AiChat] Chat action error:', err);
+      setError(locale === 'he' ? 'שגיאה בביצוע הפעולה' : 'Failed to execute action');
+    } finally {
+      setActionExecuting(false);
+    }
+  }, [conversationId, currentCandidateUserId, potentialMatchId, locale, actionExecuting]);
+
   const rateMessage = useCallback(async (messageId: string, rating: 'up' | 'down') => {
     try {
       const res = await fetch('/api/ai-chat/rate', {
@@ -278,7 +505,6 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
       });
       if (!res.ok) return;
 
-      // Update local state
       setMessages((prev) =>
         prev.map((m) =>
           m.id === messageId ? { ...m, metadata: { ...m.metadata, userRating: rating } } : m,
@@ -316,5 +542,12 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     executeAction,
     quickReplies,
     rateMessage,
+    // Smart assistant
+    phase,
+    currentCandidateUserId,
+    actionButtons,
+    executeChatAction,
+    isGeneralChat,
+    isLoadingDiscovery,
   };
 }

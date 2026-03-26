@@ -13,31 +13,31 @@ const PendingSecondPartyActions: React.FC<ActionStateProps> = ({
   onDecline,
   dict,
 }) => (
-  <div className="space-y-3">
+  <div className="flex flex-col sm:flex-row gap-3">
     <Button
-      className="w-full bg-teal-600 hover:bg-teal-700 text-white shadow-sm rounded-xl h-12 font-bold text-base"
+      className="sm:flex-[2] bg-teal-600 hover:bg-teal-700 text-white shadow-sm rounded-xl h-11 font-bold text-sm"
       disabled={isSubmitting}
       onClick={onApprove}
     >
       {isSubmitting ? (
         <>
-          <Loader2 className={cn('w-5 h-5 animate-spin', isHe ? 'ml-3' : 'mr-3')} />
+          <Loader2 className={cn('w-4 h-4 animate-spin', isHe ? 'ml-2' : 'mr-2')} />
           {dict.sending}
         </>
       ) : (
         <>
-          <Heart className={cn('w-5 h-5', isHe ? 'ml-3' : 'mr-3')} />
+          <Heart className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
           {dict.approve}
         </>
       )}
     </Button>
     <Button
       variant="outline"
-      className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-xl h-11 font-bold"
+      className="sm:flex-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 border-gray-200 hover:border-rose-200 rounded-xl h-11 font-bold text-sm"
       disabled={isSubmitting}
       onClick={onDecline}
     >
-      <XCircle className={cn('w-5 h-5', isHe ? 'ml-3' : 'mr-3')} />
+      <XCircle className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
       {dict.decline}
     </Button>
   </div>

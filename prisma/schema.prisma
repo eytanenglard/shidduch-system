@@ -2157,6 +2157,11 @@ model AiChatConversation {
 
   extractedPreferences Json? // { wants: [], avoids: [], freeformInsights: "" }
 
+  // Smart Assistant phases: discovery | searching | presenting | discussing
+  phase                  String  @default("discovery")
+  currentCandidateUserId String? // userId of candidate currently being presented/discussed
+  presentedCandidateIds  Json?   // string[] - userIds already shown in this conversation
+
   user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   suggestion MatchSuggestion?  @relation(fields: [suggestionId], references: [id], onDelete: SetNull)
   messages   AiChatMessage[]

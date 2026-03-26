@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Network,
   Compass,
+  Sparkles,
 } from 'lucide-react';
 import MatchCompatibilityView from '../../compatibility/MatchCompatibilityView';
 import { UserAiAnalysisDialog } from '../../dialogs/UserAiAnalysisDialog';
@@ -26,6 +27,16 @@ const CompatibilityTab: React.FC<CompatibilityTabProps> = ({
 }) => {
   return (
     <div className="space-y-8 p-2">
+      {/* Matching reason preview */}
+      {matchingReason && (
+        <div className="flex items-start gap-3 p-4 bg-teal-50/60 rounded-xl border border-teal-100">
+          <Sparkles className="w-4 h-4 text-teal-500 mt-1 flex-shrink-0" />
+          <p className="text-sm text-teal-700 leading-relaxed italic">
+            &quot;{matchingReason}&quot;
+          </p>
+        </div>
+      )}
+
       {/* Real compatibility data from profiles */}
       <MatchCompatibilityView
         firstParty={firstParty}

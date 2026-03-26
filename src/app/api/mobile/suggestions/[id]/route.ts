@@ -1,10 +1,10 @@
 // src/app/api/mobile/suggestions/[id]/route.ts
 // פרטי הצעת שידוך בודדת - למובייל
-// UPDATED: Added questionnaire responses
+// UPDATED: Added questionnaire responses + rationale data for compatibility view
 
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { 
+import {
   verifyMobileToken,
   corsJson,
   corsError,
@@ -12,6 +12,7 @@ import {
 } from "@/lib/mobile-auth";
 import { formatAnswers, KEY_MAPPING } from '@/lib/questionnaireFormatter';
 import type { WorldId } from "@/types/next-auth";
+import type { StructuredRationale } from "@/types/structuredRationale";
 
 function calculateAge(birthDate: Date | null | undefined): number | null {
   if (!birthDate) return null;
@@ -47,7 +48,31 @@ export async function GET(
 
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        priority: true,
+        matchingReason: true,
+        firstPartyNotes: true,
+        secondPartyNotes: true,
+        internalNotes: true,
+        structuredRationale: true,
+        firstPartyId: true,
+        secondPartyId: true,
+        createdAt: true,
+        updatedAt: true,
+        decisionDeadline: true,
+        lastStatusChange: true,
+        firstPartySent: true,
+        potentialMatch: {
+          select: {
+            aiScore: true,
+            shortReasoning: true,
+            scoreBreakdown: true,
+            scoreForMale: true,
+            scoreForFemale: true,
+          }
+        },
         matchmaker: { 
           select: { 
             firstName: true, 
@@ -241,11 +266,63 @@ export async function GET(
       otherParty.email = otherPartyRaw.email;
     }
 
-const canRespond = 
+const canRespond =
       (isFirstParty && suggestion.status === 'PENDING_FIRST_PARTY') ||
       (isSecondParty && suggestion.status === 'PENDING_SECOND_PARTY') ||
-      (isFirstParty && suggestion.status === 'RE_OFFERED_TO_FIRST_PARTY') ||      // ✅ NEW
-      (isSecondParty && suggestion.status === 'SECOND_PARTY_NOT_AVAILABLE');       // ✅ NEW
+      (isFirstParty && suggestion.status === 'RE_OFFERED_TO_FIRST_PARTY') ||
+      (isSecondParty && suggestion.status === 'SECOND_PARTY_NOT_AVAILABLE');
+
+    // Build compatibility rationale from existing data (no new computation)
+    const rationale = suggestion.structuredRationale as StructuredRationale | null;
+    const potentialMatch = suggestion.potentialMatch;
+
+    const compatibilityRationale: Record<string, any> = {};
+
+    // Layer 1: Matchmaker's reasoning (human touch)
+    const matchmakerReason = suggestion.matchingReason
+      || rationale?.matchmaker?.generalReason
+      || null;
+    if (matchmakerReason) {
+      compatibilityRationale.matchmakerReason = matchmakerReason;
+    }
+
+    // Layer 1: System/AI scanning reasoning
+    const systemReasoning = rationale?.ai?.shortReasoning
+      || potentialMatch?.shortReasoning
+      || null;
+    if (systemReasoning) {
+      compatibilityRationale.systemReasoning = systemReasoning;
+    }
+
+    // Layer 2: Score breakdown by category (from scanning)
+    const scoreBreakdown = rationale?.ai?.scoreBreakdown
+      || (potentialMatch?.scoreBreakdown as Record<string, any> | null)
+      || null;
+    if (scoreBreakdown) {
+      compatibilityRationale.scoreBreakdown = scoreBreakdown;
+    }
+
+    // Overall system score (from scanning, not AI analysis)
+    const systemScore = rationale?.ai?.score
+      ?? potentialMatch?.aiScore
+      ?? null;
+    if (systemScore != null) {
+      compatibilityRationale.systemScore = Math.round(systemScore);
+    }
+
+    // Asymmetric scores (how much each side matches the other)
+    if (potentialMatch?.scoreForMale != null && potentialMatch?.scoreForFemale != null) {
+      // Determine which score is "for you" vs "for them" based on the user's gender perspective
+      // scoreForMale = how well the female matches the male's preferences
+      // scoreForFemale = how well the male matches the female's preferences
+      compatibilityRationale.scoreForYou = Math.round(
+        isFirstParty ? potentialMatch.scoreForMale! : potentialMatch.scoreForFemale!
+      );
+      compatibilityRationale.scoreForThem = Math.round(
+        isFirstParty ? potentialMatch.scoreForFemale! : potentialMatch.scoreForMale!
+      );
+    }
+
     const responseData = {
       id: suggestion.id,
       status: suggestion.status,
@@ -259,6 +336,9 @@ const canRespond =
       isFirstParty,
       canRespond,
       showContactDetails,
+      compatibilityRationale: Object.keys(compatibilityRationale).length > 0
+        ? compatibilityRationale
+        : null,
       matchmaker: {
         firstName: suggestion.matchmaker.firstName,
         lastName: suggestion.matchmaker.lastName,

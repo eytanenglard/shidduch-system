@@ -76,14 +76,30 @@ export async function GET() {
         matchmaker: { select: { firstName: true, lastName: true } },
         firstParty: {
           include: {
-            profile: true,
+            profile: {
+              include: {
+                testimonials: {
+                  where: { status: 'APPROVED' },
+                  orderBy: { createdAt: 'desc' },
+                  take: 3,
+                },
+              },
+            },
             images: true,
             questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 },
           },
         },
         secondParty: {
           include: {
-            profile: true,
+            profile: {
+              include: {
+                testimonials: {
+                  where: { status: 'APPROVED' },
+                  orderBy: { createdAt: 'desc' },
+                  take: 3,
+                },
+              },
+            },
             images: true,
             questionnaireResponses: { orderBy: { createdAt: 'desc' }, take: 1 },
           },

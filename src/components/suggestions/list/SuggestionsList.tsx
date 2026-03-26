@@ -2,9 +2,16 @@
 
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Search, XCircle, Clock, Heart } from 'lucide-react';
+import { Search, XCircle, Clock, Heart, Sparkles, MessageCircle, ArrowUpDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import SuggestionRow from '../cards/SuggestionRow';
 import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
@@ -24,6 +31,7 @@ interface SuggestionsListProps {
   onOpenDetails: (suggestion: ExtendedMatchSuggestion) => void;
   isUserInActiveProcess?: boolean;
   suggestionsDict: SuggestionsDictionary;
+  onOpenChat?: () => void;
 }
 
 // --- Clean Empty State ---
@@ -31,9 +39,10 @@ const EmptyState: React.FC<{
   isFiltered: boolean;
   isHistory: boolean;
   onClearFilters: () => void;
+  onOpenChat?: () => void;
   dict: SuggestionsDictionary['list']['emptyState'];
   locale: 'he' | 'en';
-}> = ({ isFiltered, isHistory, onClearFilters, dict, locale }) => {
+}> = ({ isFiltered, isHistory, onClearFilters, onOpenChat, dict, locale }) => {
   const isRtl = locale === 'he';
 
   return (
@@ -63,22 +72,54 @@ const EmptyState: React.FC<{
             : dict.noActiveDescription}
       </p>
 
-      {/* Working indicator for non-history empty state */}
+      {/* Working indicator + CTAs for non-history empty state */}
       {!isFiltered && !isHistory && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-teal-50 rounded-lg border border-teal-100">
-          <div className="flex gap-1">
-            {[0, 0.3, 0.6].map((delay, i) => (
-              <div
-                key={i}
-                className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce"
-                style={{ animationDelay: `${delay}s` }}
-              />
-            ))}
+        <div className="space-y-3 w-full max-w-xs">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-teal-50 rounded-lg border border-teal-100">
+            <div className="flex gap-1">
+              {[0, 0.3, 0.6].map((delay, i) => (
+                <div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce"
+                  style={{ animationDelay: `${delay}s` }}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-teal-700 font-medium">
+              {isRtl
+                ? 'השדכן/ית שלך עובד/ת על הצעות חדשות'
+                : 'Your matchmaker is working on new suggestions'}
+            </span>
           </div>
-          <span className="text-xs text-teal-700 font-medium">
+
+          <p className="text-xs text-gray-400">
             {isRtl
-              ? 'השדכן/ית שלך עובד/ת על הצעות חדשות'
-              : 'Your matchmaker is working on new suggestions'}
+              ? 'הצעות מגיעות בדרך כלל תוך מספר ימים'
+              : 'Suggestions typically arrive within a few days'}
+          </p>
+
+          {onOpenChat && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onOpenChat}
+              className="w-full rounded-lg border-violet-200 text-violet-700 hover:bg-violet-50"
+            >
+              <Sparkles className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
+              {isRtl ? 'שאל/י את העוזר החכם' : 'Ask the smart assistant'}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* History empty state with guidance */}
+      {!isFiltered && isHistory && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-lg border border-gray-100">
+          <MessageCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <span className="text-xs text-gray-500">
+            {isRtl
+              ? 'ברגע שתגיב/י להצעות, תוכל/י לראות את ההיסטוריה כאן'
+              : 'Once you respond to suggestions, your history will appear here'}
           </span>
         </div>
       )}
@@ -110,27 +151,47 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
   onOpenDetails,
   isUserInActiveProcess,
   suggestionsDict,
+  onOpenChat,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'newest' | 'deadline' | 'default'>('default');
   const isRtl = locale === 'he';
 
   const filteredSuggestions = useMemo(() => {
-    if (!searchQuery) return initialSuggestions;
+    let results = initialSuggestions;
 
-    const query = searchQuery.toLowerCase();
-    return initialSuggestions.filter((suggestion) => {
-      const targetParty =
-        suggestion.firstPartyId === userId
-          ? suggestion.secondParty
-          : suggestion.firstParty;
-      return (
-        targetParty.firstName.toLowerCase().includes(query) ||
-        targetParty.lastName.toLowerCase().includes(query) ||
-        targetParty.profile?.city?.toLowerCase().includes(query) ||
-        targetParty.profile?.occupation?.toLowerCase().includes(query)
+    // Filter by search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      results = results.filter((suggestion) => {
+        const targetParty =
+          suggestion.firstPartyId === userId
+            ? suggestion.secondParty
+            : suggestion.firstParty;
+        return (
+          targetParty.firstName.toLowerCase().includes(query) ||
+          targetParty.lastName.toLowerCase().includes(query) ||
+          targetParty.profile?.city?.toLowerCase().includes(query) ||
+          targetParty.profile?.occupation?.toLowerCase().includes(query)
+        );
+      });
+    }
+
+    // Sort
+    if (sortBy === 'newest') {
+      results = [...results].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-    });
-  }, [initialSuggestions, searchQuery, userId]);
+    } else if (sortBy === 'deadline') {
+      results = [...results].sort((a, b) => {
+        const aDeadline = a.decisionDeadline ? new Date(a.decisionDeadline).getTime() : Infinity;
+        const bDeadline = b.decisionDeadline ? new Date(b.decisionDeadline).getTime() : Infinity;
+        return aDeadline - bDeadline;
+      });
+    }
+
+    return results;
+  }, [initialSuggestions, searchQuery, sortBy, userId]);
 
   const handleStatusAction = (
     suggestion: ExtendedMatchSuggestion,
@@ -157,38 +218,57 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
 
   return (
     <div className={cn('space-y-4', className)}>
-      {/* Search - only show when 4+ suggestions */}
-      {initialSuggestions.length > 3 && (
-        <div className="relative">
-          <Search
-            className={cn(
-              'absolute top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4',
-              isRtl ? 'right-3' : 'left-3'
-            )}
-          />
-          <Input
-            type="text"
-            placeholder={suggestionsDict.list.controls.searchPlaceholder}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={cn(
-              'h-10 rounded-lg border-gray-200 focus:border-teal-300 focus:ring-teal-200 text-sm',
-              isRtl ? 'pr-10 text-right' : 'pl-10'
-            )}
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
+      {/* Search + Sort - only show when 3+ suggestions */}
+      {initialSuggestions.length > 2 && (
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search
               className={cn(
-                'absolute top-1/2 -translate-y-1/2 h-6 w-6',
-                isRtl ? 'left-2' : 'right-2'
+                'absolute top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4',
+                isRtl ? 'right-3' : 'left-3'
               )}
-              onClick={clearFilters}
-            >
-              <XCircle className="w-3.5 h-3.5 text-gray-400" />
-            </Button>
-          )}
+            />
+            <Input
+              type="text"
+              placeholder={suggestionsDict.list.controls.searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={cn(
+                'h-10 rounded-lg border-gray-200 focus:border-teal-300 focus:ring-teal-200 text-sm',
+                isRtl ? 'pr-10 text-right' : 'pl-10'
+              )}
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  'absolute top-1/2 -translate-y-1/2 h-6 w-6',
+                  isRtl ? 'left-2' : 'right-2'
+                )}
+                onClick={clearFilters}
+              >
+                <XCircle className="w-3.5 h-3.5 text-gray-400" />
+              </Button>
+            )}
+          </div>
+          <Select value={sortBy} onValueChange={(val: typeof sortBy) => setSortBy(val)}>
+            <SelectTrigger className="w-auto h-10 rounded-lg border-gray-200 text-xs gap-1.5 px-3 shrink-0">
+              <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align={isRtl ? 'start' : 'end'}>
+              <SelectItem value="default">
+                {isRtl ? 'ברירת מחדל' : 'Default'}
+              </SelectItem>
+              <SelectItem value="newest">
+                {isRtl ? 'חדש ביותר' : 'Newest'}
+              </SelectItem>
+              <SelectItem value="deadline">
+                {isRtl ? 'דדליין קרוב' : 'Deadline'}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       )}
 
@@ -204,6 +284,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           isFiltered={searchQuery !== ''}
           isHistory={isHistory}
           onClearFilters={clearFilters}
+          onOpenChat={onOpenChat}
           dict={suggestionsDict.list.emptyState}
           locale={locale}
         />
@@ -222,6 +303,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               isHistory={isHistory}
               isUserInActiveProcess={isUserInActiveProcess}
               dict={suggestionsDict.card}
+              timelineDict={suggestionsDict.timeline}
             />
           ))}
         </div>

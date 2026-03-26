@@ -133,11 +133,19 @@ export async function formatQuestionnaireForDisplay(
                   const translatedLabel = questionContent.categories?.[key];
 
                   // 2. השתמש בתרגום אם נמצא, אחרת חזור למפתח המקורי באנגלית (כגיבוי)
-                  const finalLabel = translatedLabel ? g(translatedLabel) : key;
+                  //    תמיכה ב-3 פורמטים: string, {male,female}, {label,description}
+                  let finalLabel: string;
+                  if (!translatedLabel) {
+                    finalLabel = key;
+                  } else if (typeof translatedLabel === 'object' && 'label' in translatedLabel) {
+                    finalLabel = typeof translatedLabel.label === 'string' ? translatedLabel.label : g(translatedLabel.label);
+                  } else {
+                    finalLabel = g(translatedLabel);
+                  }
 
                   // 3. קבע את יחידת המידה: אם מוגדר `totalPoints`, אלו נקודות ולא אחוזים
                   const unit = questionStructure.totalPoints ? '' : '%';
-                  
+
                   // 4. הרכב את הטקסט הסופי לתצוגה
                   return `${finalLabel}: ${val}${unit}`;
               })

@@ -249,7 +249,7 @@ export class AiChatService {
 
   // ========== System Prompt ==========
 
-  static async buildSystemPrompt(userId: string, locale: 'he' | 'en', suggestionContext?: string): Promise<string> {
+  static async buildSystemPrompt(userId: string, locale: 'he' | 'en', suggestionContext?: string, phase?: string): Promise<string> {
     const isHebrew = locale === 'he';
 
     // Load user data in parallel
@@ -404,8 +404,8 @@ export class AiChatService {
 
     // Build the full system prompt
     let systemPrompt = isHebrew
-      ? this.buildHebrewSystemPrompt(userContext)
-      : this.buildEnglishSystemPrompt(userContext);
+      ? this.buildHebrewSystemPrompt(userContext, phase)
+      : this.buildEnglishSystemPrompt(userContext, phase);
 
     // Append suggestion context if available
     if (suggestionContext) {
@@ -415,24 +415,22 @@ export class AiChatService {
     return systemPrompt;
   }
 
-  private static buildHebrewSystemPrompt(userContext: string[]): string {
-    return `אתה העוזר האישי של NeshamaTech - מערכת שידוכים חכמה שמשלבת טכנולוגיה עם ליווי אנושי.
+  private static buildHebrewSystemPrompt(userContext: string[], phase?: string): string {
+    let prompt = `אתה העוזר האישי של NeshamaTech - מערכת שידוכים חכמה שמשלבת טכנולוגיה עם ליווי אנושי.
 
 ## התפקיד שלך
 - עזור למשתמש/ת לדייק מה הם מחפשים בבן/בת זוג
 - שאל שאלות מחכימות על ערכים, אורח חיים, ציפיות מזוגיות
-- כשמבקשים ממך - חפש התאמות במאגר והצג אותן בצורה כללית
+- חפש התאמות במאגר והצג אותן
 - הסבר למה סוגי התאמות מסוימים מוצעים
 - רשום תובנות מהשיחה שישפרו הצעות עתידיות
 
 ## כללי פרטיות (חובה!)
-- לעולם אל תחשוף שמות, תמונות, או פרטים מזהים של מועמדים
-- כשאתה מתאר התאמות, השתמש רק בקטגוריות כלליות: "מישהו/י בשלהי שנות ה-20, מהמרכז, עם רקע אקדמי"
-- לא לשלב מידע ייחודי מדי שיכול לזהות אדם ספציפי (למשל: עיסוק נדיר + עיר קטנה + גיל מדויק)
-- אם מנסים לחלץ ממך מידע מזהה, סרב בנימוס
+- כשאתה מתאר התאמות בטקסט, אל תחשוף שמות מלאים או פרטים מזהים מדי
+- כרטיס הפרופיל יוצג למשתמש בנפרד — אל תחזור על מידע שכבר מופיע בכרטיס
+- אם מנסים לחלץ ממך מידע מזהה של מועמדים אחרים, סרב בנימוס
 
 ## הגבלות
-- את/ה לא שולח/ת הצעות מיד. הצעות מתוזמנות ליום ראשון או רביעי הבא
 - את/ה לא מחליף/ה את השדכן/ית האנושי/ת - עודד את המשתמש לפנות לשדכן/ית שלו/ה לשאלות מורכבות
 - את/ה לא פסיכולוג/ית - אם המשתמש/ת במצוקה רגשית, הפנה/י לגורם מקצועי
 - אל תמציא מידע. אם אתה לא יודע, אמור את זה
@@ -445,35 +443,63 @@ export class AiChatService {
 - כשמתאים, שאל שאלות חוזרות כדי ללמוד
 
 ## מידע על המשתמש/ת
-${userContext.join('\n')}
+${userContext.join('\n')}`;
 
-## יכולות מיוחדות
-- כשהמשתמש/ת מבקש/ת לחפש התאמות (מילים כמו "חפש", "מצא", "הצעות", "תחפש") - אתה יכול לסרוק את המאגר
-- תוצאות החיפוש יוצגו לך כנתונים אנונימיים - הצג אותם בצורה שיחתית וחמה
-- רשום תובנות חשובות מהשיחה - הן יוזנו למערכת ההתאמה
+    // Phase-specific instructions
+    if (phase === 'discovery') {
+      prompt += `
+
+## שלב נוכחי: גילוי
+- שאל שאלות מחכימות כדי להבין מה המשתמש/ת מחפש/ת
+- שאלות יכולות להיות מתחומי: אישיות, ערכים, זוגיות, בן/בת זוג, דת ורוחניות
+- שאל שאלה אחת בכל פעם, תגיב בחום למה שהמשתמש/ת שיתף/ה, ואז שאל שאלה נוספת
+- אחרי 2-4 תשובות משמעותיות, הצע באופן יזום: "נראה לי שאני מתחיל/ה להבין מה חשוב לך. רוצה שאחפש לך מישהו/י מעניין/ת במאגר שלנו?"
+- אם המשתמש/ת שואל/ת על הצעה קיימת או משתף/ת משהו ספציפי — כבד/י את זה ותגיב/י לנושא שלהם
+- אל תמהר/י להציע חיפוש — קודם תבין/י באמת מה חשוב`;
+    } else if (phase === 'presenting') {
+      prompt += `
+
+## שלב נוכחי: הצגת מועמד/ת
+- כרטיס פרופיל מלא יוצג למשתמש/ת — אל תחזור על מידע בסיסי (שם, גיל, עיר) שכבר מופיע בכרטיס
+- התמקד/י בסיבות ההתאמה: ערכים משותפים, תחומי עניין, חזון דומה, נקודות חיבור ייחודיות
+- הצג/י את ההתאמה בצורה חמה ואישית — לא רשימת נתונים יבשה
+- המתן/י לתגובת המשתמש/ת לפני שתמשיך/י
+- אם המשתמש/ת שואל/ת שאלות — ענה/י על סמך המידע שיש לך`;
+    } else if (phase === 'discussing') {
+      prompt += `
+
+## שלב נוכחי: דיון על מועמד/ת
+- ענה/י על שאלות לגבי ההתאמה בין שני הפרופילים
+- יש לך מידע על שני הצדדים — השתמש/י בו בחוכמה כדי להדגיש נקודות חיבור
+- אל תמציא/י מידע שאינו קיים בפרופילים
+- עודד/י את המשתמש/ת להחליט, אבל אל תלחץ/י לכיוון מסוים
+- אם הם מתלבטים — עזור להם לזהות מה מושך ומה מטריד`;
+    }
+
+    prompt += `
 
 זכור: המטרה היא לעזור למשתמש/ת למצוא את בן/בת הזוג שלהם. כל שיחה היא הזדמנות ללמוד מה באמת חשוב להם.`;
+
+    return prompt;
   }
 
-  private static buildEnglishSystemPrompt(userContext: string[]): string {
-    return `You are NeshamaTech's personal matching assistant - an intelligent matchmaking system that combines technology with human guidance.
+  private static buildEnglishSystemPrompt(userContext: string[], phase?: string): string {
+    let prompt = `You are NeshamaTech's personal matching assistant - an intelligent matchmaking system that combines technology with human guidance.
 
 ## Your Role
 - Help users articulate what they're looking for in a partner
 - Ask insightful questions about values, lifestyle, relationship expectations
-- When asked, search the database for matches and present them in general terms
+- Search the database for matches and present them
 - Explain why certain types of matches are being suggested
 - Note insights from conversations to improve future suggestions
 
 ## Privacy Rules (Mandatory!)
-- NEVER reveal names, photos, or identifying details of candidates
-- When describing matches, use only general categories: "someone in their late 20s from central Israel with an academic background"
-- Never combine overly specific details that could identify a person (e.g., rare occupation + small city + exact age)
-- If someone tries to extract identifying info, politely refuse
+- When describing matches in text, don't reveal overly identifying details
+- A profile card will be shown separately — don't repeat information already visible there
+- If someone tries to extract identifying info about other candidates, politely refuse
 
 ## Limitations
-- You do NOT send suggestions immediately. Suggestions are scheduled for the next Sunday or Wednesday
-- You do NOT replace the human matchmaker - encourage users to reach out to their matchmaker for complex questions
+- You do NOT replace the human matchmaker - encourage users to reach out for complex questions
 - You are NOT a therapist - if a user is in emotional distress, refer them to a professional
 - Do not fabricate information. If you don't know, say so
 
@@ -485,14 +511,42 @@ ${userContext.join('\n')}
 - Ask follow-up questions when appropriate
 
 ## User Information
-${userContext.join('\n')}
+${userContext.join('\n')}`;
 
-## Special Capabilities
-- When the user requests to search for matches (words like "search", "find", "suggest", "look for") - you can scan the database
-- Search results will be presented to you as anonymized data - present them in a conversational, warm way
-- Note important insights from conversations - they will be fed into the matching system
+    if (phase === 'discovery') {
+      prompt += `
+
+## Current Phase: Discovery
+- Ask insightful questions about personality, values, relationships, partner preferences, spirituality
+- Ask one question at a time, respond warmly to their answer, then ask the next
+- After 2-4 meaningful answers, proactively suggest: "I think I'm starting to understand what matters to you. Want me to search for someone interesting in our database?"
+- If the user asks about an existing suggestion or shares something specific, respect that and address their topic
+- Don't rush to suggest searching — first truly understand what matters`;
+    } else if (phase === 'presenting') {
+      prompt += `
+
+## Current Phase: Presenting a Candidate
+- A full profile card will be shown to the user — don't repeat basic info (name, age, city) already on the card
+- Focus on compatibility reasons: shared values, common interests, similar vision, unique connection points
+- Present the match warmly and personally — not as a dry data list
+- Wait for the user's reaction before continuing
+- If they ask questions — answer based on the data you have`;
+    } else if (phase === 'discussing') {
+      prompt += `
+
+## Current Phase: Discussing a Candidate
+- Answer questions about compatibility between the two profiles
+- You have information about both sides — use it wisely to highlight connections
+- Don't fabricate information not present in the profiles
+- Encourage decision-making without pushing in any direction
+- If they're hesitating — help them identify what attracts and concerns them`;
+    }
+
+    prompt += `
 
 Remember: The goal is to help users find their partner. Every conversation is an opportunity to learn what truly matters to them.`;
+
+    return prompt;
   }
 
   // ========== Streaming Response ==========
@@ -1298,5 +1352,496 @@ ${conversationText}
     }
 
     return actions;
+  }
+
+  // ========== Smart Assistant: Discovery Greeting ==========
+
+  static async generateDiscoveryGreeting(userId: string, locale: 'he' | 'en'): Promise<string> {
+    const isHebrew = locale === 'he';
+
+    // Check which questionnaire worlds the user has completed
+    const questionnaire = await prisma.questionnaireResponse.findFirst({
+      where: { userId },
+      select: {
+        personalityAnswers: true,
+        valuesAnswers: true,
+        relationshipAnswers: true,
+        partnerAnswers: true,
+        religionAnswers: true,
+      },
+    });
+
+    // Count how many answers in each world
+    const worldCounts = {
+      PERSONALITY: Object.keys((questionnaire?.personalityAnswers as Record<string, unknown>) || {}).length,
+      VALUES: Object.keys((questionnaire?.valuesAnswers as Record<string, unknown>) || {}).length,
+      RELATIONSHIP: Object.keys((questionnaire?.relationshipAnswers as Record<string, unknown>) || {}).length,
+      PARTNER: Object.keys((questionnaire?.partnerAnswers as Record<string, unknown>) || {}).length,
+      RELIGION: Object.keys((questionnaire?.religionAnswers as Record<string, unknown>) || {}).length,
+    };
+
+    // Pick questions from the world with least answers (most room for discovery)
+    const discoveryQuestions = isHebrew ? {
+      PERSONALITY: [
+        'מה הדבר שהכי חשוב לך באישיות של בן/בת הזוג?',
+        'איך היית מתאר/ת את עצמך — יותר מופנם/ת או חברותי/ת?',
+        'מה עוזר לך להרגיש רגוע/ה אחרי יום מאתגר?',
+        'מה הדבר שהכי מפחיד אותך ביחסים?',
+      ],
+      VALUES: [
+        'מהם שלושת הערכים הכי חשובים לך בחיים?',
+        'איך נראה לך הבית שגדלת בו, ומה היית רוצה לשמר או לשנות?',
+        'מה חשוב לך יותר — קריירה או משפחה? או שאפשר גם וגם?',
+        'מה הדעה שלך על כסף — ביטחון, חוויות, או פשטות?',
+      ],
+      RELATIONSHIP: [
+        'מה המשמעות של זוגיות טובה בשבילך?',
+        'איך את/ה מתמודד/ת עם מחלוקות? פותח/ת דיון או צריך/ה זמן?',
+        'מה שפת האהבה שלך — מילים, מגע, זמן איכות, מעשים, או מתנות?',
+        'מה הדבר הכי חשוב שאת/ה מחפש/ת ביחסים — תמיכה, כיף, צמיחה או ביטחון?',
+      ],
+      PARTNER: [
+        'מה הדבר הראשון שמושך את תשומת הלב שלך במישהו/י חדש/ה?',
+        'כמה חשוב לך המראה החיצוני ביחס לתכונות פנימיות?',
+        'מה הקווים האדומים שלך — דברים שאתה לא מוכן/ה להתפשר עליהם?',
+        'מה היית רוצה שבן/בת הזוג שלך יוסיף/ה לחיים שלך?',
+      ],
+      RELIGION: [
+        'מה המקום של אמונה ורוחניות בחיים שלך?',
+        'איך נראית שבת אצלך בבית?',
+        'כמה חשוב לך שבן/בת הזוג יהיה/תהיה ברמה דתית דומה?',
+        'איך את/ה רואה את החינוך הדתי של ילדים בעתיד?',
+      ],
+    } : {
+      PERSONALITY: [
+        "What's the most important personality trait you look for in a partner?",
+        'How would you describe yourself — more introverted or outgoing?',
+        'What helps you feel calm after a challenging day?',
+      ],
+      VALUES: [
+        'What are your top three values in life?',
+        "What's your view on career vs. family balance?",
+        'What would you want to keep or change from your childhood home?',
+      ],
+      RELATIONSHIP: [
+        'What does a good relationship mean to you?',
+        'How do you handle disagreements — do you talk it out or need time?',
+        "What's your love language?",
+      ],
+      PARTNER: [
+        'What first catches your attention when meeting someone new?',
+        'What are your absolute deal-breakers?',
+        "What would you want a partner to add to your life?",
+      ],
+      RELIGION: [
+        'What role does faith play in your daily life?',
+        'How important is it for your partner to share your religious level?',
+        'How do you envision raising children religiously?',
+      ],
+    };
+
+    // Find least-answered world
+    const sortedWorlds = Object.entries(worldCounts).sort((a, b) => a[1] - b[1]);
+    const targetWorld = sortedWorlds[0][0] as keyof typeof discoveryQuestions;
+
+    // Pick a random question from that world
+    const questions = discoveryQuestions[targetWorld];
+    const question = questions[Math.floor(Math.random() * questions.length)];
+
+    const greeting = isHebrew
+      ? `שלום! 👋 אני העוזר החכם שלך. כל פעם שנדבר, אני לומד יותר על מה שחשוב לך — וזה עוזר לי למצוא לך התאמות טובות יותר.\n\n${question}`
+      : `Hi! 👋 I'm your smart assistant. Every time we chat, I learn more about what matters to you — and that helps me find better matches.\n\n${question}`;
+
+    return greeting;
+  }
+
+  // ========== Smart Assistant: Get Next Candidate ==========
+
+  static async getNextCandidate(
+    userId: string,
+    conversationId: string,
+  ): Promise<{
+    potentialMatchId: string;
+    candidateUserId: string;
+    aiScore: number;
+    shortReasoning: string | null;
+    detailedReasoning: string | null;
+  } | null> {
+    const profile = await prisma.profile.findUnique({
+      where: { userId },
+      select: { gender: true },
+    });
+
+    if (!profile) return null;
+
+    const isMale = profile.gender === 'MALE';
+
+    // Get already-presented candidates for this conversation
+    const conversation = await prisma.aiChatConversation.findUnique({
+      where: { id: conversationId },
+      select: { presentedCandidateIds: true },
+    });
+    const alreadyPresented = (conversation?.presentedCandidateIds as string[]) || [];
+
+    // Query top potential matches
+    const matches = await prisma.potentialMatch.findMany({
+      where: {
+        ...(isMale ? { maleUserId: userId } : { femaleUserId: userId }),
+        status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
+        aiScore: { gte: MIN_AI_SCORE_FOR_SEARCH },
+        // Exclude already presented
+        ...(alreadyPresented.length > 0
+          ? {
+              [isMale ? 'femaleUserId' : 'maleUserId']: { notIn: alreadyPresented },
+            }
+          : {}),
+        // Other party must be active and verified
+        ...(isMale
+          ? {
+              female: {
+                source: 'REGISTRATION',
+                status: 'ACTIVE',
+                isPhoneVerified: true,
+                isProfileComplete: true,
+                profile: { isNot: null },
+              },
+            }
+          : {
+              male: {
+                source: 'REGISTRATION',
+                status: 'ACTIVE',
+                isPhoneVerified: true,
+                isProfileComplete: true,
+                profile: { isNot: null },
+              },
+            }),
+      },
+      orderBy: { aiScore: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        maleUserId: true,
+        femaleUserId: true,
+        aiScore: true,
+        shortReasoning: true,
+        detailedReasoning: true,
+      },
+    });
+
+    // Filter: no existing active suggestion between pairs
+    for (const match of matches) {
+      const candidateUserId = isMale ? match.femaleUserId : match.maleUserId;
+
+      const existingSuggestion = await prisma.matchSuggestion.findFirst({
+        where: {
+          OR: [
+            { firstPartyId: match.maleUserId, secondPartyId: match.femaleUserId },
+            { firstPartyId: match.femaleUserId, secondPartyId: match.maleUserId },
+          ],
+          status: { notIn: CLOSED_STATUSES },
+        },
+      });
+
+      if (existingSuggestion) continue;
+
+      // Check availability
+      const candidateProfile = await prisma.profile.findUnique({
+        where: { userId: candidateUserId },
+        select: { availabilityStatus: true },
+      });
+
+      if (candidateProfile?.availabilityStatus !== 'AVAILABLE') continue;
+
+      // Apply feedback reranking for this single match
+      try {
+        const forReranking = [{
+          id: match.id,
+          aiScore: match.aiScore,
+          maleUserId: match.maleUserId,
+          femaleUserId: match.femaleUserId,
+          shortReasoning: match.shortReasoning,
+          detailedReasoning: match.detailedReasoning,
+        }];
+        const reranked = await AutoSuggestionFeedbackService.applyFeedbackReranking(forReranking, userId);
+        if (reranked[0] && reranked[0].aiScore < MIN_AI_SCORE_FOR_SEARCH) continue;
+      } catch {
+        // If reranking fails, continue with original score
+      }
+
+      return {
+        potentialMatchId: match.id,
+        candidateUserId,
+        aiScore: match.aiScore,
+        shortReasoning: match.shortReasoning,
+        detailedReasoning: match.detailedReasoning,
+      };
+    }
+
+    return null;
+  }
+
+  // ========== Smart Assistant: Get Candidate Profile for Chat ==========
+
+  static async getCandidateProfileForChat(
+    candidateUserId: string,
+    requestingUserId: string,
+  ) {
+    // Security: verify the candidate was presented in one of the requesting user's conversations
+    const conversation = await prisma.aiChatConversation.findFirst({
+      where: {
+        userId: requestingUserId,
+        status: 'ACTIVE',
+        OR: [
+          { currentCandidateUserId: candidateUserId },
+          // Check if candidateUserId is in presentedCandidateIds (Json array)
+          { presentedCandidateIds: { array_contains: candidateUserId } },
+        ],
+      },
+    });
+
+    if (!conversation) return null;
+
+    const user = await prisma.user.findUnique({
+      where: { id: candidateUserId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        isProfileComplete: true,
+        profile: true,
+      },
+    });
+
+    if (!user?.profile) return null;
+
+    const [images, questionnaire] = await Promise.all([
+      prisma.userImage.findMany({
+        where: { userId: candidateUserId },
+        orderBy: { isMain: 'desc' },
+      }),
+      prisma.questionnaireResponse.findFirst({
+        where: { userId: candidateUserId },
+      }),
+    ]);
+
+    return {
+      profile: {
+        ...user.profile,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      images,
+      questionnaire,
+      isProfileComplete: user.isProfileComplete,
+    };
+  }
+
+  // ========== Smart Assistant: Create Suggestion from Chat ==========
+
+  static async createSuggestionFromChat(
+    userId: string,
+    candidateUserId: string,
+    conversationId: string,
+    potentialMatchId: string,
+  ) {
+    // Determine party order (MALE = maleUser, FEMALE = femaleUser)
+    const [userProfile, candidateProfile] = await Promise.all([
+      prisma.profile.findUnique({ where: { userId }, select: { gender: true } }),
+      prisma.profile.findUnique({ where: { userId: candidateUserId }, select: { gender: true } }),
+    ]);
+
+    if (!userProfile || !candidateProfile) {
+      throw new Error('Profile not found');
+    }
+
+    const isMale = userProfile.gender === 'MALE';
+    const firstPartyId = userId;
+    const secondPartyId = candidateUserId;
+
+    // Get user's assigned matchmaker
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { assignedMatchmakerId: true },
+    });
+
+    let matchmakerId = user?.assignedMatchmakerId;
+
+    // Fallback: get from potentialMatch scan
+    if (!matchmakerId) {
+      const potentialMatch = await prisma.potentialMatch.findUnique({
+        where: { id: potentialMatchId },
+        select: { scanSessionId: true },
+      });
+      if (potentialMatch?.scanSessionId) {
+        const scanSession = await prisma.scanSession.findUnique({
+          where: { id: potentialMatch.scanSessionId },
+          select: { matchmakerId: true },
+        });
+        matchmakerId = scanSession?.matchmakerId || null;
+      }
+    }
+
+    // Final fallback: first admin user
+    if (!matchmakerId) {
+      const admin = await prisma.user.findFirst({
+        where: { role: 'ADMIN' },
+        select: { id: true },
+      });
+      matchmakerId = admin?.id || userId; // worst case, use the user themselves
+    }
+
+    // Get the PotentialMatch reasoning
+    const potentialMatch = await prisma.potentialMatch.findUnique({
+      where: { id: potentialMatchId },
+      select: { aiScore: true, shortReasoning: true },
+    });
+
+    // Create the suggestion in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const decisionDeadline = new Date();
+      decisionDeadline.setDate(decisionDeadline.getDate() + 3);
+
+      const suggestion = await tx.matchSuggestion.create({
+        data: {
+          matchmakerId: matchmakerId!,
+          isAutoSuggestion: true,
+          firstPartyId,
+          secondPartyId,
+          status: 'PENDING_FIRST_PARTY',
+          priority: 'MEDIUM',
+          matchingReason: potentialMatch?.shortReasoning || `התאמת AI - ציון ${Math.round(potentialMatch?.aiScore || 0)}`,
+          firstPartyNotes: 'הצעה שנוצרה מתוך שיחה עם העוזר החכם',
+          internalNotes: `הצעה מצ'אט AI | PotentialMatch: ${potentialMatchId} | Score: ${potentialMatch?.aiScore || 0}`,
+          decisionDeadline,
+          firstPartySent: new Date(),
+          lastActivity: new Date(),
+          lastStatusChange: new Date(),
+        },
+      });
+
+      // Create status history
+      await tx.suggestionStatusHistory.create({
+        data: {
+          suggestionId: suggestion.id,
+          status: 'PENDING_FIRST_PARTY',
+          notes: 'נוצר מתוך שיחת AI עם העוזר החכם',
+        },
+      });
+
+      // Update PotentialMatch status
+      await tx.potentialMatch.update({
+        where: { id: potentialMatchId },
+        data: { status: 'SENT' },
+      });
+
+      return suggestion;
+    });
+
+    // Update the conversation
+    await prisma.aiChatConversation.update({
+      where: { id: conversationId },
+      data: {
+        phase: 'discovery',
+        currentCandidateUserId: null,
+      },
+    });
+
+    return result;
+  }
+
+  // ========== Smart Assistant: Build Candidate Context for AI ==========
+
+  static async buildCandidateContext(
+    candidateUserId: string,
+    requestingUserId: string,
+    locale: 'he' | 'en',
+  ): Promise<string | null> {
+    const isHebrew = locale === 'he';
+
+    const [candidateUser, potentialMatch] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: candidateUserId },
+        select: {
+          firstName: true,
+          profile: {
+            select: {
+              gender: true, birthDate: true, city: true,
+              religiousLevel: true, occupation: true, education: true,
+              about: true, profileHeadline: true,
+            },
+          },
+        },
+      }),
+      // Get the PotentialMatch between these two users
+      prisma.profile.findUnique({
+        where: { userId: requestingUserId },
+        select: { gender: true },
+      }).then(async (p) => {
+        if (!p) return null;
+        const isMale = p.gender === 'MALE';
+        return prisma.potentialMatch.findFirst({
+          where: isMale
+            ? { maleUserId: requestingUserId, femaleUserId: candidateUserId }
+            : { maleUserId: candidateUserId, femaleUserId: requestingUserId },
+          select: { aiScore: true, shortReasoning: true, detailedReasoning: true },
+        });
+      }),
+    ]);
+
+    if (!candidateUser?.profile) return null;
+
+    const cp = candidateUser.profile;
+    const age = cp.birthDate
+      ? Math.floor((Date.now() - new Date(cp.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+      : null;
+
+    const parts: string[] = [];
+    parts.push(isHebrew ? '\n## הקשר: מועמד/ת מוצג/ת' : '\n## Context: Presented Candidate');
+    parts.push(`${isHebrew ? 'שם' : 'Name'}: ${candidateUser.firstName}`);
+    if (age) parts.push(`${isHebrew ? 'גיל' : 'Age'}: ${age}`);
+    if (cp.city) parts.push(`${isHebrew ? 'עיר' : 'City'}: ${cp.city}`);
+    if (cp.religiousLevel) parts.push(`${isHebrew ? 'רמה דתית' : 'Religious level'}: ${cp.religiousLevel}`);
+    if (cp.occupation) parts.push(`${isHebrew ? 'מקצוע' : 'Occupation'}: ${cp.occupation}`);
+    if (cp.education) parts.push(`${isHebrew ? 'השכלה' : 'Education'}: ${cp.education}`);
+    if (cp.about) parts.push(`${isHebrew ? 'על עצמם' : 'About'}: ${cp.about.slice(0, 300)}`);
+
+    if (potentialMatch) {
+      if (potentialMatch.aiScore) parts.push(`${isHebrew ? 'ציון התאמה' : 'Match score'}: ${Math.round(potentialMatch.aiScore)}`);
+      if (potentialMatch.shortReasoning) parts.push(`${isHebrew ? 'סיבת התאמה' : 'Match reason'}: ${potentialMatch.shortReasoning}`);
+      if (potentialMatch.detailedReasoning) parts.push(`${isHebrew ? 'ניתוח מפורט' : 'Detailed analysis'}: ${(potentialMatch.detailedReasoning as string).slice(0, 500)}`);
+    }
+
+    return parts.join('\n');
+  }
+
+  // ========== Smart Assistant: Update Conversation Phase ==========
+
+  static async updateConversationPhase(
+    conversationId: string,
+    phase: string,
+    candidateUserId?: string | null,
+    addToPresentedIds?: string,
+  ) {
+    const updateData: Record<string, unknown> = { phase };
+
+    if (candidateUserId !== undefined) {
+      updateData.currentCandidateUserId = candidateUserId;
+    }
+
+    if (addToPresentedIds) {
+      const conversation = await prisma.aiChatConversation.findUnique({
+        where: { id: conversationId },
+        select: { presentedCandidateIds: true },
+      });
+      const existing = (conversation?.presentedCandidateIds as string[]) || [];
+      if (!existing.includes(addToPresentedIds)) {
+        updateData.presentedCandidateIds = [...existing, addToPresentedIds];
+      }
+    }
+
+    return prisma.aiChatConversation.update({
+      where: { id: conversationId },
+      data: updateData,
+    });
   }
 }

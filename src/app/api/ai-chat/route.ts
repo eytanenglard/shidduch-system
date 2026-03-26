@@ -82,12 +82,34 @@ export async function POST(req: NextRequest) {
     // Save user message
     await AiChatService.saveMessage(conversation.id, 'user', message);
 
-    // Detect search intent
+    const effectiveSuggestionId = suggestionId || conversation.suggestionId;
+    const conversationPhase = conversation.phase || 'discovery';
+    const isGeneralChat = !effectiveSuggestionId; // General chat = smart assistant with phases
+
+    // Detect search intent (user explicitly asks to search, or agrees to AI's suggestion)
     const isSearchRequest = AiChatService.detectSearchIntent(message);
+
+    // === Build context based on conversation type ===
+
+    let suggestionContext: string | undefined;
+    let candidateContext: string | undefined;
     let searchContext: string | undefined;
     let searchResults: Awaited<ReturnType<typeof AiChatService.searchMatches>> = [];
 
-    if (isSearchRequest) {
+    if (effectiveSuggestionId) {
+      // Suggestion-specific chat (existing behavior)
+      suggestionContext = (await AiChatService.getSuggestionContext(effectiveSuggestionId, userId, locale)) || undefined;
+    } else if (conversationPhase === 'presenting' || conversationPhase === 'discussing') {
+      // General chat with a candidate being presented
+      if (conversation.currentCandidateUserId) {
+        candidateContext = (await AiChatService.buildCandidateContext(
+          conversation.currentCandidateUserId, userId, locale,
+        )) || undefined;
+      }
+    }
+
+    // Handle search in general chat (old anonymous search for suggestion-specific chats)
+    if (isSearchRequest && effectiveSuggestionId) {
       searchResults = await AiChatService.searchMatches(userId);
       searchContext = AiChatService.formatSearchResultsForAI(searchResults);
     }
@@ -95,19 +117,15 @@ export async function POST(req: NextRequest) {
     // Detect escalation intent
     const isEscalationRequest = AiChatService.detectEscalationIntent(message);
 
-    // Build suggestion context if this is a suggestion-specific conversation
-    const effectiveSuggestionId = suggestionId || conversation.suggestionId;
-
     // Detect action intent (approve/decline) for suggestion-specific chats
     const actionIntent = effectiveSuggestionId ? AiChatService.detectActionIntent(message) : null;
-    let suggestionContext: string | undefined;
-    if (effectiveSuggestionId) {
-      suggestionContext = (await AiChatService.getSuggestionContext(effectiveSuggestionId, userId, locale)) || undefined;
-    }
 
-    // Build system prompt and conversation history
+    // Build system prompt (phase-aware for general chat)
+    const phase = isGeneralChat ? conversationPhase : undefined;
+    const contextForPrompt = suggestionContext || candidateContext;
+
     const [systemPrompt, history, watchlistNames] = await Promise.all([
-      AiChatService.buildSystemPrompt(userId, locale, suggestionContext),
+      AiChatService.buildSystemPrompt(userId, locale, contextForPrompt, phase),
       AiChatService.buildConversationHistory(conversation.id),
       AiChatService.getWatchlistNames(userId),
     ]);
@@ -137,17 +155,17 @@ export async function POST(req: NextRequest) {
           }
 
           // Save assistant message
-          const metadata: Record<string, unknown> = {};
+          const msgMetadata: Record<string, unknown> = {};
           if (searchResults.length > 0) {
-            metadata.matchSearchResults = searchResults.map((r) => r.id);
-            metadata.toolUsed = 'search';
+            msgMetadata.matchSearchResults = searchResults.map((r) => r.id);
+            msgMetadata.toolUsed = 'search';
           }
 
           await AiChatService.saveMessage(
             conversation.id,
             'assistant',
             fullResponse,
-            Object.keys(metadata).length > 0 ? metadata : undefined,
+            Object.keys(msgMetadata).length > 0 ? msgMetadata : undefined,
           );
 
           // Handle escalation: create suggestion message for matchmaker
@@ -171,8 +189,33 @@ export async function POST(req: NextRequest) {
             actions = await AiChatService.getAvailableActions(effectiveSuggestionId, userId);
           }
 
+          // === Handle search trigger for general chat ===
+          let nextCandidate: Awaited<ReturnType<typeof AiChatService.getNextCandidate>> = null;
+          if (isGeneralChat && isSearchRequest && conversationPhase === 'discovery') {
+            nextCandidate = await AiChatService.getNextCandidate(userId, conversation.id);
+            if (nextCandidate) {
+              await AiChatService.updateConversationPhase(
+                conversation.id,
+                'presenting',
+                nextCandidate.candidateUserId,
+                nextCandidate.candidateUserId,
+              );
+
+              // Save a profile_card message
+              await AiChatService.saveMessage(
+                conversation.id,
+                'assistant',
+                '', // Empty content — the frontend renders the ProfileCard
+                {
+                  type: 'profile_card',
+                  candidateUserId: nextCandidate.candidateUserId,
+                },
+              );
+            }
+          }
+
           // Generate quick reply suggestions
-          const messageCount = history.length + 1; // +1 for the current exchange
+          const messageCount = history.length + 1;
           let suggestionStatus: string | null = null;
           if (effectiveSuggestionId) {
             const sg = await (await import('@/lib/prisma')).default.matchSuggestion.findUnique({
@@ -185,16 +228,26 @@ export async function POST(req: NextRequest) {
             locale, effectiveSuggestionId || null, suggestionStatus, messageCount,
           );
 
-          // Send done event with conversationId
+          // Send done event
           const doneData = JSON.stringify({
             type: 'done',
             conversationId: conversation.id,
             suggestionId: effectiveSuggestionId || undefined,
+            // Phase info for general chat
+            phase: isGeneralChat ? (nextCandidate ? 'presenting' : conversationPhase) : undefined,
+            candidateUserId: nextCandidate?.candidateUserId || conversation.currentCandidateUserId || undefined,
+            // Legacy search results (for suggestion-specific chats)
             hasSearchResults: searchResults.length > 0,
             searchResults: searchResults.length > 0 ? searchResults : undefined,
             escalated,
             actions: actions.length > 0 ? actions : undefined,
             quickReplies: quickReplies.length > 0 ? quickReplies : undefined,
+            // Action buttons for presenting phase
+            actionButtons: nextCandidate ? [
+              { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
+              { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
+              { type: 'tell_me_more', label: { he: 'ספר/י לי עוד', en: 'Tell me more' } },
+            ] : undefined,
           });
           controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));
 

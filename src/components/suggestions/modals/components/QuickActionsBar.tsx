@@ -124,9 +124,12 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
                 <p className="text-base font-bold text-gray-800">
                   {isExpanded ? dict.titleExpanded : dict.titleCollapsed}
                 </p>
-                {isExpanded && (
-                  <p className="text-sm text-gray-500 mt-0.5">{dict.subtitle}</p>
-                )}
+                <p className={cn(
+                  'mt-0.5 transition-all',
+                  isExpanded ? 'text-sm text-gray-500' : 'text-xs text-gray-400'
+                )}>
+                  {dict.subtitle}
+                </p>
               </div>
             </div>
             <Button
@@ -142,20 +145,20 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
         {/* Action buttons */}
         {isOpen && (
           <div className={cn(
-            'space-y-3',
+            'space-y-2.5',
             !forceExpanded && 'mt-4 animate-in fade-in-50 slide-in-from-bottom-4 duration-500'
           )}>
             {renderButtons()}
             {showAskExtra && (
-              <Button
-                variant="outline"
+              <button
+                type="button"
                 onClick={onAskQuestion}
                 disabled={isSubmitting}
-                className="w-full border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 hover:border-gray-300 rounded-xl h-11 font-medium shadow-sm"
+                className="w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-teal-600 transition-colors py-1.5 disabled:opacity-50"
               >
-                <MessageCircle className={cn('w-5 h-5', isHe ? 'ml-2' : 'mr-2')} />
+                <MessageCircle className="w-3.5 h-3.5" />
                 {dict.ask}
-              </Button>
+              </button>
             )}
           </div>
         )}

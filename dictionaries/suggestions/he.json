@@ -331,11 +331,17 @@
       "withdrawError": "שגיאה בביטול"
     },
     "detailsTab": {
+      "sectionTitle": "תקשורת והתייעצות",
+      "sectionSubtitle": "שוחחו עם העוזר החכם או עם השדכן/ית שלכם",
       "aiChatTitle": "שאל/י את העוזר החכם",
       "aiChatSubtitle": "שאל/י אותי על ההצעה הזו",
       "chatTitle": "שיחה עם {{name}}",
       "chatTitleFallback": "השדכן/ית",
       "chatSubtitle": "שאל/י שאלות, קבל/י עדכונים",
+      "contactTitle": "פרטי קשר",
+      "contactSubtitle": "פרטי הקשר שותפו — אפשר ליצור קשר!",
+      "contactPhone": "טלפון",
+      "contactEmail": "אימייל",
       "toasts": {
         "sendSuccess": "ההודעה נשלחה בהצלחה!",
         "sendSuccessDescription": "השדכן/ית יקבל/תקבל את ההודעה שלך בקרוב",

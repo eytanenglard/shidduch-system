@@ -13,6 +13,8 @@ import {
 } from "@/lib/mobile-auth";
 import profileAiService from "@/lib/services/profileAiService";
 import aiService from "@/lib/services/aiService";
+import type { SuggestionAnalysisContext } from "@/lib/services/aiService";
+import rejectionFeedbackService from "@/lib/services/rejectionFeedbackService";
 import type {
   StructuredRationale,
   CachedUserAnalysis,
@@ -38,18 +40,37 @@ export async function GET(
     }
     const currentUserId = auth.userId;
 
-    // ── 2. Load suggestion with rationale + profile timestamps ──
+    // ── 2. Load suggestion with rationale + profile timestamps + scoring data ──
     const suggestion = await prisma.matchSuggestion.findUnique({
       where: { id: suggestionId },
       select: {
         id: true,
         firstPartyId: true,
         secondPartyId: true,
+        matchingReason: true,
         structuredRationale: true,
+        potentialMatch: {
+          select: {
+            aiScore: true,
+            shortReasoning: true,
+            scoreBreakdown: true,
+          },
+        },
         firstParty: {
           select: {
             profile: {
               select: { contentUpdatedAt: true },
+            },
+            profileTags: {
+              select: {
+                sectorTags: true,
+                backgroundTags: true,
+                personalityTags: true,
+                careerTags: true,
+                lifestyleTags: true,
+                familyVisionTags: true,
+                relationshipTags: true,
+              },
             },
           },
         },
@@ -57,6 +78,17 @@ export async function GET(
           select: {
             profile: {
               select: { contentUpdatedAt: true },
+            },
+            profileTags: {
+              select: {
+                sectorTags: true,
+                backgroundTags: true,
+                personalityTags: true,
+                careerTags: true,
+                lifestyleTags: true,
+                familyVisionTags: true,
+                relationshipTags: true,
+              },
             },
           },
         },
@@ -79,17 +111,20 @@ export async function GET(
       ? suggestion.secondPartyId
       : suggestion.firstPartyId;
 
-    // The OTHER party's profile update timestamp (to detect staleness)
+    // Profile update timestamps for bidirectional staleness detection
     const otherPartyContentUpdatedAt = isFirstParty
       ? suggestion.secondParty?.profile?.contentUpdatedAt
       : suggestion.firstParty?.profile?.contentUpdatedAt;
+    const currentUserContentUpdatedAt = isFirstParty
+      ? suggestion.firstParty?.profile?.contentUpdatedAt
+      : suggestion.secondParty?.profile?.contentUpdatedAt;
 
-    // ── 4. Check cache ──
+    // ── 4. Check cache (bidirectional — invalidate if EITHER profile changed) ──
     const rationale = (suggestion.structuredRationale as StructuredRationale) || {};
     const cacheKey = isFirstParty ? "firstPartyAnalysis" : "secondPartyAnalysis";
     const cached = rationale[cacheKey];
 
-    if (isCacheValid(cached, otherPartyContentUpdatedAt)) {
+    if (isCacheValid(cached, otherPartyContentUpdatedAt, currentUserContentUpdatedAt)) {
       console.log(
         `[mobile/ai-analysis] Cache HIT for ${cacheKey} on suggestion ${suggestionId}`
       );
@@ -127,10 +162,66 @@ export async function GET(
       return corsError(req, "Could not generate profile narratives", 500);
     }
 
-    // ── 7. Call Gemini AI ──
+    // ── 7. Build context from existing scoring data ──
+    const analysisContext: SuggestionAnalysisContext = {};
+
+    if (suggestion.matchingReason) {
+      analysisContext.matchmakerReason = suggestion.matchingReason;
+    }
+
+    const potentialMatch = suggestion.potentialMatch;
+    if (potentialMatch?.scoreBreakdown && typeof potentialMatch.scoreBreakdown === 'object') {
+      analysisContext.scoreBreakdown = potentialMatch.scoreBreakdown as Record<string, number>;
+    }
+    if (potentialMatch?.aiScore != null) {
+      analysisContext.systemScore = Math.round(potentialMatch.aiScore);
+    }
+    if (potentialMatch?.shortReasoning) {
+      analysisContext.systemReasoning = potentialMatch.shortReasoning;
+    }
+
+    // Fallback to structuredRationale.ai if potentialMatch data missing
+    if (!analysisContext.systemScore && rationale.ai?.score) {
+      analysisContext.systemScore = Math.round(rationale.ai.score);
+    }
+    if (!analysisContext.systemReasoning && rationale.ai?.shortReasoning) {
+      analysisContext.systemReasoning = rationale.ai.shortReasoning;
+    }
+    if (!analysisContext.scoreBreakdown && rationale.ai?.scoreBreakdown) {
+      analysisContext.scoreBreakdown = rationale.ai.scoreBreakdown as Record<string, number>;
+    }
+
+    // ── 7b. Add Soul Fingerprint (Heart Map) tags for both users ──
+    const currentUserTags = isFirstParty
+      ? suggestion.firstParty?.profileTags
+      : suggestion.secondParty?.profileTags;
+    const otherUserTags = isFirstParty
+      ? suggestion.secondParty?.profileTags
+      : suggestion.firstParty?.profileTags;
+
+    if (currentUserTags || otherUserTags) {
+      analysisContext.profileTags = {
+        currentUser: currentUserTags || undefined,
+        otherUser: otherUserTags || undefined,
+      };
+    }
+
+    // ── 7c. Add rejection feedback patterns for the current user ──
+    try {
+      const rejectionProfile = await rejectionFeedbackService.getUserRejectionProfile(currentUserId);
+      if (rejectionProfile && rejectionProfile.patterns && rejectionProfile.patterns.length > 0) {
+        analysisContext.rejectionPatterns = rejectionProfile.patterns;
+      }
+    } catch (rejErr) {
+      // Don't fail the request if rejection feedback lookup fails
+      console.warn(`[mobile/ai-analysis] Rejection profile lookup failed:`, rejErr);
+    }
+
+    // ── 8. Call Gemini AI with enriched context ──
     const analysisResult = await aiService.analyzeSuggestionForUser(
       currentUserNarrative,
-      otherUserNarrative
+      otherUserNarrative,
+      analysisContext
     );
 
     if (!analysisResult) {
@@ -140,13 +231,16 @@ export async function GET(
       return corsError(req, "AI service failed to produce analysis", 500);
     }
 
-    // ── 8. Build cache entry ──
+    // ── 8. Build cache entry (bidirectional profile snapshots) ──
     const cacheEntry: CachedUserAnalysis = {
       ...analysisResult,
       generatedAt: new Date().toISOString(),
       generatedForUserId: currentUserId,
       otherPartyProfileUpdatedAt: otherPartyContentUpdatedAt
         ? new Date(otherPartyContentUpdatedAt).toISOString()
+        : null,
+      currentUserProfileUpdatedAt: currentUserContentUpdatedAt
+        ? new Date(currentUserContentUpdatedAt).toISOString()
         : null,
     };
 

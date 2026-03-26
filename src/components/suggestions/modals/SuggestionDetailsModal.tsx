@@ -1,9 +1,10 @@
 // src/components/suggestions/modals/SuggestionDetailsModal.tsx
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { AskMatchmakerDialog } from '../dialogs/AskMatchmakerDialog';
@@ -81,6 +82,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
     locale === 'he'
   );
 
+  // Scroll to top when switching tabs
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (viewport) viewport.scrollTop = 0;
+  }, [activeTab]);
+
   if (!suggestion || !targetParty || !profileWithUser) return null;
 
   const targetAge = targetParty.profile?.birthDate
@@ -90,9 +98,17 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
   const statusInfo = getEnhancedStatusInfo(suggestion.status, isFirstParty, dict.suggestions.card);
 
   const renderActiveTab = () => {
-    // Show skeleton on initial load for presentation tab
-    if (isInitialLoad && activeTab === 'presentation') {
-      return <PresentationTabSkeleton />;
+    // Show skeleton on initial load
+    if (isInitialLoad) {
+      if (activeTab === 'presentation') return <PresentationTabSkeleton />;
+      return (
+        <div className="p-5 md:p-8 space-y-4 bg-gray-50 min-h-[400px] animate-in fade-in-0">
+          <Skeleton className="w-48 h-6 rounded" />
+          <Skeleton className="w-full h-40 rounded-xl" />
+          <Skeleton className="w-36 h-5 rounded" />
+          <Skeleton className="w-full h-32 rounded-xl" />
+        </div>
+      );
     }
 
     switch (activeTab) {
@@ -166,6 +182,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
               suggestionId={suggestion.id}
               statusHistory={suggestion.statusHistory}
               matchmakerFirstName={suggestion.matchmaker?.firstName || ''}
+              status={suggestion.status}
+              targetPartyContact={targetParty ? {
+                firstName: targetParty.firstName,
+                lastName: targetParty.lastName,
+                phone: targetParty.phone,
+                email: targetParty.email,
+              } : undefined}
               locale={locale}
               dict={{
                 timeline: dict.suggestions.timeline,
@@ -189,7 +212,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
         isFullscreen={isFullscreen}
         isTransitioning={isTransitioning}
       >
-        <ScrollArea className="flex-grow min-h-0 modal-scroll">
+        <ScrollArea className="flex-grow min-h-0 modal-scroll" ref={scrollAreaRef}>
           <Tabs
             value={activeTab}
             onValueChange={handleTabChange}
