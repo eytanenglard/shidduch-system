@@ -665,6 +665,16 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     setActiveFilter((prev) => (prev === filter ? 'all' : filter));
   }, []);
 
+  // --- Active process banner data ---
+  const activeProcessParty = useMemo(() => {
+    if (!activeProcessSuggestion) return null;
+    const isFirst = activeProcessSuggestion.firstPartyId === userId;
+    return isFirst ? activeProcessSuggestion.secondParty : activeProcessSuggestion.firstParty;
+  }, [activeProcessSuggestion, userId]);
+
+  const activeProcessImage = activeProcessParty?.images?.find((img) => img.isMain);
+  const activeProcessAge = calculateAge(activeProcessParty?.profile?.birthDate ?? null);
+
   // --- Loading State ---
   if (isLoading) {
     return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
@@ -694,16 +704,6 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
     activeFilter === 'all' || activeFilter === 'backup';
   const showPendingSuggestions =
     activeFilter === 'all' || activeFilter === 'pending';
-
-  // --- Active process banner data ---
-  const activeProcessParty = useMemo(() => {
-    if (!activeProcessSuggestion) return null;
-    const isFirst = activeProcessSuggestion.firstPartyId === userId;
-    return isFirst ? activeProcessSuggestion.secondParty : activeProcessSuggestion.firstParty;
-  }, [activeProcessSuggestion, userId]);
-
-  const activeProcessImage = activeProcessParty?.images?.find((img) => img.isMain);
-  const activeProcessAge = calculateAge(activeProcessParty?.profile?.birthDate ?? null);
 
   // --- Render ---
   return (
