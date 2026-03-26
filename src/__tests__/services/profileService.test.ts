@@ -230,8 +230,8 @@ describe('buildProfileResponse', () => {
     expect(result.userId).toBe('user-1');
     expect(result.gender).toBe('MALE');
     expect(result.city).toBe('Jerusalem');
-    expect(result.user.firstName).toBe('David');
-    expect(result.user.email).toBe('david@example.com');
+    expect(result.user!.firstName).toBe('David');
+    expect(result.user!.email).toBe('david@example.com');
     expect(result.isProfileComplete).toBe(true);
   });
 
@@ -274,10 +274,10 @@ describe('buildProfileResponse', () => {
 
   it('should include phone only when provided', () => {
     const withPhone = buildProfileResponse(makeDbProfile(), makeUser({ phone: '+972501234567' }));
-    expect(withPhone.user.phone).toBe('+972501234567');
+    expect(withPhone.user!.phone).toBe('+972501234567');
 
     const withoutPhone = buildProfileResponse(makeDbProfile(), makeUser({ phone: undefined }));
-    expect('phone' in withoutPhone.user).toBe(false);
+    expect('phone' in withoutPhone.user!).toBe(false);
   });
 
   it('should default isProfileComplete to false when not provided', () => {

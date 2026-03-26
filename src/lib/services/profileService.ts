@@ -172,8 +172,8 @@ export function buildProfileResponse(
 
     user: {
       id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      firstName: user.firstName ?? undefined,
+      lastName: user.lastName ?? undefined,
       email: user.email,
       ...(user.phone !== undefined ? { phone: user.phone } : {}),
     },

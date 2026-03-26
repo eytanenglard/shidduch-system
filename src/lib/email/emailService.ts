@@ -66,6 +66,8 @@ interface TemplateContext {
   pageUrl?: string;
   screenshotUrl?: string;
   feedbackId?: string;
+  screenInfo?: string;
+  browserLanguage?: string;
 
   matchmakerNote?: string;
   reviewUrl?: string;

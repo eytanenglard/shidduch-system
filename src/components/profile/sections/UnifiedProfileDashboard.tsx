@@ -240,7 +240,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <div className="flex justify-center mb-6 md:mb-8">
-              <ScrollArea dir={direction} className="w-auto max-w-full">
+              <ScrollArea dir={direction as 'rtl' | 'ltr'} className="w-auto max-w-full">
                 <TabsList className="h-auto p-1.5 bg-white/70 backdrop-blur-sm rounded-full shadow-md gap-1 inline-flex flex-nowrap">
                   {['overview', 'photos', 'preferences', 'questionnaire'].map((tab) => (
                     <TabsTrigger
