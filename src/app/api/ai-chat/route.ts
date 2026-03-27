@@ -30,6 +30,7 @@ const chatInputSchema = z.object({
   conversationId: z.string().optional(),
   suggestionId: z.string().optional(), // When set, chat is contextual to a specific suggestion
   locale: z.enum(['he', 'en']).default('he'),
+  requestType: z.enum(['default', 'profile_summary']).optional(), // Enhanced context modes
 });
 
 export async function POST(req: NextRequest) {
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { message, locale, suggestionId } = parsed.data;
+    const { message, locale, suggestionId, requestType } = parsed.data;
 
     // Get or create conversation
     const conversation = parsed.data.conversationId
@@ -97,8 +98,14 @@ export async function POST(req: NextRequest) {
     let searchResults: Awaited<ReturnType<typeof AiChatService.searchMatches>> = [];
 
     if (effectiveSuggestionId) {
-      // Suggestion-specific chat (existing behavior)
-      suggestionContext = (await AiChatService.getSuggestionContext(effectiveSuggestionId, userId, locale)) || undefined;
+      // Deep profile summary mode — load comprehensive profile data
+      if (requestType === 'profile_summary') {
+        suggestionContext = (await AiChatService.buildDeepProfileContext(effectiveSuggestionId, userId, locale)) || undefined;
+      }
+      // Fallback to standard suggestion context
+      if (!suggestionContext) {
+        suggestionContext = (await AiChatService.getSuggestionContext(effectiveSuggestionId, userId, locale)) || undefined;
+      }
     } else if (conversationPhase === 'presenting' || conversationPhase === 'discussing') {
       // General chat with a candidate being presented
       if (conversation.currentCandidateUserId) {

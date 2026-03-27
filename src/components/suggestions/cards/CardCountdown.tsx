@@ -3,19 +3,28 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+interface CountdownDict {
+  daysLeft: string;
+  hoursLeft: string;
+  minutesLeft: string;
+  expired: string;
+}
 
 interface CardCountdownProps {
   deadline: Date | string;
   locale: 'he' | 'en';
+  dict?: CountdownDict;
   className?: string;
 }
 
 const CardCountdown: React.FC<CardCountdownProps> = ({
   deadline,
   locale,
+  dict,
   className,
 }) => {
   const [timeLeft, setTimeLeft] = useState<{
@@ -24,6 +33,8 @@ const CardCountdown: React.FC<CardCountdownProps> = ({
     minutes: number;
     total: number;
   } | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const calc = () => {
@@ -33,6 +44,11 @@ const CardCountdown: React.FC<CardCountdownProps> = ({
 
       if (diff <= 0) {
         setTimeLeft(null);
+        setIsExpired(true);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
         return;
       }
 
@@ -45,9 +61,28 @@ const CardCountdown: React.FC<CardCountdownProps> = ({
     };
 
     calc();
-    const interval = setInterval(calc, 60_000); // Update every minute
-    return () => clearInterval(interval);
+    intervalRef.current = setInterval(calc, 60_000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [deadline]);
+
+  // Expired state
+  if (isExpired) {
+    const expiredLabel = dict?.expired ?? (locale === 'he' ? 'פג תוקף' : 'Expired');
+    return (
+      <div
+        className={cn(
+          'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium',
+          'bg-red-50 text-red-700 border border-red-200',
+          className
+        )}
+      >
+        <AlertTriangle className="w-3 h-3" />
+        <span>{expiredLabel}</span>
+      </div>
+    );
+  }
 
   if (!timeLeft) return null;
 
@@ -56,18 +91,27 @@ const CardCountdown: React.FC<CardCountdownProps> = ({
 
   const formatTime = () => {
     if (timeLeft.days > 0) {
-      return locale === 'he'
-        ? `נותרו ${timeLeft.days} ימים`
-        : `${timeLeft.days} days left`;
+      const template = dict?.daysLeft;
+      return template
+        ? template.replace('{{count}}', String(timeLeft.days))
+        : locale === 'he'
+          ? `נותרו ${timeLeft.days} ימים`
+          : `${timeLeft.days} days left`;
     }
     if (timeLeft.hours > 0) {
-      return locale === 'he'
-        ? `נותרו ${timeLeft.hours} שעות`
-        : `${timeLeft.hours}h left`;
+      const template = dict?.hoursLeft;
+      return template
+        ? template.replace('{{count}}', String(timeLeft.hours))
+        : locale === 'he'
+          ? `נותרו ${timeLeft.hours} שעות`
+          : `${timeLeft.hours}h left`;
     }
-    return locale === 'he'
-      ? `נותרו ${timeLeft.minutes} דקות`
-      : `${timeLeft.minutes}m left`;
+    const template = dict?.minutesLeft;
+    return template
+      ? template.replace('{{count}}', String(timeLeft.minutes))
+      : locale === 'he'
+        ? `נותרו ${timeLeft.minutes} דקות`
+        : `${timeLeft.minutes}m left`;
   };
 
   return (

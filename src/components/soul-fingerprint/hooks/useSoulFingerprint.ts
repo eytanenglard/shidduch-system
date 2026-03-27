@@ -177,6 +177,25 @@ export function useSoulFingerprint(
     scrollToTop();
   }, [scrollToTop]);
 
+  const allRequiredAnswered = useCallback(() => {
+    return SF_SECTIONS.every((section) => {
+      const visibleQ = section.questions.filter((q) =>
+        isQuestionVisible(q, state.answers, state.sectorGroup, state.sector, state.lifeStage, gender)
+      );
+      const requiredQ = visibleQ.filter((q) => !q.isOptional);
+      return requiredQ.every((q) => {
+        const ans = state.answers[q.id];
+        if (ans === null || ans === undefined || ans === '') return false;
+        if (Array.isArray(ans) && ans.length === 0) return false;
+        return true;
+      });
+    });
+  }, [state.answers, state.sectorGroup, state.sector, state.lifeStage, gender]);
+
+  const markComplete = useCallback(() => {
+    setState((prev) => ({ ...prev, isComplete: true }));
+  }, []);
+
   const nextSection = useCallback(() => {
     setState((prev) => {
       if (prev.currentSectionIndex < SF_SECTIONS.length - 1) {
@@ -187,7 +206,7 @@ export function useSoulFingerprint(
           showingPartnerQuestions: false,
         };
       }
-      return { ...prev, isComplete: true };
+      return prev;
     });
     scrollToTop();
   }, [scrollToTop]);
@@ -240,12 +259,14 @@ export function useSoulFingerprint(
   }, [state.answers, state.sectorGroup, state.sector, state.lifeStage, gender]);
 
   // Save function — uses customSaveFn if provided, otherwise default API save
-  const saveFn = useCallback(async () => {
+  // overrideComplete allows callers to force isComplete=true without waiting for state update
+  const saveFn = useCallback(async (overrideComplete?: boolean) => {
+    const isComplete = overrideComplete ?? state.isComplete;
     setIsSaving(true);
     setSaveStatus('saving');
     try {
       if (options?.customSaveFn) {
-        await options.customSaveFn(state.answers, state.isComplete);
+        await options.customSaveFn(state.answers, isComplete);
       } else {
         const selfTags = deriveTagsFromAnswers(state.answers);
         const partnerTags = derivePartnerTagsFromAnswers(state.answers);
@@ -257,7 +278,7 @@ export function useSoulFingerprint(
             sectionAnswers: state.answers,
             ...selfTags,
             partnerTags,
-            isComplete: state.isComplete,
+            isComplete,
           }),
         });
       }
@@ -292,5 +313,7 @@ export function useSoulFingerprint(
     switchToSelf,
     saveNow: saveFn,
     totalSections: SF_SECTIONS.length,
+    allRequiredAnswered,
+    markComplete,
   };
 }

@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
         relationshipTags,
         diasporaTags,
         partnerTags,
-        completedAt: isComplete ? new Date() : undefined,
+        completedAt: isComplete ? new Date() : null,
         updatedAt: new Date(),
       },
     });

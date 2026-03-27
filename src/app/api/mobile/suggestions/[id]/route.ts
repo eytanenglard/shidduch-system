@@ -214,6 +214,7 @@ export async function GET(
     }
 
     const otherPartyRaw = isFirstParty ? suggestion.secondParty : suggestion.firstParty;
+    const currentUserRaw = isFirstParty ? suggestion.firstParty : suggestion.secondParty;
     const notes = isFirstParty ? suggestion.firstPartyNotes : suggestion.secondPartyNotes;
 
     // Process questionnaire responses
@@ -257,6 +258,17 @@ export async function GET(
       testimonials: (otherPartyRaw.profile?.isFriendsSectionVisible !== false)
         ? (otherPartyRaw.profile?.testimonials || [])
         : [],
+    };
+
+    const currentUserProfile = {
+      age: calculateAge(currentUserRaw.profile?.birthDate),
+      city: currentUserRaw.profile?.city || null,
+      religiousLevel: currentUserRaw.profile?.religiousLevel || null,
+      education: currentUserRaw.profile?.education || null,
+      educationLevel: currentUserRaw.profile?.educationLevel || null,
+      origin: currentUserRaw.profile?.origin || null,
+      characterTraits: currentUserRaw.profile?.profileCharacterTraits || [],
+      hobbies: currentUserRaw.profile?.profileHobbies || [],
     };
 
     const showContactDetails = suggestion.status === 'CONTACT_DETAILS_SHARED';
@@ -336,6 +348,7 @@ const canRespond =
       isFirstParty,
       canRespond,
       showContactDetails,
+      currentUserProfile,
       compatibilityRationale: Object.keys(compatibilityRationale).length > 0
         ? compatibilityRationale
         : null,

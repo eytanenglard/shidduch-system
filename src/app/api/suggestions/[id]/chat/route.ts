@@ -8,6 +8,7 @@ import { sanitizeText } from '@/lib/sanitize';
 import { pushSuggestionMessage, pushUserMessageToMatchmaker } from '@/lib/sendPushNotification';
 import { publishNewMessage } from '@/lib/chatPubSub';
 import { checkMessageRateLimit } from '@/lib/messageRateLimit';
+import { emailService } from '@/lib/email/emailService';
 
 // ==========================================
 // GET — Fetch messages for a suggestion chat
@@ -180,6 +181,15 @@ export async function POST(
         firstPartyId: true,
         secondPartyId: true,
         matchmakerId: true,
+        matchmaker: {
+          select: { email: true, firstName: true },
+        },
+        firstParty: {
+          select: { email: true, firstName: true },
+        },
+        secondParty: {
+          select: { email: true, firstName: true },
+        },
       },
     });
 
@@ -271,6 +281,40 @@ export async function POST(
       }
     } else {
       publishNewMessage(suggestion.matchmakerId, ssePayload).catch(console.error);
+    }
+
+    // Email notifications (non-blocking)
+    const senderName = session.user.name || (isMatchmaker ? 'השדכן/ית' : 'משתמש/ת');
+    const trimmedContent = content.trim();
+
+    if (isMatchmaker) {
+      // Matchmaker sent → email to target user(s)
+      const targets = targetUserId
+        ? [targetUserId === suggestion.firstPartyId ? suggestion.firstParty : suggestion.secondParty]
+        : [suggestion.firstParty, suggestion.secondParty];
+
+      for (const target of targets) {
+        if (target?.email) {
+          emailService.sendChatNotificationEmail({
+            recipientEmail: target.email,
+            recipientName: target.firstName,
+            senderName,
+            messagePreview: trimmedContent,
+            suggestionId,
+          }).catch(console.error);
+        }
+      }
+    } else {
+      // User sent → email to matchmaker
+      if (suggestion.matchmaker?.email) {
+        emailService.sendChatNotificationEmail({
+          recipientEmail: suggestion.matchmaker.email,
+          recipientName: suggestion.matchmaker.firstName,
+          senderName,
+          messagePreview: trimmedContent,
+          suggestionId,
+        }).catch(console.error);
+      }
     }
 
     return NextResponse.json({

@@ -9,6 +9,7 @@ interface Props {
   onEdit: () => void;
   onContinue: () => void;
   t: (key: string) => string;
+  translateTag: (tag: string) => string;
   isRTL: boolean;
   locale?: string;
 }
@@ -35,7 +36,7 @@ const CATEGORY_I18N: Record<string, string> = {
   diasporaTags: 'diaspora',
 };
 
-export default function SoulFingerprintComplete({ tags, onEdit, onContinue, t, isRTL, locale }: Props) {
+export default function SoulFingerprintComplete({ tags, onEdit, onContinue, t, translateTag, isRTL, locale }: Props) {
   const totalTags = Object.values(tags).reduce((sum, arr) => sum + arr.length, 0);
 
   return (
@@ -83,7 +84,7 @@ export default function SoulFingerprintComplete({ tags, onEdit, onContinue, t, i
                       key={tag}
                       className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${colorClass}`}
                     >
-                      {tag.replace(/_/g, ' ')}
+                      {translateTag(tag)}
                     </span>
                   ))}
                 </div>

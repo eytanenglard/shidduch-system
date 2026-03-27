@@ -18,10 +18,11 @@ export interface ChatMessage {
     toolUsed?: string;
     userRating?: 'up' | 'down';
     // Smart assistant types
-    type?: 'text' | 'profile_card' | 'action_buttons' | 'action_confirmation' | 'no_more_candidates' | 'no_candidates_found' | 'decline_feedback';
+    type?: 'text' | 'profile_card' | 'action_buttons' | 'action_confirmation' | 'no_more_candidates' | 'no_candidates_found' | 'decline_feedback' | 'limit_reached';
     candidateUserId?: string;
     action?: string;
     suggestionId?: string;
+    weeklyUsage?: WeeklyUsage;
   };
 }
 
@@ -45,8 +46,20 @@ export interface ChatAction {
 }
 
 export interface ChatActionButton {
-  type: 'interested' | 'not_for_me' | 'tell_me_more';
+  type: 'interested' | 'not_for_me' | 'tell_me_more' | 'next_candidate';
   label: { he: string; en: string };
+}
+
+export interface WeeklyUsage {
+  used: number;
+  limit: number;
+  remaining: number;
+  resetsAt: string;
+}
+
+export interface CandidateCounter {
+  shown: number;
+  total: number;
 }
 
 export type ChatPhase = 'discovery' | 'searching' | 'presenting' | 'discussing';
@@ -79,6 +92,9 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
   const [actionButtons, setActionButtons] = useState<ChatActionButton[]>([]);
   const [potentialMatchId, setPotentialMatchId] = useState<string | null>(null);
   const [isLoadingDiscovery, setIsLoadingDiscovery] = useState(false);
+  const [weeklyUsage, setWeeklyUsage] = useState<WeeklyUsage | null>(null);
+  const [candidateCounter, setCandidateCounter] = useState<CandidateCounter | null>(null);
+  const [showRejectionPicker, setShowRejectionPicker] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const isGeneralChat = !suggestionId;
@@ -149,11 +165,23 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
               { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
               { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
               { type: 'tell_me_more', label: { he: 'ספר/י לי עוד', en: 'Tell me more' } },
+              { type: 'next_candidate', label: { he: 'הבא/ה', en: 'Next' } },
             ]);
           }
         }
       }
       setHistoryLoaded(true);
+
+      // Fetch weekly usage for general chat
+      if (isGeneralChat) {
+        try {
+          const usageRes = await fetch('/api/ai-chat/usage');
+          if (usageRes.ok) {
+            const usageData = await usageRes.json();
+            if (usageData.success) setWeeklyUsage(usageData.usage);
+          }
+        } catch { /* non-critical */ }
+      }
     } catch (err) {
       console.error('[AiChat] History load error:', err);
       setError(locale === 'he' ? 'שגיאה בטעינת היסטוריית השיחה' : 'Failed to load chat history');
@@ -162,7 +190,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     }
   }, [locale, suggestionId, proactiveMessage, isGeneralChat]);
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, requestType?: 'profile_summary') => {
     if (!text.trim() || isStreaming) return;
 
     setError(null);
@@ -197,6 +225,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
           conversationId,
           suggestionId,
           locale,
+          ...(requestType ? { requestType } : {}),
         }),
         signal: abortController.signal,
       });
@@ -357,14 +386,22 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     }
   }, [suggestionId, conversationId, locale, actionExecuting]);
 
-  // Execute smart assistant actions (interested/not_for_me/tell_me_more/trigger_search)
+  // Execute smart assistant actions
   const executeChatAction = useCallback(async (
-    actionType: 'interested' | 'not_for_me' | 'tell_me_more' | 'trigger_search',
-    feedback?: string,
+    actionType: 'interested' | 'not_for_me' | 'tell_me_more' | 'trigger_search' | 'next_candidate',
+    extra?: { feedback?: string; rejectionCategory?: string; missingTraits?: string[] },
   ) => {
     if (actionExecuting || !conversationId) return;
+
+    // For not_for_me: show rejection picker first (if no category provided yet)
+    if (actionType === 'not_for_me' && !extra?.rejectionCategory) {
+      setShowRejectionPicker(true);
+      return;
+    }
+
     setActionExecuting(true);
     setActionButtons([]);
+    setShowRejectionPicker(false);
 
     try {
       const body: Record<string, unknown> = {
@@ -377,7 +414,11 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
         body.potentialMatchId = potentialMatchId;
       } else if (actionType === 'not_for_me' && currentCandidateUserId) {
         body.candidateUserId = currentCandidateUserId;
-        if (feedback) body.feedback = feedback;
+        if (extra?.feedback) body.feedback = extra.feedback;
+        if (extra?.rejectionCategory) body.rejectionCategory = extra.rejectionCategory;
+        if (extra?.missingTraits) body.missingTraits = extra.missingTraits;
+      } else if (actionType === 'next_candidate' && currentCandidateUserId) {
+        body.candidateUserId = currentCandidateUserId;
       }
 
       const res = await fetch('/api/ai-chat/action', {
@@ -387,17 +428,35 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || `HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
       // Update phase
-      if (data.phase) {
-        setPhase(data.phase as ChatPhase);
+      if (data.phase) setPhase(data.phase as ChatPhase);
+
+      // Update weekly usage & candidate counter
+      if (data.weeklyUsage) setWeeklyUsage(data.weeklyUsage);
+      if (data.candidateCounter) setCandidateCounter(data.candidateCounter);
+
+      // Handle weekly limit reached
+      if (data.limitReached) {
+        setCurrentCandidateUserId(null);
+        setPotentialMatchId(null);
+        const usage = data.weeklyUsage;
+        const resetDate = new Date(usage.resetsAt).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
+        const msg: ChatMessage = {
+          id: `limit-${Date.now()}`,
+          role: 'assistant',
+          content: locale === 'he'
+            ? `הגעת למכסה השבועית (${usage.limit} הצעות). המכסה תתאפס ב-${resetDate}. בינתיים, נוכל להמשיך לדבר ולדייק!`
+            : `You've reached the weekly limit (${usage.limit} suggestions). Resets ${resetDate}. We can keep chatting meanwhile!`,
+          createdAt: new Date().toISOString(),
+          metadata: { type: 'limit_reached', weeklyUsage: usage },
+        };
+        setMessages((prev) => [...prev, msg]);
+        return;
       }
 
-      // Handle response based on action type
+      // Handle interested
       if (actionType === 'interested') {
         setCurrentCandidateUserId(null);
         setPotentialMatchId(null);
@@ -405,88 +464,48 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
           id: `action-${Date.now()}`,
           role: 'assistant',
           content: locale === 'he'
-            ? 'מצוין! יצרתי את ההצעה. השדכנית שלך תעודכן ותוכל ללוות את התהליך. 🎉'
-            : 'Excellent! The suggestion has been created. Your matchmaker will be notified. 🎉',
+            ? 'מצוין! יצרתי את ההצעה. השדכנית שלך תעודכן ותוכל ללוות את התהליך.'
+            : 'Excellent! The suggestion has been created. Your matchmaker will be notified.',
           createdAt: new Date().toISOString(),
           metadata: { type: 'action_confirmation', action: 'interested', suggestionId: data.suggestionId },
         };
         setMessages((prev) => [...prev, msg]);
-
-        // Refresh suggestions list
         window.dispatchEvent(new CustomEvent('suggestion-status-changed', {
           detail: { suggestionId: data.suggestionId, status: 'PENDING_FIRST_PARTY' },
         }));
-      } else if (actionType === 'not_for_me') {
-        if (data.candidateUserId) {
-          // Next candidate available
-          setCurrentCandidateUserId(data.candidateUserId);
-          setPotentialMatchId(data.potentialMatchId || null);
-          if (data.actionButtons) setActionButtons(data.actionButtons);
+        return;
+      }
 
-          // Add profile card message
-          const profileMsg: ChatMessage = {
-            id: `profile-${Date.now()}`,
-            role: 'assistant',
-            content: locale === 'he' ? 'הנה מישהו/י אחר/ת שיכול/ה להתאים:' : 'Here\'s someone else who might be a match:',
-            createdAt: new Date().toISOString(),
-          };
-          const cardMsg: ChatMessage = {
-            id: `card-${Date.now()}`,
-            role: 'assistant',
-            content: '',
-            createdAt: new Date().toISOString(),
-            metadata: { type: 'profile_card', candidateUserId: data.candidateUserId },
-          };
-          setMessages((prev) => [...prev, profileMsg, cardMsg]);
-        } else {
-          // No more candidates
-          setCurrentCandidateUserId(null);
-          setPotentialMatchId(null);
-          const msg: ChatMessage = {
-            id: `no-more-${Date.now()}`,
-            role: 'assistant',
-            content: locale === 'he'
-              ? 'כרגע אין לי עוד התאמות חדשות להציע. בואו נמשיך לדבר כדי שאוכל למצוא לך התאמות טובות יותר בהמשך. 💬'
-              : "I don't have more matches to suggest right now. Let's keep chatting so I can find better matches for you. 💬",
-            createdAt: new Date().toISOString(),
-            metadata: { type: 'no_more_candidates' },
-          };
-          setMessages((prev) => [...prev, msg]);
-        }
-      } else if (actionType === 'tell_me_more') {
-        // Phase changed to discussing, user can now chat about the candidate
-      } else if (actionType === 'trigger_search') {
-        if (data.candidateUserId) {
-          setCurrentCandidateUserId(data.candidateUserId);
-          setPotentialMatchId(data.potentialMatchId || null);
-          if (data.actionButtons) setActionButtons(data.actionButtons);
+      // Handle tell_me_more (just phase change)
+      if (actionType === 'tell_me_more') return;
 
-          const introMsg: ChatMessage = {
-            id: `search-intro-${Date.now()}`,
-            role: 'assistant',
-            content: locale === 'he' ? 'מצאתי מישהו/י שיכול/ה להתאים לך:' : 'I found someone who might be a match:',
-            createdAt: new Date().toISOString(),
-          };
-          const cardMsg: ChatMessage = {
-            id: `card-${Date.now()}`,
-            role: 'assistant',
-            content: '',
-            createdAt: new Date().toISOString(),
-            metadata: { type: 'profile_card', candidateUserId: data.candidateUserId },
-          };
-          setMessages((prev) => [...prev, introMsg, cardMsg]);
-        } else {
-          const msg: ChatMessage = {
-            id: `no-found-${Date.now()}`,
-            role: 'assistant',
-            content: locale === 'he'
-              ? 'חיפשתי במאגר ולא מצאתי כרגע התאמות חדשות. ככל שנמשיך לדייק את מה שחשוב לך, יעלו התאמות חדשות. 🔍'
-              : "I searched the database but couldn't find new matches right now. As we keep refining what matters to you, new matches will come up. 🔍",
-            createdAt: new Date().toISOString(),
-            metadata: { type: 'no_candidates_found' },
-          };
-          setMessages((prev) => [...prev, msg]);
-        }
+      // Handle candidate presentation (not_for_me, next_candidate, trigger_search)
+      if (data.candidateUserId) {
+        setCurrentCandidateUserId(data.candidateUserId);
+        setPotentialMatchId(data.potentialMatchId || null);
+        if (data.actionButtons) setActionButtons(data.actionButtons);
+
+        const cardMsg: ChatMessage = {
+          id: `card-${Date.now()}`,
+          role: 'assistant',
+          content: '',
+          createdAt: new Date().toISOString(),
+          metadata: { type: 'profile_card', candidateUserId: data.candidateUserId },
+        };
+        setMessages((prev) => [...prev, cardMsg]);
+      } else if (data.noMoreCandidates) {
+        setCurrentCandidateUserId(null);
+        setPotentialMatchId(null);
+        const msg: ChatMessage = {
+          id: `no-more-${Date.now()}`,
+          role: 'assistant',
+          content: locale === 'he'
+            ? 'כרגע אין לי עוד התאמות חדשות. בואו נמשיך לדבר כדי שאוכל למצוא לך התאמות טובות יותר בהמשך.'
+            : "No more matches right now. Let's keep chatting so I can find better matches later.",
+          createdAt: new Date().toISOString(),
+          metadata: { type: 'no_more_candidates' },
+        };
+        setMessages((prev) => [...prev, msg]);
       }
     } catch (err) {
       console.error('[AiChat] Chat action error:', err);
@@ -549,5 +568,10 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     executeChatAction,
     isGeneralChat,
     isLoadingDiscovery,
+    weeklyUsage,
+    candidateCounter,
+    showRejectionPicker,
+    setShowRejectionPicker,
+    historyLoaded,
   };
 }

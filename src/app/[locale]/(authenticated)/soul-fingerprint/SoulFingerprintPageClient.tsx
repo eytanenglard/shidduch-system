@@ -5,6 +5,12 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import SoulFingerprintFlow from '@/components/soul-fingerprint/SoulFingerprintFlow';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
+import {
+  buildOptionTranslationMap,
+  createTagTranslator,
+  COMPUTED_TAG_TRANSLATIONS_HE,
+  COMPUTED_TAG_TRANSLATIONS_EN,
+} from '@/components/soul-fingerprint/tagTranslation';
 
 // Dictionaries loaded client-side for this standalone feature
 import heDict from '@/dictionaries/soul-fingerprint/he.json';
@@ -47,6 +53,12 @@ export default function SoulFingerprintPageClient({ locale }: Props) {
     [dict, gender]
   );
 
+  const translateTag = useMemo(() => {
+    const optionMap = buildOptionTranslationMap(dict, gender);
+    const computedMap = locale === 'he' ? COMPUTED_TAG_TRANSLATIONS_HE : COMPUTED_TAG_TRANSLATIONS_EN;
+    return createTagTranslator(optionMap, computedMap);
+  }, [dict, gender, locale]);
+
   // Load existing data including previous answers
   useEffect(() => {
     async function loadData() {
@@ -87,6 +99,7 @@ export default function SoulFingerprintPageClient({ locale }: Props) {
         initialData={initialData as { sectionAnswers?: Record<string, unknown>; isComplete?: boolean } | null}
         locale={locale}
         t={t}
+        translateTag={translateTag}
         onComplete={() => router.push(`/${locale}/profile`)}
         onSkip={() => router.push(`/${locale}/profile`)}
       />

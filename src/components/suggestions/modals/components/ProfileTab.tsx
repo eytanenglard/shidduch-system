@@ -4,6 +4,7 @@ import React from 'react';
 import { Loader2, AlertTriangle, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProfileCard } from '@/components/profile';
+import AiInsightBar from './AiInsightBar';
 import type { ProfileTabProps } from '../types/modal.types';
 
 const ProfileTab: React.FC<ProfileTabProps> = ({
@@ -13,7 +14,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   questionnaire,
   locale,
   onNavigateToDetails,
+  onRequestAiSummary,
+  onNavigateToCompatibility,
   dict,
+  aiInsightBarDict,
 }) => {
   if (isQuestionnaireLoading) {
     return (
@@ -55,15 +59,24 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   }
 
   return (
-    <ProfileCard
-      profile={profileWithUser}
-      isProfileComplete={targetParty.isProfileComplete}
-      images={targetParty.images}
-      questionnaire={questionnaire}
-      viewMode="candidate"
-      dict={dict.profileCard}
-      locale={locale}
-    />
+    <div className="space-y-4">
+      <AiInsightBar
+        targetName={targetParty.firstName}
+        onRequestAiSummary={onRequestAiSummary}
+        onNavigateToCompatibility={onNavigateToCompatibility}
+        locale={locale}
+        dict={aiInsightBarDict}
+      />
+      <ProfileCard
+        profile={profileWithUser}
+        isProfileComplete={targetParty.isProfileComplete}
+        images={targetParty.images}
+        questionnaire={questionnaire}
+        viewMode="candidate"
+        dict={dict.profileCard}
+        locale={locale}
+      />
+    </div>
   );
 };
 

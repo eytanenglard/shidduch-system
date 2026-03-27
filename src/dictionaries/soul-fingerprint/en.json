@@ -145,6 +145,11 @@
       "text": "What type of yeshiva did / do you study at?",
       "subtitle": "This gives us insight into your background"
     },
+    "s1_dl_mechina_specific": {
+      "text": "Which mechina did you attend? (Optional)",
+      "subtitle": "Helps us understand your background",
+      "placeholder": "Mechina name"
+    },
     "s1_dl_yeshiva_specific": {
       "text": "Which specific yeshiva? (Optional)",
       "subtitle": "Help us understand even better",
@@ -956,7 +961,7 @@
       "non_combat": "Non-combat — full service",
       "hesder": "Hesder — yeshiva combined with army",
       "mechina": "Pre-army mechina + full service",
-      "yeshiva_only": "Yeshiva gedola — no military service",
+      "yeshiva_only": "Advanced yeshiva — no military service",
       "kav": "Kav yeshiva — one year yeshiva after army",
       "exempt_medical": "Medical exemption",
       "exempt_other": "Other exemption",
@@ -990,10 +995,12 @@
     "s1_dl_yeshiva_type": {
       "hesder_yeshiva": "Hesder yeshiva — combining Torah and army",
       "hesder_sub": "e.g.: Har Etzion, Shaalvim, Kerem B'Yavneh, Siach Yitzchak",
-      "kav_yeshiva": "Kav yeshiva — one year after the army",
-      "kav_sub": "e.g.: Eli, Merkaz HaRav, Ramot",
-      "big_yeshiva": "Dati Leumi yeshiva gedola",
-      "big_sub": "Many years of learning",
+      "kav_yeshiva": "Advanced yeshiva / Kav yeshiva — post-army learning",
+      "kav_sub": "e.g.: Merkaz HaRav, Har HaMor, Beit El, Ateret Cohanim",
+      "mechina": "Pre-military academy (Mechina)",
+      "mechina_sub": "e.g.: Bnei David (Eli), Atzmona, Ein Prat, Nachshon",
+      "gap_year": "Gap year yeshiva (overseas students)",
+      "gap_year_sub": "e.g.: Netiv Aryeh, Orayta, Lev HaTorah, Reishit",
       "yeshiva_high": "Yeshiva high school only",
       "no_yeshiva": "Did not study in yeshiva"
     },
@@ -1001,8 +1008,7 @@
       "har_etzion": "Har Etzion (Gush Etzion)",
       "shaalvim": "Shaalvim",
       "kerem_byavne": "Kerem B'Yavneh",
-      "har_amiel": "Har HaMor",
-      "eli": "Eli (Bnei David)",
+      "har_hamor": "Har HaMor",
       "siach": "Siach Yitzchak",
       "merkaz_harav": "Merkaz HaRav",
       "otniel": "Otniel",
@@ -1014,8 +1020,29 @@
       "har_bracha": "Har Bracha",
       "ramat_gan": "Yeshivat Ramat Gan",
       "machon_meir": "Machon Meir",
+      "ateret_cohanim": "Ateret Cohanim",
+      "ateret_yerushalayim": "Ateret Yerushalayim",
+      "netiv_aryeh": "Netiv Aryeh",
+      "orayta": "Orayta",
+      "lev_hatorah": "Lev HaTorah",
+      "reishit": "Reishit",
+      "mevaseret": "Sha'arei Mevaseret Zion",
+      "torat_shraga": "Torat Shraga",
+      "ohr_yerushalayim": "Ohr Yerushalayim",
       "other_yeshiva": "Other yeshiva",
       "other_yeshiva_placeholder": "Yeshiva name"
+    },
+    "s1_dl_mechina_specific": {
+      "bnei_david_eli": "Bnei David (Eli)",
+      "atzmona": "Atzmona",
+      "ein_prat": "Ein Prat",
+      "nachshon": "Nachshon",
+      "yerucham_mechina": "Yerucham Mechina",
+      "maale_efraim": "Maale Efraim",
+      "chemdat_yehuda": "Chemdat Yehuda",
+      "lod_mechina": "The New Mechina in Lod",
+      "other_mechina": "Other mechina",
+      "other_mechina_placeholder": "Mechina name"
     },
     "s1_dl_zionism": {
       "strong_zionist": "Ideological Zionist — Eretz Yisrael is central",

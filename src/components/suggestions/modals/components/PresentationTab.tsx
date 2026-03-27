@@ -25,6 +25,7 @@ import {
   createCharacterTraitMap,
 } from '@/components/profile/utils/maps';
 import ImageLightbox from './ImageLightbox';
+import AiInsightBar from './AiInsightBar';
 import type { PresentationTabProps } from '../types/modal.types';
 
 const PresentationTab: React.FC<PresentationTabProps> = ({
@@ -34,7 +35,10 @@ const PresentationTab: React.FC<PresentationTabProps> = ({
   matchingReason,
   locale,
   onViewProfile,
+  onRequestAiSummary,
+  onNavigateToCompatibility,
   dict,
+  aiInsightBarDict,
   profileCardDict,
 }) => {
   const isHe = locale === 'he';
@@ -51,6 +55,8 @@ const PresentationTab: React.FC<PresentationTabProps> = ({
   const allImages = targetParty.images || [];
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [showAllTraits, setShowAllTraits] = useState(false);
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
@@ -129,6 +135,15 @@ const PresentationTab: React.FC<PresentationTabProps> = ({
               </p>
             </div>
           </div>
+
+          {/* AI Insight Bar */}
+          <AiInsightBar
+            targetName={targetParty.firstName}
+            onRequestAiSummary={onRequestAiSummary}
+            onNavigateToCompatibility={onNavigateToCompatibility}
+            locale={locale}
+            dict={aiInsightBarDict}
+          />
 
           {/* Section B: Person Spotlight */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -250,10 +265,10 @@ const PresentationTab: React.FC<PresentationTabProps> = ({
                   )}
                 </div>
 
-                {/* Character traits chips (first 3) */}
+                {/* Character traits chips */}
                 {traits && traits.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
-                    {traits.slice(0, 3).map((trait) => {
+                    {(showAllTraits ? traits : traits.slice(0, 3)).map((trait) => {
                       const traitData = (traitMap as Record<string, { label: string; color: string }>)[trait];
                       return traitData ? (
                         <span
@@ -267,14 +282,39 @@ const PresentationTab: React.FC<PresentationTabProps> = ({
                         </span>
                       ) : null;
                     })}
+                    {traits.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllTraits((prev) => !prev)}
+                        className="text-xs font-medium text-teal-600 hover:text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full transition-colors"
+                      >
+                        {showAllTraits
+                          ? dict.showLessTraits
+                          : dict.showMoreTraits.replace('{{count}}', String(traits.length - 3))}
+                      </button>
+                    )}
                   </div>
                 )}
 
                 {/* About excerpt */}
                 {about && (
-                  <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4">
-                    {about}
-                  </p>
+                  <div className="mb-4">
+                    <p className={cn(
+                      'text-sm text-gray-500 leading-relaxed',
+                      !isAboutExpanded && 'line-clamp-2'
+                    )}>
+                      {about}
+                    </p>
+                    {about.length > 120 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsAboutExpanded((prev) => !prev)}
+                        className="text-xs font-medium text-teal-600 hover:text-teal-700 mt-1 transition-colors"
+                      >
+                        {isAboutExpanded ? dict.readLess : dict.readMore}
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 <Button
@@ -351,7 +391,7 @@ const PresentationTab: React.FC<PresentationTabProps> = ({
                 <div className="flex items-center gap-2">
                   <MessageSquareQuote className="w-4 h-4 text-violet-500" />
                   <h3 className="font-bold text-violet-800 text-base">
-                    {isHe ? 'מה חברים אומרים' : 'What friends say'}
+                    {dict.testimonials}
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

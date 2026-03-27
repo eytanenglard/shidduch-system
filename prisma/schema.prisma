@@ -102,6 +102,10 @@ model User {
   neshamaInsightGeneratedCount  Int       @default(0)
   neshamaInsightData            Json?
 
+  // === Premium ===
+  premiumTier      String?   @default("free") // free | basic | premium
+  premiumExpiresAt DateTime?
+
   // === Referral ===
   referral Referral? @relation("ReferredUser")
 
@@ -172,6 +176,9 @@ model User {
   // === Skipped Auto-Suggestions ===
   skippedSuggestionsForUser SkippedAutoSuggestion[] @relation("SkippedForUser")
   skippedSuggestionsAsOther SkippedAutoSuggestion[] @relation("SkippedOtherParty")
+
+  // === Weekly Suggestion Usage ===
+  weeklySuggestionUsages WeeklySuggestionUsage[]
 
   @@index([email])
   @@index([role])
@@ -2099,13 +2106,31 @@ model UserMatchingPreferences {
   preferenceSummary String? @db.Text // AI-generated summary for prompt injection
 
   // Chat-derived insights
-  chatDerivedInsights String?   @db.Text // Free-text insights from AI chat conversations
-  lastChatExtraction  DateTime?
+  chatDerivedInsights  String?   @db.Text // Free-text insights from AI chat conversations
+  lastChatExtraction   DateTime?
+  structuredPreferences Json?    // { preferredAgeRange, preferredLocations, dealBreakers, ... }
+  crossSessionMemory   Json?    // { keyFacts[], preferences[], rejectionPatterns[] }
 
   totalFeedbacks Int      @default(0)
   lastUpdated    DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// === Weekly Suggestion Usage (Smart Assistant) ===
+model WeeklySuggestionUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  weekStart DateTime
+  count     Int      @default(0)
+  limit     Int      @default(10)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+  @@index([userId])
 }
 
 // === Skipped Auto-Suggestions Log ===

@@ -10,6 +10,7 @@ import React, { useRef, useEffect } from 'react';
 import AiChatBubble from './AiChatBubble';
 import AiChatProfileCard from './AiChatProfileCard';
 import AiChatActionButtons from './AiChatActionButtons';
+import AiChatRejectionPicker from './AiChatRejectionPicker';
 import AiChatWelcome from './AiChatWelcome';
 import type { ChatMessage, ChatAction, ChatActionButton } from './useAiChat';
 import { Loader2, Check, X } from 'lucide-react';
@@ -32,6 +33,10 @@ interface AiChatMessagesProps {
   actionButtons?: ChatActionButton[];
   onChatAction?: (type: ChatActionButton['type']) => void;
   isLoadingDiscovery?: boolean;
+  // Rejection picker
+  showRejectionPicker?: boolean;
+  onRejectWithCategory?: (category: string) => void;
+  onCancelRejection?: () => void;
 }
 
 export default function AiChatMessages({
@@ -50,6 +55,9 @@ export default function AiChatMessages({
   actionButtons,
   onChatAction,
   isLoadingDiscovery = false,
+  showRejectionPicker = false,
+  onRejectWithCategory,
+  onCancelRejection,
 }: AiChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isHebrew = locale === 'he';
@@ -151,15 +159,22 @@ export default function AiChatMessages({
         </div>
       )}
 
-      {/* Smart assistant action buttons (interested/not_for_me/tell_me_more) */}
-      {actionButtons && actionButtons.length > 0 && !isStreaming && onChatAction && (
+      {/* Smart assistant: rejection picker OR action buttons */}
+      {showRejectionPicker && onRejectWithCategory && onCancelRejection && !isStreaming ? (
+        <AiChatRejectionPicker
+          locale={locale}
+          onSelect={onRejectWithCategory}
+          onCancel={onCancelRejection}
+          disabled={actionExecuting}
+        />
+      ) : actionButtons && actionButtons.length > 0 && !isStreaming && onChatAction ? (
         <AiChatActionButtons
           buttons={actionButtons}
           locale={locale}
           onAction={onChatAction}
           disabled={actionExecuting}
         />
-      )}
+      ) : null}
 
       {/* Legacy action buttons (approve/decline for existing suggestions) */}
       {pendingActions && pendingActions.length > 0 && !isStreaming && (

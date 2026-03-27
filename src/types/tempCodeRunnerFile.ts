@@ -922,35 +922,4 @@ export function calculateEnglishFluency(
   
   // אם אנגלית בשפות נוספות
   if (additionalLanguages?.some(l => l.toLowerCase() === 'english')) {
-    return 70;
-  }
-  
-  // ברירת מחדל - אנגלית בסיסית
-  return 30;
-}
-
-/**
- * מחשב ציון עירוניות לפי עיר
- */
-export function calculateUrbanScore(city: string | undefined): number {
-  if (!city) return 50;
-  
-  const cityLower = city.toLowerCase();
-  
-  // ערים גדולות מאוד
-  if (['תל אביב', 'tel aviv', 'תל-אביב'].some(c => cityLower.includes(c))) return 100;
-  if (['ירושלים', 'jerusalem'].some(c => cityLower.includes(c))) return 85;
-  if (['חיפה', 'haifa'].some(c => cityLower.includes(c))) return 80;
-  
-  // ערים גדולות
-  if (['רמת גן', 'ramat gan', 'גבעתיים', 'givatayim', 'הרצליה', 'herzliya', 'רעננה', 'raanana', 'כפר סבא', 'kfar saba', 'פתח תקווה', 'petach tikva', 'ראשון לציון', 'rishon', 'באר שבע', 'beer sheva', 'נתניה', 'netanya'].some(c => cityLower.includes(c))) return 70;
-  
-  // ערים בינוניות
-  if (['מודיעין', 'modiin', 'רחובות', 'rehovot', 'אשדוד', 'ashdod', 'אשקלון', 'ashkelon'].some(c => cityLower.includes(c))) return 60;
-  
-  // ישובים/יישובים קטנים
-  if (['yishuv', 'ישוב', 'מושב', 'moshav', 'קיבוץ', 'kibbutz'].some(c => cityLower.includes(c))) return 20;
-  
-  // ברירת מחדל
-  return 50;
-}
+ 

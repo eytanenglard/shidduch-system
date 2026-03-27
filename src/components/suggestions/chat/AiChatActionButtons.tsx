@@ -6,7 +6,7 @@
 'use client';
 
 import React from 'react';
-import { Heart, X, Info } from 'lucide-react';
+import { Heart, X, Info, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatActionButton } from './useAiChat';
 
@@ -29,12 +29,14 @@ export default function AiChatActionButtons({
     interested: <Heart className="w-4 h-4" />,
     not_for_me: <X className="w-4 h-4" />,
     tell_me_more: <Info className="w-4 h-4" />,
+    next_candidate: <ArrowLeft className={cn('w-4 h-4', !isHebrew && 'rotate-180')} />,
   };
 
   const styleMap: Record<string, string> = {
     interested: 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200',
     not_for_me: 'bg-gray-200 hover:bg-gray-300 text-gray-700',
     tell_me_more: 'bg-violet-100 hover:bg-violet-200 text-violet-700 border border-violet-200',
+    next_candidate: 'bg-white hover:bg-gray-50 text-gray-600 border border-gray-200',
   };
 
   return (

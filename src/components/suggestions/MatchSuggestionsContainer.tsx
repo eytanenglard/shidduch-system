@@ -3,7 +3,8 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParams } from 'next/navigation';
 
 import {
@@ -207,9 +208,9 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
   // --- Filter labels ---
   const filterLabels = {
-    active_process: isRtl ? 'הצעה פעילה' : 'Active',
-    backup: isRtl ? 'רשימת גיבוי' : 'Backup',
-    pending: isRtl ? 'ממתינות לתגובה' : 'Pending',
+    active_process: suggestionsDict.container.filters.activeProcess,
+    backup: suggestionsDict.container.filters.backup,
+    pending: suggestionsDict.container.filters.pending,
   };
 
   // --- Render ---
@@ -251,29 +252,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           historySuggestions={suggestions.autoSuggestionHistory}
           userId={userId}
           locale={locale}
-          dict={(suggestionsDict.container as any).autoSuggestions || {
-            title: locale === 'he' ? 'הצעות חכמות' : 'Smart Suggestions',
-            subtitle: locale === 'he' ? 'המערכת לומדת מהתגובות שלך' : 'System learns from your responses',
-            scheduleInfo: locale === 'he' ? 'הצעות נשלחות ביום ראשון ורביעי' : 'Suggestions sent Sunday & Wednesday',
-            nextSuggestionIn: locale === 'he' ? 'ההצעה הבאה בעוד {days} ימים' : 'Next suggestion in {days} days',
-            nextSuggestionTomorrow: locale === 'he' ? 'ההצעה הבאה מחר' : 'Next suggestion tomorrow',
-            nextSuggestionToday: locale === 'he' ? 'ההצעה הבאה היום' : 'Next suggestion today',
-            noActiveSuggestion: locale === 'he' ? 'אין הצעה חכמה פעילה' : 'No active smart suggestion',
-            waitingForSuggestion: locale === 'he' ? 'המערכת מחפשת עבורך' : 'System is searching for you',
-            viewSuggestion: locale === 'he' ? 'צפה בהצעה' : 'View Suggestion',
-            approve: locale === 'he' ? 'מעוניין/ת' : 'Interested',
-            decline: locale === 'he' ? 'לא מתאים' : 'Not a Match',
-            saveForLater: locale === 'he' ? 'שמור' : 'Save',
-            history: { title: '', empty: '', approved: '', declined: '', interested: '', expired: '' },
-            feedbackDialog: {
-              titleApprove: '', titleDeclineStep1: '', titleDeclineStep2: '', titleInterested: '',
-              subtitleApprove: '', subtitleDeclineStep1: '', subtitleDeclineStep2: '',
-              likedTraits: {}, missingTraits: {},
-              freeTextPlaceholder: '', missingFreeTextPlaceholder: '', selectAtLeastOne: '',
-              next: '', back: '', submitApprove: '', submitDecline: '', submitInterested: '',
-              thankYou: '', thankYouDesc: '',
-            },
-          }}
+          dict={suggestionsDict.container.autoSuggestions}
           onViewDetails={actions.handleViewDetails}
           onStatusChange={actions.handleStatusChange}
         />
@@ -302,10 +281,10 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             </div>
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-rose-800">
-                {isRtl ? 'איך היה הדייט?' : 'How was the date?'}
+                {suggestionsDict.container.dateFeedback.title}
               </h4>
               <p className="text-xs text-rose-600">
-                {isRtl ? 'הפידבק שלך יעזור לנו להציע הצעות טובות יותר' : 'Your feedback helps us suggest better matches'}
+                {suggestionsDict.container.dateFeedback.description}
               </p>
             </div>
             <Button
@@ -314,7 +293,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               onClick={() => actions.setShowDateFeedbackDialog(true)}
             >
               <MessageCircle className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
-              {isRtl ? 'שתף/י' : 'Share'}
+              {suggestionsDict.container.dateFeedback.shareButton}
             </Button>
           </div>
         )}
@@ -366,122 +345,130 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             </Alert>
           )}
 
-          {/* Active Tab */}
-          <TabsContent value="active" className="space-y-4">
-            <ErrorBoundary>
-              {/* Filter Chips */}
-              {(suggestions.activeProcessSuggestion || suggestions.interestedSuggestions.length > 0 || suggestions.sortedActiveSuggestions.length > 0) && (
-                <div className="flex flex-wrap gap-2">
-                  <FilterChip
-                    label={filterLabels.active_process}
-                    count={suggestions.activeProcessSuggestion ? 1 : 0}
-                    isActive={activeFilter === 'active_process'}
-                    onClick={() => handleFilterToggle('active_process')}
-                    icon={Star}
-                    activeColors="bg-teal-600 text-white border-teal-600"
-                    locale={locale}
-                  />
-                  <FilterChip
-                    label={filterLabels.backup}
-                    count={suggestions.interestedSuggestions.length}
-                    isActive={activeFilter === 'backup'}
-                    onClick={() => handleFilterToggle('backup')}
-                    icon={Bookmark}
-                    activeColors="bg-amber-500 text-white border-amber-500"
-                    locale={locale}
-                  />
-                  <FilterChip
-                    label={filterLabels.pending}
-                    count={suggestions.sortedActiveSuggestions.length}
-                    isActive={activeFilter === 'pending'}
-                    onClick={() => handleFilterToggle('pending')}
-                    icon={Zap}
-                    activeColors="bg-blue-600 text-white border-blue-600"
-                    locale={locale}
-                  />
-                  {activeFilter !== 'all' && (
-                    <button
-                      onClick={() => setActiveFilter('all')}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      <XCircle className="w-3.5 h-3.5" />
-                      {isRtl ? 'הצג הכל' : 'Show all'}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Interested Queue */}
-              {showInterestedQueue && suggestions.interestedSuggestions.length > 0 && (
-                <InterestedQueue
-                  suggestions={suggestions.interestedSuggestions}
-                  userId={userId}
-                  locale={locale}
-                  isUserInActiveProcess={suggestions.isUserInActiveProcess}
-                  onActivate={actions.handleActivateInterested}
-                  onRemove={actions.handleRemoveFromInterested}
-                  onViewDetails={actions.handleViewDetails}
-                  onRankUpdate={actions.handleRankUpdate}
-                />
-              )}
-
-              {/* Suggestions List */}
-              {showPendingSuggestions && (
-                <SuggestionsList
-                  locale={locale}
-                  suggestions={suggestions.sortedActiveSuggestions}
-                  userId={userId}
-                  isLoading={suggestions.isRefreshing}
-                  onActionRequest={actions.handleRequestAction}
-                  onOpenDetails={actions.handleViewDetails}
-                  isUserInActiveProcess={suggestions.isUserInActiveProcess}
-                  suggestionsDict={suggestionsDict}
-                />
-              )}
-
-              {/* Empty filter state */}
-              {activeFilter !== 'all' &&
-                ((activeFilter === 'active_process' && !suggestions.activeProcessSuggestion) ||
-                  (activeFilter === 'backup' && suggestions.interestedSuggestions.length === 0) ||
-                  (activeFilter === 'pending' && suggestions.sortedActiveSuggestions.length === 0)) && (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                      {activeFilter === 'active_process' && <Star className="w-7 h-7 text-gray-300" />}
-                      {activeFilter === 'backup' && <Bookmark className="w-7 h-7 text-gray-300" />}
-                      {activeFilter === 'pending' && <Clock className="w-7 h-7 text-gray-300" />}
+          {/* Tab Content with Animation */}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="space-y-4"
+            >
+              {activeTab === 'active' ? (
+                <ErrorBoundary>
+                  {/* Filter Chips */}
+                  {(suggestions.activeProcessSuggestion || suggestions.interestedSuggestions.length > 0 || suggestions.sortedActiveSuggestions.length > 0) && (
+                    <div className="flex flex-wrap gap-2">
+                      <FilterChip
+                        label={filterLabels.active_process}
+                        count={suggestions.activeProcessSuggestion ? 1 : 0}
+                        isActive={activeFilter === 'active_process'}
+                        onClick={() => handleFilterToggle('active_process')}
+                        icon={Star}
+                        activeColors="bg-teal-600 text-white border-teal-600"
+                        locale={locale}
+                      />
+                      <FilterChip
+                        label={filterLabels.backup}
+                        count={suggestions.interestedSuggestions.length}
+                        isActive={activeFilter === 'backup'}
+                        onClick={() => handleFilterToggle('backup')}
+                        icon={Bookmark}
+                        activeColors="bg-amber-500 text-white border-amber-500"
+                        locale={locale}
+                      />
+                      <FilterChip
+                        label={filterLabels.pending}
+                        count={suggestions.sortedActiveSuggestions.length}
+                        isActive={activeFilter === 'pending'}
+                        onClick={() => handleFilterToggle('pending')}
+                        icon={Zap}
+                        activeColors="bg-blue-600 text-white border-blue-600"
+                        locale={locale}
+                      />
+                      {activeFilter !== 'all' && (
+                        <button
+                          onClick={() => setActiveFilter('all')}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          {suggestionsDict.container.filters.showAll}
+                        </button>
+                      )}
                     </div>
-                    <h3 className="text-base font-semibold text-gray-600 mb-2">
-                      {activeFilter === 'active_process' && (isRtl ? 'אין הצעה פעילה כרגע' : 'No active suggestion')}
-                      {activeFilter === 'backup' && (isRtl ? 'אין הצעות ברשימת הגיבוי' : 'No backup suggestions')}
-                      {activeFilter === 'pending' && (isRtl ? 'אין הצעות ממתינות לתגובה' : 'No pending suggestions')}
-                    </h3>
-                    <button
-                      onClick={() => setActiveFilter('all')}
-                      className="text-sm text-teal-600 hover:text-teal-700 font-medium underline underline-offset-2"
-                    >
-                      {isRtl ? 'חזור לתצוגה מלאה' : 'Back to full view'}
-                    </button>
-                  </div>
-                )}
-            </ErrorBoundary>
-          </TabsContent>
+                  )}
 
-          {/* History Tab */}
-          <TabsContent value="history" className="space-y-4">
-            <ErrorBoundary>
-              <SuggestionsList
-                locale={locale}
-                suggestions={suggestions.matchmakerHistorySuggestions}
-                userId={userId}
-                isLoading={suggestions.isRefreshing}
-                isHistory={true}
-                onActionRequest={actions.handleRequestAction}
-                onOpenDetails={actions.handleViewDetails}
-                isUserInActiveProcess={suggestions.isUserInActiveProcess}
-                suggestionsDict={suggestionsDict}
-              />
-            </ErrorBoundary>
-          </TabsContent>
+                  {/* Interested Queue */}
+                  {showInterestedQueue && suggestions.interestedSuggestions.length > 0 && (
+                    <InterestedQueue
+                      suggestions={suggestions.interestedSuggestions}
+                      userId={userId}
+                      locale={locale}
+                      isUserInActiveProcess={suggestions.isUserInActiveProcess}
+                      onActivate={actions.handleActivateInterested}
+                      onRemove={actions.handleRemoveFromInterested}
+                      onViewDetails={actions.handleViewDetails}
+                      onRankUpdate={actions.handleRankUpdate}
+                    />
+                  )}
+
+                  {/* Suggestions List */}
+                  {showPendingSuggestions && (
+                    <SuggestionsList
+                      locale={locale}
+                      suggestions={suggestions.sortedActiveSuggestions}
+                      userId={userId}
+                      isLoading={suggestions.isRefreshing}
+                      onActionRequest={actions.handleRequestAction}
+                      onOpenDetails={actions.handleViewDetails}
+                      isUserInActiveProcess={suggestions.isUserInActiveProcess}
+                      suggestionsDict={suggestionsDict}
+                    />
+                  )}
+
+                  {/* Empty filter state */}
+                  {activeFilter !== 'all' &&
+                    ((activeFilter === 'active_process' && !suggestions.activeProcessSuggestion) ||
+                      (activeFilter === 'backup' && suggestions.interestedSuggestions.length === 0) ||
+                      (activeFilter === 'pending' && suggestions.sortedActiveSuggestions.length === 0)) && (
+                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                          {activeFilter === 'active_process' && <Star className="w-7 h-7 text-gray-300" />}
+                          {activeFilter === 'backup' && <Bookmark className="w-7 h-7 text-gray-300" />}
+                          {activeFilter === 'pending' && <Clock className="w-7 h-7 text-gray-300" />}
+                        </div>
+                        <h3 className="text-base font-semibold text-gray-600 mb-2">
+                          {activeFilter === 'active_process' && suggestionsDict.container.filters.emptyActiveProcess}
+                          {activeFilter === 'backup' && suggestionsDict.container.filters.emptyBackup}
+                          {activeFilter === 'pending' && suggestionsDict.container.filters.emptyPending}
+                        </h3>
+                        <button
+                          onClick={() => setActiveFilter('all')}
+                          className="text-sm text-teal-600 hover:text-teal-700 font-medium underline underline-offset-2"
+                        >
+                          {suggestionsDict.container.filters.backToFullView}
+                        </button>
+                      </div>
+                    )}
+                </ErrorBoundary>
+              ) : (
+                <ErrorBoundary>
+                  <SuggestionsList
+                    locale={locale}
+                    suggestions={suggestions.matchmakerHistorySuggestions}
+                    userId={userId}
+                    isLoading={suggestions.isRefreshing}
+                    isHistory={true}
+                    onActionRequest={actions.handleRequestAction}
+                    onOpenDetails={actions.handleViewDetails}
+                    isUserInActiveProcess={suggestions.isUserInActiveProcess}
+                    suggestionsDict={suggestionsDict}
+                  />
+                </ErrorBoundary>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </Tabs>
 
         {/* AI Chat - at the bottom */}
@@ -515,16 +502,14 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               {actions.actionType === 'approve'
                 ? suggestionsDict.container.dialogs.approveTitle
                 : actions.actionType === 'interested'
-                  ? isRtl ? 'שמירה לגיבוי' : 'Save for later'
+                  ? suggestionsDict.container.dialogs.interestedTitle
                   : suggestionsDict.container.dialogs.declineTitle}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
               {actions.actionType === 'approve'
                 ? suggestionsDict.container.dialogs.approveDescription
                 : actions.actionType === 'interested'
-                  ? isRtl
-                    ? 'ההצעה תישמר ברשימת ההמתנה שלך. תוכל/י לאשר אותה מאוחר יותר כשתהיה פנוי/ה.'
-                    : "This suggestion will be saved to your waitlist. You can approve it later when you're available."
+                  ? suggestionsDict.container.dialogs.interestedDescription
                   : suggestionsDict.container.dialogs.declineDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -551,7 +536,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
               ) : actions.actionType === 'interested' ? (
                 <>
                   <Bookmark className={cn('w-4 h-4', isRtl ? 'ml-2' : 'mr-2')} />
-                  {isRtl ? 'שמור/י לגיבוי' : 'Save for later'}
+                  {suggestionsDict.container.dialogs.confirmInterested}
                 </>
               ) : (
                 <>
@@ -574,45 +559,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         suggestionId={actions.suggestionForAction?.id || ''}
         decision={actions.feedbackDecision}
         locale={locale}
-        dict={{
-          titleApprove: isRtl ? 'מה אהבת?' : 'What did you like?',
-          titleDeclineStep1: isRtl ? 'לפני שנמשיך...' : 'Before we continue...',
-          titleDeclineStep2: isRtl ? 'מה חסר?' : 'What was missing?',
-          titleInterested: isRtl ? 'מה מעניין אותך?' : 'What interests you?',
-          subtitleApprove: isRtl ? 'הפידבק שלך עוזר לנו להציע הצעות טובות יותר' : 'Your feedback helps us suggest better matches',
-          subtitleDeclineStep1: isRtl ? 'ספר/י לנו מה כן אהבת' : 'Tell us what you did like',
-          subtitleDeclineStep2: isRtl ? 'מה היה חסר כדי שתאשר/י?' : 'What was missing for you to approve?',
-          likedTraits: {
-            religious_match: isRtl ? 'התאמה דתית' : 'Religious match',
-            personality_match: isRtl ? 'אישיות מתאימה' : 'Personality match',
-            age_appropriate: isRtl ? 'גיל מתאים' : 'Age appropriate',
-            shared_values: isRtl ? 'ערכים משותפים' : 'Shared values',
-            similar_background: isRtl ? 'רקע דומה' : 'Similar background',
-            attractive_profile: isRtl ? 'פרופיל מושך' : 'Attractive profile',
-            good_career: isRtl ? 'קריירה/השכלה' : 'Good career',
-            interesting_person: isRtl ? 'בנאדם מעניין' : 'Interesting person',
-          },
-          missingTraits: {
-            age_gap: isRtl ? 'פער גילאים' : 'Age gap',
-            religious_gap: isRtl ? 'פער דתי' : 'Religious gap',
-            geographic_gap: isRtl ? 'מרחק גאוגרפי' : 'Geographic gap',
-            not_attracted: isRtl ? 'חוסר חיבור חיצוני' : 'Not attracted',
-            no_connection: isRtl ? 'חוסר חיבור כללי' : 'No connection',
-            background_gap: isRtl ? 'פער ברקע' : 'Background gap',
-            education_gap: isRtl ? 'פער השכלתי' : 'Education gap',
-            gut_feeling: isRtl ? 'תחושת בטן' : 'Gut feeling',
-          },
-          freeTextPlaceholder: isRtl ? 'ספר/י עוד (אופציונלי)...' : 'Tell us more (optional)...',
-          missingFreeTextPlaceholder: isRtl ? 'מה היית רוצה אחרת? (אופציונלי)' : 'What would you want differently? (optional)',
-          selectAtLeastOne: isRtl ? 'נא לבחור לפחות אפשרות אחת' : 'Please select at least one option',
-          next: isRtl ? 'הבא' : 'Next',
-          back: isRtl ? 'חזרה' : 'Back',
-          submitApprove: isRtl ? 'אישור' : 'Approve',
-          submitDecline: isRtl ? 'דחייה' : 'Decline',
-          submitInterested: isRtl ? 'שמירה' : 'Save',
-          thankYou: isRtl ? 'תודה על הפידבק!' : 'Thanks for your feedback!',
-          thankYouDesc: isRtl ? 'זה יעזור לנו לדייק את ההצעות הבאות שלך' : "This will help us fine-tune your future suggestions",
-        }}
+        dict={suggestionsDict.container.autoSuggestions.feedbackDialog}
         onSubmit={actions.handleFeedbackSubmit}
       />
 
@@ -637,7 +584,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             'animate-in fade-in-0 slide-in-from-bottom-4 duration-300',
             isRtl ? 'left-6' : 'right-6',
           )}
-          aria-label={isRtl ? 'עוזר חכם' : 'Smart assistant'}
+          aria-label={suggestionsDict.container.chatFab.ariaLabel}
         >
           <Sparkles className="w-5 h-5" />
         </button>

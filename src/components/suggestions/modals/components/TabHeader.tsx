@@ -21,6 +21,13 @@ import {
 import { cn } from '@/lib/utils';
 import type { TabHeaderProps } from '../types/modal.types';
 
+const TAB_CONFIG = [
+  { value: 'presentation', Icon: Sparkles, labelKey: 'presentation', shortKey: 'presentationShort' },
+  { value: 'profile', Icon: User, labelKey: 'profile', shortKey: 'profileShort' },
+  { value: 'compatibility', Icon: GitCompareArrows, labelKey: 'compatibility', shortKey: 'compatibilityShort' },
+  { value: 'details', Icon: MessageCircle, labelKey: 'details', shortKey: 'detailsShort' },
+] as const;
+
 const TabHeader: React.FC<TabHeaderProps> = ({
   onClose,
   isFullscreen,
@@ -34,7 +41,7 @@ const TabHeader: React.FC<TabHeaderProps> = ({
   statusBadgeClass,
 }) => {
   return (
-    <div className="border-b border-gray-200 px-3 sm:px-5 pt-3 pb-2 bg-white sticky top-0 z-20">
+    <div className="px-3 sm:px-5 pt-3 pb-2.5 bg-white/80 backdrop-blur-2xl border-b border-gray-200/50 sticky top-0 z-20 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
       {/* Person identity row */}
       {personName && (
         <div className="flex items-center justify-between mb-2.5 px-0.5">
@@ -47,8 +54,8 @@ const TabHeader: React.FC<TabHeaderProps> = ({
           {statusLabel && (
             <span
               className={cn(
-                'text-xs font-semibold px-2.5 py-0.5 rounded-full border',
-                statusBadgeClass || 'bg-gray-100 text-gray-600 border-gray-200'
+                'text-xs font-semibold px-2.5 py-0.5 rounded-full border backdrop-blur-sm',
+                statusBadgeClass || 'bg-gray-100/80 text-gray-600 border-gray-200/50'
               )}
             >
               {statusLabel}
@@ -58,40 +65,28 @@ const TabHeader: React.FC<TabHeaderProps> = ({
       )}
 
       <div className="flex items-center gap-3">
-        {/* Tab pills */}
-        <TabsList className="flex-1 flex bg-gray-100 rounded-xl p-1 h-12 border border-gray-200/60">
-          <TabsTrigger
-            value="presentation"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-medium text-gray-500 hover:text-gray-700"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">{dict.presentation}</span>
-            <span className="sm:hidden">{dict.presentationShort}</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="profile"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-medium text-gray-500 hover:text-gray-700"
-          >
-            <User className="w-4 h-4" />
-            <span className="hidden sm:inline">{dict.profile}</span>
-            <span className="sm:hidden">{dict.profileShort}</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="compatibility"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-medium text-gray-500 hover:text-gray-700"
-          >
-            <GitCompareArrows className="w-4 h-4" />
-            <span className="hidden sm:inline">{dict.compatibility}</span>
-            <span className="sm:hidden">{dict.compatibilityShort}</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="details"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg text-xs sm:text-sm transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm font-medium text-gray-500 hover:text-gray-700"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span className="hidden sm:inline">{dict.details}</span>
-            <span className="sm:hidden">{dict.detailsShort}</span>
-          </TabsTrigger>
+        {/* Glass tab pills — Apple-style segmented control */}
+        <TabsList className="flex-1 flex bg-gray-950/[0.04] rounded-[14px] p-[3px] h-11 ring-1 ring-inset ring-gray-950/[0.06] backdrop-blur-sm">
+          {TAB_CONFIG.map(({ value, Icon, labelKey, shortKey }) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 rounded-[11px] text-xs sm:text-sm',
+                'transition-all duration-300 ease-out',
+                'font-medium text-gray-500/90 hover:text-gray-700',
+                // Active state — clean white pill with Apple-style shadow
+                'data-[state=active]:bg-white',
+                'data-[state=active]:text-gray-900',
+                'data-[state=active]:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)]',
+                'data-[state=active]:ring-1 data-[state=active]:ring-black/[0.04]',
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{dict[labelKey as keyof typeof dict]}</span>
+              <span className="sm:hidden">{dict[shortKey as keyof typeof dict]}</span>
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         {/* Controls */}
@@ -104,7 +99,7 @@ const TabHeader: React.FC<TabHeaderProps> = ({
                     variant="ghost"
                     size="icon"
                     onClick={onToggleFullscreen}
-                    className="rounded-full h-9 w-9 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                    className="rounded-full h-9 w-9 text-gray-400 hover:text-gray-600 hover:bg-gray-100/60 backdrop-blur-sm"
                     disabled={isTransitioning}
                   >
                     {isFullscreen ? (
@@ -124,7 +119,7 @@ const TabHeader: React.FC<TabHeaderProps> = ({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="rounded-full h-9 w-9 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            className="rounded-full h-9 w-9 text-gray-400 hover:text-gray-600 hover:bg-gray-100/60 backdrop-blur-sm"
           >
             <X className="w-4.5 h-4.5" />
           </Button>

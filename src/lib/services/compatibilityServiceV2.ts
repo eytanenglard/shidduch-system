@@ -523,7 +523,7 @@ function calculateSoftPenalties(
   // ═══════════════════════════════════════════════════════════
   // 🆕 AI Deal Breakers — קווי אדום שזוהו ע"י AI מהשאלון
   // ═══════════════════════════════════════════════════════════
-  const aiDealBreakers = (seeker.metrics as any)?.aiInferredDealBreakers as string[] | null;
+  const aiDealBreakers = seeker.metrics?.aiInferredDealBreakers ?? null;
   if (aiDealBreakers?.length) {
     let aiDealBreakerTotal = 0;
     for (const dealBreaker of aiDealBreakers) {
@@ -559,7 +559,7 @@ function calculateSoftPenalties(
   // ═══════════════════════════════════════════════════════════
   // 🆕 AI Must Haves — דרישות שזוהו ע"י AI מהשאלון
   // ═══════════════════════════════════════════════════════════
-  const aiMustHaves = (seeker.metrics as any)?.aiInferredMustHaves as string[] | null;
+  const aiMustHaves = seeker.metrics?.aiInferredMustHaves ?? null;
   if (aiMustHaves?.length) {
     let aiMustHaveTotal = 0;
     for (const mustHave of aiMustHaves) {
@@ -567,8 +567,8 @@ function calculateSoftPenalties(
       const lower = mustHave.toLowerCase();
 
       if ((lower.includes('תואר') || lower.includes('degree') || lower.includes('השכלה'))
-          && (candidate.metrics as any)?.educationLevelScore !== null
-          && (candidate.metrics as any)?.educationLevelScore < 3) {
+          && candidate.metrics?.educationLevelScore != null
+          && candidate.metrics.educationLevelScore < 3) {
         applied.push({ type: `AI_MUST_HAVE_MISSING: ${mustHave}`, penalty: 12 });
         aiMustHaveTotal += 12;
       }
@@ -580,7 +580,7 @@ function calculateSoftPenalties(
       }
 
       if (lower.includes('ירושלים') || lower.includes('jerusalem')) {
-        const city = candidate.city || (candidate.metrics as any)?.inferredCity;
+        const city = candidate.city || candidate.metrics?.inferredCity;
         if (city && !city.includes('ירושלים') && !city.toLowerCase().includes('jerusalem')) {
           applied.push({ type: `AI_MUST_HAVE_MISSING: ${mustHave}`, penalty: 12 });
           aiMustHaveTotal += 12;
@@ -588,7 +588,7 @@ function calculateSoftPenalties(
       }
 
       if (lower.includes('תל אביב') || lower.includes('tel aviv')) {
-        const city = candidate.city || (candidate.metrics as any)?.inferredCity;
+        const city = candidate.city || candidate.metrics?.inferredCity;
         if (city && !city.includes('תל אביב') && !city.toLowerCase().includes('tel aviv')) {
           applied.push({ type: `AI_MUST_HAVE_MISSING: ${mustHave}`, penalty: 12 });
           aiMustHaveTotal += 12;
@@ -644,7 +644,13 @@ function calculateMetricsCompatibility(
     return { score: 50, details };
   }
 
-  const metricsToCheck = [
+  const metricsToCheck: Array<{
+    name: string;
+    selfKey: keyof ProfileMetrics;
+    prefMinKey: keyof ProfileMetrics;
+    prefMaxKey: keyof ProfileMetrics;
+    prefWeightKey: keyof ProfileMetrics;
+  }> = [
     { name: 'socialEnergy', selfKey: 'socialEnergy', prefMinKey: 'prefSocialEnergyMin', prefMaxKey: 'prefSocialEnergyMax', prefWeightKey: 'prefSocialEnergyWeight' },
     { name: 'emotionalExpression', selfKey: 'emotionalExpression', prefMinKey: 'prefEmotionalExpressionMin', prefMaxKey: 'prefEmotionalExpressionMax', prefWeightKey: 'prefEmotionalExpressionWeight' },
     { name: 'stabilityVsSpontaneity', selfKey: 'stabilityVsSpontaneity', prefMinKey: 'prefStabilityMin', prefMaxKey: 'prefStabilityMax', prefWeightKey: 'prefStabilityWeight' },
@@ -665,13 +671,13 @@ function calculateMetricsCompatibility(
   let totalWeight = 0;
 
   // 🆕 שליפת confidence מתוך metricsExplanations לשקלול משקל
-  const explanations = (seeker.metrics as any)?.metricsExplanations || {};
+  const explanations = seeker.metrics?.metricsExplanations || {};
 
   for (const metric of metricsToCheck) {
-    const candidateValue = (candidate.metrics as any)[metric.selfKey];
-    const seekerPrefMin = (seeker.metrics as any)[metric.prefMinKey];
-    const seekerPrefMax = (seeker.metrics as any)[metric.prefMaxKey];
-    const baseWeight = (seeker.metrics as any)[metric.prefWeightKey] ?? DEFAULT_METRIC_WEIGHTS[metric.name] ?? 5;
+    const candidateValue = candidate.metrics[metric.selfKey] as number | undefined;
+    const seekerPrefMin = seeker.metrics[metric.prefMinKey] as number | undefined;
+    const seekerPrefMax = seeker.metrics[metric.prefMaxKey] as number | undefined;
+    const baseWeight = (seeker.metrics[metric.prefWeightKey] as number | undefined) ?? DEFAULT_METRIC_WEIGHTS[metric.name] ?? 5;
 
     if (candidateValue === undefined || candidateValue === null) continue;
 
@@ -699,11 +705,11 @@ function calculateMetricsCompatibility(
   // ═══════════════════════════════════════════════════════════
   // 🆕 מדדים נוספים: סוציו-אקונומי, השכלה, בכירות תעסוקתית
   // ═══════════════════════════════════════════════════════════
-  const sm = seeker.metrics as any;
-  const cm = candidate.metrics as any;
+  const sm = seeker.metrics;
+  const cm = candidate.metrics;
 
   const socioScore = calculateSocioEconomicScore(
-    sm.socioEconomicLevel, cm.socioEconomicLevel,
+    sm.socioEconomicLevel ?? null, cm.socioEconomicLevel ?? null,
     sm.prefSocioEconomicMin ?? null, sm.prefSocioEconomicMax ?? null,
     cm.prefSocioEconomicMin ?? null, cm.prefSocioEconomicMax ?? null
   );
@@ -711,29 +717,29 @@ function calculateMetricsCompatibility(
     const w = DEFAULT_METRIC_WEIGHTS.socioEconomicLevel;
     totalWeightedScore += socioScore * w;
     totalWeight += w;
-    details.push({ metric: 'socioEconomicLevel', valueA: cm.socioEconomicLevel, preferenceMinB: sm.prefSocioEconomicMin ?? 0, preferenceMaxB: sm.prefSocioEconomicMax ?? 10, weightB: w, compatibilityScore: socioScore, penalty: socioScore < 50 ? Math.round((100 - socioScore) * w / 100) : 0 });
+    details.push({ metric: 'socioEconomicLevel', valueA: cm.socioEconomicLevel ?? 0, preferenceMinB: sm.prefSocioEconomicMin ?? 0, preferenceMaxB: sm.prefSocioEconomicMax ?? 10, weightB: w, compatibilityScore: socioScore, penalty: socioScore < 50 ? Math.round((100 - socioScore) * w / 100) : 0 });
   }
 
   const eduScore = calculateEducationScore(
-    sm.educationLevelScore, cm.educationLevelScore,
-    sm.prefEducationMin ?? null, cm.prefEducationMin ?? null
+    sm.educationLevelScore ?? null, cm.educationLevelScore ?? null,
+    sm.prefEducationLevelMin ?? null, cm.prefEducationLevelMin ?? null
   );
   if (eduScore !== 70) {
     const w = DEFAULT_METRIC_WEIGHTS.educationLevelScore;
     totalWeightedScore += eduScore * w;
     totalWeight += w;
-    details.push({ metric: 'educationLevelScore', valueA: cm.educationLevelScore, preferenceMinB: sm.prefEducationMin ?? 0, preferenceMaxB: 5, weightB: w, compatibilityScore: eduScore, penalty: eduScore < 50 ? Math.round((100 - eduScore) * w / 100) : 0 });
+    details.push({ metric: 'educationLevelScore', valueA: cm.educationLevelScore ?? 0, preferenceMinB: sm.prefEducationLevelMin ?? 0, preferenceMaxB: 5, weightB: w, compatibilityScore: eduScore, penalty: eduScore < 50 ? Math.round((100 - eduScore) * w / 100) : 0 });
   }
 
   const jobScore = calculateJobSeniorityScore(
-    sm.jobSeniorityLevel, cm.jobSeniorityLevel,
+    sm.jobSeniorityLevel ?? null, cm.jobSeniorityLevel ?? null,
     sm.prefJobSeniorityMin ?? null, cm.prefJobSeniorityMin ?? null
   );
   if (jobScore !== 70) {
     const w = DEFAULT_METRIC_WEIGHTS.jobSeniorityLevel;
     totalWeightedScore += jobScore * w;
     totalWeight += w;
-    details.push({ metric: 'jobSeniorityLevel', valueA: cm.jobSeniorityLevel, preferenceMinB: sm.prefJobSeniorityMin ?? 0, preferenceMaxB: 5, weightB: w, compatibilityScore: jobScore, penalty: jobScore < 50 ? Math.round((100 - jobScore) * w / 100) : 0 });
+    details.push({ metric: 'jobSeniorityLevel', valueA: cm.jobSeniorityLevel ?? 0, preferenceMinB: sm.prefJobSeniorityMin ?? 0, preferenceMaxB: 5, weightB: w, compatibilityScore: jobScore, penalty: jobScore < 50 ? Math.round((100 - jobScore) * w / 100) : 0 });
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -745,7 +751,7 @@ function calculateMetricsCompatibility(
       const w = DEFAULT_METRIC_WEIGHTS.personalityType;
       totalWeightedScore += personalityScore * w;
       totalWeight += w;
-      details.push({ metric: 'personalityType', valueA: cm.inferredPersonalityType, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: personalityScore, penalty: 0 });
+      details.push({ metric: 'personalityType', valueA: personalityScore, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: personalityScore, penalty: 0 });
     }
   }
 
@@ -755,7 +761,7 @@ function calculateMetricsCompatibility(
       const w = DEFAULT_METRIC_WEIGHTS.attachmentStyle;
       totalWeightedScore += attachScore * w;
       totalWeight += w;
-      details.push({ metric: 'attachmentStyle', valueA: cm.inferredAttachmentStyle, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: attachScore, penalty: 0 });
+      details.push({ metric: 'attachmentStyle', valueA: attachScore, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: attachScore, penalty: 0 });
     }
   }
 
@@ -764,7 +770,7 @@ function calculateMetricsCompatibility(
     const w = DEFAULT_METRIC_WEIGHTS.loveLanguages;
     totalWeightedScore += loveOverlap * w;
     totalWeight += w;
-    details.push({ metric: 'loveLanguages', valueA: cm.inferredLoveLanguages, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: loveOverlap, penalty: 0 });
+    details.push({ metric: 'loveLanguages', valueA: loveOverlap, preferenceMinB: 0, preferenceMaxB: 100, weightB: w, compatibilityScore: loveOverlap, penalty: 0 });
   }
 
   // ═══════════════════════════════════════════════════════════

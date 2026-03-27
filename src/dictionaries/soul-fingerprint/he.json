@@ -232,6 +232,11 @@
       "text": "באיזה סוג ישיבה למדת / לומד?",
       "subtitle": "זה נותן לנו הבנה על הרקע שלך"
     },
+    "s1_dl_mechina_specific": {
+      "text": "באיזו מכינה למדת? (אופציונלי)",
+      "subtitle": "עוזר לנו להבין את הרקע שלך",
+      "placeholder": "שם המכינה"
+    },
     "s1_dl_yeshiva_specific": {
       "text": "באיזו ישיבה ספציפית? (אופציונלי)",
       "subtitle": {
@@ -1559,7 +1564,7 @@
       "non_combat": "שירות מלא לא קרבי",
       "hesder": "הסדר — ישיבה + צבא",
       "mechina": "מכינה קדם-צבאית + שירות מלא",
-      "yeshiva_only": "ישיבה גדולה — ללא שירות",
+      "yeshiva_only": "ישיבה גבוהה — ללא שירות",
       "kav": "ישיבת קו — שנה ישיבה לאחר הצבא",
       "national_service": "שירות לאומי",
       "exempt_medical": "פטור רפואי",
@@ -1597,10 +1602,12 @@
     "s1_dl_yeshiva_type": {
       "hesder_yeshiva": "ישיבת הסדר — שילוב תורה וצבא",
       "hesder_sub": "כגון: הר עציון, שעלבים, כרם ביבנה, שיח יצחק",
-      "kav_yeshiva": "ישיבת קו — שנה ישיבה לאחר הצבא",
-      "kav_sub": "כגון: עלי, ישיבת הר, מרכז הרב",
-      "big_yeshiva": "ישיבה גדולה דתי לאומי",
-      "big_sub": "שנים רבות של לימוד",
+      "kav_yeshiva": "ישיבה גבוהה / ישיבת קו — לימוד לאחר הצבא",
+      "kav_sub": "כגון: מרכז הרב, הר המור, בית אל, עטרת כהנים",
+      "mechina": "מכינה קדם-צבאית",
+      "mechina_sub": "כגון: בני דוד (עלי), עצמונה, עין פרת, נחשון",
+      "gap_year": "ישיבת שנת לימודים (חוצניקים)",
+      "gap_year_sub": "כגון: נתיב אריה, אורייתא, לב התורה, ראשית",
       "yeshiva_high": "ישיבה תיכונית בלבד",
       "no_yeshiva": "לא למדתי בישיבה"
     },
@@ -1608,8 +1615,7 @@
       "har_etzion": "הר עציון (גוש עציון)",
       "shaalvim": "שעלבים",
       "kerem_byavne": "כרם ביבנה",
-      "har_amiel": "הר המור",
-      "eli": "עלי (בני דוד)",
+      "har_hamor": "הר המור",
       "siach": "שיח יצחק",
       "merkaz_harav": "מרכז הרב",
       "otniel": "עתניאל",
@@ -1621,8 +1627,29 @@
       "har_bracha": "הר ברכה",
       "ramat_gan": "ישיבת רמת גן",
       "machon_meir": "מכון מאיר",
+      "ateret_cohanim": "עטרת כהנים",
+      "ateret_yerushalayim": "עטרת ירושלים",
+      "netiv_aryeh": "נתיב אריה",
+      "orayta": "אורייתא",
+      "lev_hatorah": "לב התורה",
+      "reishit": "ראשית",
+      "mevaseret": "שערי מבשרת ציון",
+      "torat_shraga": "תורת שרגא",
+      "ohr_yerushalayim": "אור ירושלים",
       "other_yeshiva": "ישיבה אחרת",
       "other_yeshiva_placeholder": "שם הישיבה"
+    },
+    "s1_dl_mechina_specific": {
+      "bnei_david_eli": "בני דוד (עלי)",
+      "atzmona": "עצמונה",
+      "ein_prat": "עין פרת",
+      "nachshon": "נחשון",
+      "yerucham_mechina": "מכינת ירוחם",
+      "maale_efraim": "מעלה אפרים",
+      "chemdat_yehuda": "חמדת יהודה",
+      "lod_mechina": "המכינה החדשה בלוד",
+      "other_mechina": "מכינה אחרת",
+      "other_mechina_placeholder": "שם המכינה"
     },
     "s1_dl_zionism": {
       "strong_zionist": {

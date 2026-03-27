@@ -86,16 +86,12 @@ const EmptyState: React.FC<{
               ))}
             </div>
             <span className="text-xs text-teal-700 font-medium">
-              {isRtl
-                ? 'השדכן/ית שלך עובד/ת על הצעות חדשות'
-                : 'Your matchmaker is working on new suggestions'}
+              {dict.matchmakerWorking}
             </span>
           </div>
 
           <p className="text-xs text-gray-400">
-            {isRtl
-              ? 'הצעות מגיעות בדרך כלל תוך מספר ימים'
-              : 'Suggestions typically arrive within a few days'}
+            {dict.typicalArrival}
           </p>
 
           {onOpenChat && (
@@ -106,7 +102,7 @@ const EmptyState: React.FC<{
               className="w-full rounded-lg border-violet-200 text-violet-700 hover:bg-violet-50"
             >
               <Sparkles className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
-              {isRtl ? 'שאל/י את העוזר החכם' : 'Ask the smart assistant'}
+              {dict.askAssistant}
             </Button>
           )}
         </div>
@@ -117,9 +113,7 @@ const EmptyState: React.FC<{
         <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-lg border border-gray-100">
           <MessageCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <span className="text-xs text-gray-500">
-            {isRtl
-              ? 'ברגע שתגיב/י להצעות, תוכל/י לראות את ההיסטוריה כאן'
-              : 'Once you respond to suggestions, your history will appear here'}
+            {dict.historyGuidance}
           </span>
         </div>
       )}
@@ -259,13 +253,13 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
             </SelectTrigger>
             <SelectContent align={isRtl ? 'start' : 'end'}>
               <SelectItem value="default">
-                {isRtl ? 'ברירת מחדל' : 'Default'}
+                {suggestionsDict.list.controls.sortDefault}
               </SelectItem>
               <SelectItem value="newest">
-                {isRtl ? 'חדש ביותר' : 'Newest'}
+                {suggestionsDict.list.controls.sortNewest}
               </SelectItem>
               <SelectItem value="deadline">
-                {isRtl ? 'דדליין קרוב' : 'Deadline'}
+                {suggestionsDict.list.controls.sortDeadline}
               </SelectItem>
             </SelectContent>
           </Select>

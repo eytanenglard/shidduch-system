@@ -207,9 +207,7 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
                           isDaily ? 'text-violet-600' : 'text-teal-600',
                         )}
                       >
-                        {isReasonExpanded
-                          ? (locale === 'he' ? 'פחות' : 'less')
-                          : (locale === 'he' ? 'עוד' : 'more')}
+                        {isReasonExpanded ? dict.expandLess : dict.expandMore}
                       </button>
                     )}
                   </span>
@@ -221,6 +219,7 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
                 <CardCountdown
                   deadline={suggestion.decisionDeadline!}
                   locale={locale}
+                  dict={dict.countdown}
                 />
               )}
             </div>
@@ -236,7 +235,7 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
                 )}
                 {isDaily && (
                   <span className="text-[10px] text-violet-400 font-medium">
-                    {locale === 'he' ? 'הצעה חכמה' : 'Smart Match'}
+                    {dict.smartMatch}
                   </span>
                 )}
               </div>

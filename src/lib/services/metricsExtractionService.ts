@@ -614,7 +614,7 @@ function parseAIResponse(response: string): AIMetricsResult {
     if (parsed.metrics) {
       Object.entries(parsed.metrics).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
-          (metrics as any)[key] = value;
+          (metrics as Record<string, unknown>)[key] = value;
         }
       });
     }
@@ -634,14 +634,14 @@ function parseAIResponse(response: string): AIMetricsResult {
     // 🆕 הוספת כל שדות ה-AI
     if (parsed.aiPersonalitySummary) metrics.aiPersonalitySummary = parsed.aiPersonalitySummary;
     if (parsed.aiSeekingSummary) metrics.aiSeekingSummary = parsed.aiSeekingSummary;
-    if (parsed.aiBackgroundSummary) (metrics as any).aiBackgroundSummary = parsed.aiBackgroundSummary;
-    if (parsed.aiMatchmakerGuidelines) (metrics as any).aiMatchmakerGuidelines = parsed.aiMatchmakerGuidelines;
-    if (parsed.aiInferredDealBreakers?.length) (metrics as any).aiInferredDealBreakers = parsed.aiInferredDealBreakers;
-    if (parsed.aiInferredMustHaves?.length) (metrics as any).aiInferredMustHaves = parsed.aiInferredMustHaves;
+    if (parsed.aiBackgroundSummary) metrics.aiBackgroundSummary = parsed.aiBackgroundSummary;
+    if (parsed.aiMatchmakerGuidelines) metrics.aiMatchmakerGuidelines = parsed.aiMatchmakerGuidelines;
+    if (parsed.aiInferredDealBreakers?.length) metrics.aiInferredDealBreakers = parsed.aiInferredDealBreakers;
+    if (parsed.aiInferredMustHaves?.length) metrics.aiInferredMustHaves = parsed.aiInferredMustHaves;
     // 🆕 שדות מוסקים — רק אם לא ידועים מהפרופיל ישירות
-    if (parsed.metrics?.inferredAge) (metrics as any).inferredAge = parsed.metrics.inferredAge;
-    if (parsed.metrics?.inferredCity) (metrics as any).inferredCity = parsed.metrics.inferredCity;
-    if (parsed.metrics?.inferredReligiousLevel) (metrics as any).inferredReligiousLevel = parsed.metrics.inferredReligiousLevel;
+    if (parsed.metrics?.inferredAge) metrics.inferredAge = parsed.metrics.inferredAge;
+    if (parsed.metrics?.inferredCity) metrics.inferredCity = parsed.metrics.inferredCity;
+    if (parsed.metrics?.inferredReligiousLevel) metrics.inferredReligiousLevel = parsed.metrics.inferredReligiousLevel;
 
     // חישוב confidence ממוצע
     const confidenceValues = Object.values(explanations)
@@ -1099,7 +1099,7 @@ function mergeMetrics(
   // עדיפות לנתונים ישירים (מהשאלון)
   Object.entries(direct.metrics).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
-      (metrics as any)[key] = value;
+      (metrics as Record<string, unknown>)[key] = value;
       if (direct.explanations[key]) {
         explanations[key] = direct.explanations[key];
       }
@@ -1123,8 +1123,9 @@ function calculateDataCompleteness(result: { metrics: Partial<ProfileMetrics> })
     'adventureScore',
   ];
 
+  const metricsRecord = result.metrics as Record<string, unknown>;
   const filled = importantFields.filter(
-    (f) => (result.metrics as any)[f] !== undefined && (result.metrics as any)[f] !== null
+    (f) => metricsRecord[f] !== undefined && metricsRecord[f] !== null
   ).length;
 
   return Math.round((filled / importantFields.length) * 100);

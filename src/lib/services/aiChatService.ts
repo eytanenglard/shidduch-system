@@ -247,6 +247,373 @@ export class AiChatService {
     return parts.join('\n');
   }
 
+  // ========== Deep Profile Context (for user-facing AI summary) ==========
+
+  static async buildDeepProfileContext(
+    suggestionId: string,
+    userId: string,
+    locale: 'he' | 'en',
+  ): Promise<string | null> {
+    const isHe = locale === 'he';
+
+    const suggestion = await prisma.matchSuggestion.findUnique({
+      where: { id: suggestionId },
+      select: {
+        firstPartyId: true,
+        secondPartyId: true,
+        matchingReason: true,
+        isAutoSuggestion: true,
+        matchmaker: { select: { firstName: true, lastName: true } },
+      },
+    });
+    if (!suggestion) return null;
+
+    const isFirstParty = suggestion.firstPartyId === userId;
+    const targetUserId = isFirstParty ? suggestion.secondPartyId : suggestion.firstPartyId;
+
+    const [targetUser, targetTags, targetMetrics, targetQuestionnaire] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: {
+          firstName: true,
+          lastName: true,
+          profile: {
+            select: {
+              gender: true,
+              birthDate: true,
+              height: true,
+              city: true,
+              maritalStatus: true,
+              parentStatus: true,
+              hasChildrenFromPrevious: true,
+              religiousLevel: true,
+              religiousJourney: true,
+              shomerNegiah: true,
+              kippahType: true,
+              headCovering: true,
+              smokingStatus: true,
+              occupation: true,
+              education: true,
+              educationLevel: true,
+              about: true,
+              profileHeadline: true,
+              profileCharacterTraits: true,
+              profileHobbies: true,
+              inspiringCoupleStory: true,
+              matchingNotes: true,
+              preferredAgeMin: true,
+              preferredAgeMax: true,
+              preferredHeightMin: true,
+              preferredHeightMax: true,
+              preferredReligiousLevels: true,
+              preferredLocations: true,
+              aiProfileSummary: true,
+              testimonials: {
+                select: { content: true, authorName: true, relationship: true },
+              },
+            },
+          },
+        },
+      }),
+      prisma.profileTags.findUnique({
+        where: { userId: targetUserId },
+        select: {
+          sectorTags: true,
+          backgroundTags: true,
+          personalityTags: true,
+          careerTags: true,
+          lifestyleTags: true,
+          familyVisionTags: true,
+          relationshipTags: true,
+          diasporaTags: true,
+          aiDerivedTags: true,
+          partnerTags: true,
+          sectionAnswers: true,
+        },
+      }),
+      prisma.profileMetrics.findUnique({
+        where: { profileId: targetUserId },
+        select: {
+          socialEnergy: true,
+          careerOrientation: true,
+          religiousStrictness: true,
+          emotionalExpression: true,
+          familyInvolvement: true,
+          aiPersonalitySummary: true,
+          aiSeekingSummary: true,
+        },
+      }),
+      prisma.questionnaireResponse.findFirst({
+        where: { userId: targetUserId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          valuesAnswers: true,
+          personalityAnswers: true,
+          relationshipAnswers: true,
+          partnerAnswers: true,
+          religionAnswers: true,
+        },
+      }),
+    ]);
+
+    if (!targetUser?.profile) return null;
+
+    const p = targetUser.profile;
+    const age = p.birthDate
+      ? Math.floor((Date.now() - new Date(p.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+      : null;
+
+    // --- Build comprehensive context ---
+    const sections: string[] = [];
+
+    sections.push(isHe
+      ? `\n## בקשה: סיכום מעמיק של פרופיל המוצע/ת\nהמשתמש/ת ביקש/ה סיכום מקיף ומעמיק על ${targetUser.firstName}. יש ליצור סיכום כנה, אמיתי ומבוסס נתונים.`
+      : `\n## Request: Deep Profile Summary\nThe user requested a comprehensive, in-depth summary of ${targetUser.firstName}. Generate an honest, data-driven summary.`
+    );
+
+    // Basic info
+    const basicLines: string[] = [];
+    basicLines.push(`${isHe ? 'שם' : 'Name'}: ${targetUser.firstName}`);
+    if (age) basicLines.push(`${isHe ? 'גיל' : 'Age'}: ${age}`);
+    basicLines.push(`${isHe ? 'מגדר' : 'Gender'}: ${p.gender === 'MALE' ? (isHe ? 'גבר' : 'Male') : (isHe ? 'אישה' : 'Female')}`);
+    if (p.city) basicLines.push(`${isHe ? 'עיר' : 'City'}: ${p.city}`);
+    if (p.height) basicLines.push(`${isHe ? 'גובה' : 'Height'}: ${p.height} cm`);
+    if (p.maritalStatus) basicLines.push(`${isHe ? 'מצב משפחתי' : 'Marital status'}: ${p.maritalStatus}`);
+    if (p.hasChildrenFromPrevious) basicLines.push(isHe ? 'יש ילדים ממערכת יחסים קודמת' : 'Has children from previous relationship');
+    if (p.smokingStatus) basicLines.push(`${isHe ? 'עישון' : 'Smoking'}: ${p.smokingStatus}`);
+    sections.push(`### ${isHe ? 'פרטים בסיסיים' : 'Basic Info'}\n${basicLines.join('\n')}`);
+
+    // Religious identity
+    const relLines: string[] = [];
+    if (p.religiousLevel) relLines.push(`${isHe ? 'רמה דתית' : 'Religious level'}: ${p.religiousLevel}`);
+    if (p.religiousJourney) relLines.push(`${isHe ? 'מסע דתי' : 'Religious journey'}: ${p.religiousJourney}`);
+    if (p.shomerNegiah !== null) relLines.push(`${isHe ? 'שומר/ת נגיעה' : 'Shomer negiah'}: ${p.shomerNegiah ? (isHe ? 'כן' : 'Yes') : (isHe ? 'לא' : 'No')}`);
+    if (p.kippahType) relLines.push(`${isHe ? 'סוג כיפה' : 'Kippah type'}: ${p.kippahType}`);
+    if (p.headCovering) relLines.push(`${isHe ? 'כיסוי ראש' : 'Head covering'}: ${p.headCovering}`);
+    if (relLines.length > 0) {
+      sections.push(`### ${isHe ? 'זהות דתית' : 'Religious Identity'}\n${relLines.join('\n')}`);
+    }
+
+    // Professional & Education
+    const proLines: string[] = [];
+    if (p.occupation) proLines.push(`${isHe ? 'מקצוע' : 'Occupation'}: ${p.occupation}`);
+    if (p.education) proLines.push(`${isHe ? 'השכלה' : 'Education'}: ${p.education}`);
+    if (p.educationLevel) proLines.push(`${isHe ? 'רמת השכלה' : 'Education level'}: ${p.educationLevel}`);
+    if (proLines.length > 0) {
+      sections.push(`### ${isHe ? 'מקצוע והשכלה' : 'Professional & Education'}\n${proLines.join('\n')}`);
+    }
+
+    // Personal narrative
+    if (p.about) sections.push(`### ${isHe ? 'על עצמם (טקסט חופשי)' : 'About (free text)'}\n${p.about}`);
+    if (p.profileHeadline) sections.push(`${isHe ? 'כותרת פרופיל' : 'Profile headline'}: ${p.profileHeadline}`);
+    if (p.profileCharacterTraits?.length) {
+      sections.push(`${isHe ? 'תכונות אופי' : 'Character traits'}: ${p.profileCharacterTraits.join(', ')}`);
+    }
+    if (p.profileHobbies?.length) {
+      sections.push(`${isHe ? 'תחביבים' : 'Hobbies'}: ${p.profileHobbies.join(', ')}`);
+    }
+    if (p.inspiringCoupleStory) {
+      sections.push(`${isHe ? 'סיפור זוגי מעורר השראה' : 'Inspiring couple story'}: ${p.inspiringCoupleStory}`);
+    }
+
+    // What they're looking for
+    const lookingLines: string[] = [];
+    if (p.matchingNotes) lookingLines.push(p.matchingNotes);
+    if (p.preferredAgeMin || p.preferredAgeMax) lookingLines.push(`${isHe ? 'טווח גילאים' : 'Age range'}: ${p.preferredAgeMin || '?'}-${p.preferredAgeMax || '?'}`);
+    if (p.preferredHeightMin || p.preferredHeightMax) lookingLines.push(`${isHe ? 'טווח גובה' : 'Height range'}: ${p.preferredHeightMin || '?'}-${p.preferredHeightMax || '?'} cm`);
+    if (p.preferredReligiousLevels?.length) lookingLines.push(`${isHe ? 'רמות דתיות מועדפות' : 'Preferred religious levels'}: ${p.preferredReligiousLevels.join(', ')}`);
+    if (p.preferredLocations?.length) lookingLines.push(`${isHe ? 'מיקומים מועדפים' : 'Preferred locations'}: ${p.preferredLocations.join(', ')}`);
+    if (lookingLines.length > 0) {
+      sections.push(`### ${isHe ? 'מה מחפש/ת' : 'Looking For'}\n${lookingLines.join('\n')}`);
+    }
+
+    // Questionnaire answers (5 worlds)
+    if (targetQuestionnaire) {
+      const worldNames = isHe
+        ? { values: 'ערכים', personality: 'אישיות', relationship: 'זוגיות', partner: 'בן/בת זוג', religion: 'דת ורוחניות' }
+        : { values: 'Values', personality: 'Personality', relationship: 'Relationship', partner: 'Partner', religion: 'Religion' };
+
+      const formatAnswers = (answers: unknown): string => {
+        if (!answers) return '';
+        if (Array.isArray(answers)) {
+          return answers
+            .filter((a: any) => a?.value !== undefined && a?.value !== null && a?.value !== '')
+            .map((a: any) => {
+              const val = Array.isArray(a.value) ? a.value.join(', ') : (typeof a.value === 'object' ? JSON.stringify(a.value) : String(a.value));
+              return `- [${a.questionId || '?'}]: ${val}`;
+            })
+            .join('\n');
+        }
+        return typeof answers === 'object' ? Object.entries(answers as Record<string, any>)
+          .map(([k, v]) => `- ${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+          .join('\n') : String(answers);
+      };
+
+      const qParts: string[] = [];
+      const worldEntries: [string, unknown][] = [
+        [worldNames.personality, targetQuestionnaire.personalityAnswers],
+        [worldNames.values, targetQuestionnaire.valuesAnswers],
+        [worldNames.relationship, targetQuestionnaire.relationshipAnswers],
+        [worldNames.partner, targetQuestionnaire.partnerAnswers],
+        [worldNames.religion, targetQuestionnaire.religionAnswers],
+      ];
+
+      for (const [name, answers] of worldEntries) {
+        const formatted = formatAnswers(answers);
+        if (formatted) {
+          qParts.push(`#### ${isHe ? 'עולם' : 'World'}: ${name}\n${formatted}`);
+        }
+      }
+      if (qParts.length > 0) {
+        sections.push(`### ${isHe ? 'שאלון 5 העולמות (טביעת הנשמה)' : 'Five Worlds Questionnaire (Soul Fingerprint)'}\n${qParts.join('\n\n')}`);
+      }
+    }
+
+    // Soul fingerprint tags
+    if (targetTags) {
+      const tagLines: string[] = [];
+      const tagCategories = isHe
+        ? [
+            { label: 'מגזר/קהילה', tags: targetTags.sectorTags },
+            { label: 'רקע ומוצא', tags: targetTags.backgroundTags },
+            { label: 'אישיות', tags: targetTags.personalityTags },
+            { label: 'קריירה ושאיפות', tags: targetTags.careerTags },
+            { label: 'אורח חיים', tags: targetTags.lifestyleTags },
+            { label: 'חזון משפחתי', tags: targetTags.familyVisionTags },
+            { label: 'סגנון זוגיות', tags: targetTags.relationshipTags },
+            { label: 'תפוצות/גיאוגרפי', tags: targetTags.diasporaTags },
+            { label: 'תובנות AI', tags: targetTags.aiDerivedTags },
+          ]
+        : [
+            { label: 'Sector', tags: targetTags.sectorTags },
+            { label: 'Background', tags: targetTags.backgroundTags },
+            { label: 'Personality', tags: targetTags.personalityTags },
+            { label: 'Career', tags: targetTags.careerTags },
+            { label: 'Lifestyle', tags: targetTags.lifestyleTags },
+            { label: 'Family Vision', tags: targetTags.familyVisionTags },
+            { label: 'Relationship', tags: targetTags.relationshipTags },
+            { label: 'Diaspora', tags: targetTags.diasporaTags },
+            { label: 'AI Insights', tags: targetTags.aiDerivedTags },
+          ];
+
+      for (const cat of tagCategories) {
+        if (cat.tags?.length) tagLines.push(`- ${cat.label}: ${cat.tags.join(', ')}`);
+      }
+
+      if (targetTags.partnerTags && typeof targetTags.partnerTags === 'object') {
+        const pt = targetTags.partnerTags as Record<string, unknown>;
+        for (const [key, val] of Object.entries(pt)) {
+          if (Array.isArray(val) && val.length > 0) {
+            tagLines.push(`- ${isHe ? 'העדפות בן/בת זוג' : 'Partner pref'} (${key}): ${val.join(', ')}`);
+          }
+        }
+      }
+
+      if (tagLines.length > 0) {
+        sections.push(`### ${isHe ? 'תגיות טביעת הנשמה' : 'Soul Fingerprint Tags'}\n${tagLines.join('\n')}`);
+      }
+    }
+
+    // Personality metrics
+    if (targetMetrics) {
+      const mLines: string[] = [];
+      if (targetMetrics.socialEnergy !== null) mLines.push(`${isHe ? 'אנרגיה חברתית' : 'Social energy'}: ${targetMetrics.socialEnergy}/10`);
+      if (targetMetrics.careerOrientation !== null) mLines.push(`${isHe ? 'אוריינטציה קריירית' : 'Career orientation'}: ${targetMetrics.careerOrientation}/10`);
+      if (targetMetrics.religiousStrictness !== null) mLines.push(`${isHe ? 'רמת שמרנות דתית' : 'Religious strictness'}: ${targetMetrics.religiousStrictness}/10`);
+      if (targetMetrics.emotionalExpression !== null) mLines.push(`${isHe ? 'ביטוי רגשי' : 'Emotional expression'}: ${targetMetrics.emotionalExpression}/10`);
+      if (targetMetrics.familyInvolvement !== null) mLines.push(`${isHe ? 'מעורבות משפחתית' : 'Family involvement'}: ${targetMetrics.familyInvolvement}/10`);
+      if (targetMetrics.aiPersonalitySummary) mLines.push(`${isHe ? 'סיכום אישיות' : 'Personality summary'}: ${targetMetrics.aiPersonalitySummary}`);
+      if (targetMetrics.aiSeekingSummary) mLines.push(`${isHe ? 'מה מחפש/ת' : 'Seeking summary'}: ${targetMetrics.aiSeekingSummary}`);
+      if (mLines.length > 0) {
+        sections.push(`### ${isHe ? 'מדדי אישיות' : 'Personality Metrics'}\n${mLines.join('\n')}`);
+      }
+    }
+
+    // AI profile summary (if exists)
+    if (p.aiProfileSummary) {
+      let summaryText = '';
+      if (typeof p.aiProfileSummary === 'string') {
+        summaryText = p.aiProfileSummary;
+      } else {
+        const obj = p.aiProfileSummary as Record<string, any>;
+        if (obj.analysis) summaryText += obj.analysis + '\n';
+        if (obj.strengths) summaryText += `${isHe ? 'חוזקות' : 'Strengths'}: ${Array.isArray(obj.strengths) ? obj.strengths.join(', ') : obj.strengths}\n`;
+        if (obj.challenges) summaryText += `${isHe ? 'אתגרים' : 'Challenges'}: ${Array.isArray(obj.challenges) ? obj.challenges.join(', ') : obj.challenges}\n`;
+        if (obj.needs) summaryText += `${isHe ? 'צרכים בזוגיות' : 'Relationship needs'}: ${obj.needs}\n`;
+      }
+      if (summaryText) {
+        sections.push(`### ${isHe ? 'סיכום AI מקדים' : 'AI Profile Summary'}\n${summaryText}`);
+      }
+    }
+
+    // Friend testimonials
+    if (p.testimonials?.length) {
+      const testLines = p.testimonials.map((t) =>
+        `"${t.content}" — ${t.authorName}${t.relationship ? ` (${t.relationship})` : ''}`
+      );
+      sections.push(`### ${isHe ? 'המלצות חברים' : 'Friend Testimonials'}\n${testLines.join('\n')}`);
+    }
+
+    // Matching reason
+    if (suggestion.matchingReason) {
+      sections.push(`### ${isHe ? 'סיבת ההתאמה של השדכנ/ית' : 'Matchmaker Reason'}\n${suggestion.matchingReason}`);
+    }
+
+    // --- Summary prompt instructions ---
+    sections.push(isHe
+      ? `## הנחיות לסיכום הפרופיל
+אתה מתבקש ליצור **סיכום פרופיל מקיף, כנה ומעמיק** של ${targetUser.firstName} עבור המשתמש/ת שקיבל/ה את ההצעה.
+
+**עקרונות מנחים:**
+1. **כנות מלאה** — אל תייפה ואל תזלזל. תן תמונה אמיתית ומאוזנת
+2. **מבוסס נתונים** — כל אמירה חייבת להתבסס על מידע שקיבלת. אל תמציא ואל תשער
+3. **5 העולמות** — סקור את האישיות, הערכים, חזון הזוגיות, מה שמחפש/ת, והזהות הדתית-רוחנית
+4. **שם מלא** — השתמש בשם ${targetUser.firstName} בטבעיות לאורך הסיכום
+5. **טון אישי וחם** — כתוב כאילו אתה חבר טוב שמכיר את האדם ומספר עליו בכנות
+6. **נקודות חוזק ואתגרים** — ציין מה בולט לטובה, ואם יש דברים שכדאי לשים לב אליהם
+7. **רלוונטיות** — התמקד במה שחשוב לבחירת בן/בת זוג
+
+**מבנה מומלץ:**
+- פתיחה: מי ${targetUser.firstName}? (תמונה כללית ב-2-3 משפטים)
+- אישיות וסגנון חיים
+- ערכים ועולם רוחני
+- חזון הזוגיות ומה מחפש/ת בבן/בת זוג
+- נקודות שכדאי לשים לב אליהן
+- סיכום: מה הסוג של בן אדם שבדרך כלל מתאים ל${targetUser.firstName}
+
+**אסור:**
+- לא לחשוף מידע רפואי, הערות פנימיות של שדכנים, או פרטי קשר
+- לא להמציא מידע שלא קיים בנתונים
+- לא להיות שיפוטי או פוגעני`
+      : `## Profile Summary Instructions
+Generate a **comprehensive, honest, and deep profile summary** of ${targetUser.firstName} for the user who received this suggestion.
+
+**Guiding principles:**
+1. **Full honesty** — don't embellish or dismiss. Give a balanced, real picture
+2. **Data-based** — every statement must be based on the data provided. Don't invent or assume
+3. **Five Worlds** — cover personality, values, relationship vision, what they seek, and religious/spiritual identity
+4. **Use name** — use ${targetUser.firstName}'s name naturally throughout
+5. **Warm personal tone** — write as if you're a good friend who knows this person and describes them honestly
+6. **Strengths and challenges** — note what stands out positively, and things worth being aware of
+7. **Relevance** — focus on what matters for choosing a partner
+
+**Recommended structure:**
+- Opening: Who is ${targetUser.firstName}? (general picture in 2-3 sentences)
+- Personality and lifestyle
+- Values and spiritual world
+- Relationship vision and what they seek in a partner
+- Things worth noting
+- Summary: what type of person typically suits ${targetUser.firstName}
+
+**Forbidden:**
+- Do not reveal medical info, internal matchmaker notes, or contact details
+- Do not invent information not present in the data
+- Do not be judgmental or offensive`
+    );
+
+    return sections.join('\n\n');
+  }
+
   // ========== System Prompt ==========
 
   static async buildSystemPrompt(userId: string, locale: 'he' | 'en', suggestionContext?: string, phase?: string): Promise<string> {
@@ -1466,7 +1833,31 @@ ${conversationText}
     aiScore: number;
     shortReasoning: string | null;
     detailedReasoning: string | null;
+    candidateCounter?: { shown: number; total: number };
+    weeklyUsage?: { used: number; limit: number; remaining: number; resetsAt: string };
+    limitReached?: boolean;
   } | null> {
+    // Check weekly limit first
+    const { WeeklyLimitService } = await import('@/lib/services/weeklyLimitService');
+    const weeklyCheck = await WeeklyLimitService.checkAndIncrement(userId);
+    if (!weeklyCheck.allowed) {
+      // Return a special "limit reached" response instead of null
+      return {
+        potentialMatchId: '',
+        candidateUserId: '',
+        aiScore: 0,
+        shortReasoning: null,
+        detailedReasoning: null,
+        limitReached: true,
+        weeklyUsage: {
+          used: weeklyCheck.used,
+          limit: weeklyCheck.limit,
+          remaining: weeklyCheck.remaining,
+          resetsAt: weeklyCheck.resetsAt,
+        },
+      };
+    }
+
     const profile = await prisma.profile.findUnique({
       where: { userId },
       select: { gender: true },
@@ -1568,14 +1959,42 @@ ${conversationText}
         // If reranking fails, continue with original score
       }
 
+      // Count total remaining matches for the counter
+      const totalCount = await prisma.potentialMatch.count({
+        where: {
+          ...(isMale ? { maleUserId: userId } : { femaleUserId: userId }),
+          status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
+          aiScore: { gte: MIN_AI_SCORE_FOR_SEARCH },
+        },
+      });
+
       return {
         potentialMatchId: match.id,
         candidateUserId,
         aiScore: match.aiScore,
         shortReasoning: match.shortReasoning,
         detailedReasoning: match.detailedReasoning,
+        candidateCounter: {
+          shown: alreadyPresented.length + 1,
+          total: totalCount,
+        },
+        weeklyUsage: {
+          used: weeklyCheck.used,
+          limit: weeklyCheck.limit,
+          remaining: weeklyCheck.remaining,
+          resetsAt: weeklyCheck.resetsAt,
+        },
       };
     }
+
+    // No candidate found — decrement the weekly count since we didn't actually present anyone
+    await prisma.weeklySuggestionUsage.updateMany({
+      where: {
+        userId,
+        weekStart: WeeklyLimitService.getWeekStart(),
+      },
+      data: { count: { decrement: 1 } },
+    });
 
     return null;
   }

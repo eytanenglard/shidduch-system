@@ -29,7 +29,18 @@
       "Bash(npx prisma:*)",
       "Bash(python3 -c \":*)",
       "Bash(grep -n '\"\"VALUES\"\"\\\\|\"\"RELATIONSHIP\"\"\\\\|\"\"PARTNER\"\"\\\\|\"\"RELIGION\"\"' \"c:/Users/eytan/Desktop/NeshamaTech/shidduch-system/dictionaries/questionnaire/questions.en.json\")",
-      "Read(//c/Users/eytan/Desktop/NeshamaTech/neshamatech-mobile/**)"
+      "Read(//c/Users/eytan/Desktop/NeshamaTech/neshamatech-mobile/**)",
+      "WebSearch",
+      "WebFetch(domain:mechinot.org.il)",
+      "WebFetch(domain:hesder.org.il)",
+      "WebFetch(domain:www.hamichlol.org.il)",
+      "WebFetch(domain:www.packforisrael.com)",
+      "WebFetch(domain:midrashot.co.il)",
+      "WebFetch(domain:www.bogreytsava.co.il)",
+      "WebFetch(domain:www.aigya.org)",
+      "WebFetch(domain:hamidrashot.org.il)",
+      "WebFetch(domain:he.wikipedia.org)",
+      "WebFetch(domain:www.israelgapyear.com)"
     ],
     "additionalDirectories": [
       "C:\\Users\\eytan\\.claude\\plans",

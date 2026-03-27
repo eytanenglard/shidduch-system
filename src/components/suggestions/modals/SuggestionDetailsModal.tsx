@@ -1,7 +1,7 @@
 // src/components/suggestions/modals/SuggestionDetailsModal.tsx
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -89,6 +89,32 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
     if (viewport) viewport.scrollTop = 0;
   }, [activeTab]);
 
+  // AI Summary auto-send state
+  const [pendingAiMessage, setPendingAiMessage] = useState<string | null>(null);
+
+  const aiInsightBarDict = dict.suggestions.modal.aiInsightBar || {
+    aiSummaryButton: locale === 'he' ? 'סיכום AI על {{name}}' : 'AI Summary of {{name}}',
+    compatibilityButton: locale === 'he' ? 'ניתוח התאמה' : 'Compatibility Analysis',
+    autoSendMessage: locale === 'he'
+      ? 'אשמח לסיכום מעמיק ומקיף על {{name}} — מי הוא/היא, אישיות, ערכים, חזון זוגי, ומה חשוב לדעת'
+      : "I'd like a comprehensive, in-depth summary of {{name}} — who they are, personality, values, relationship vision, and what's important to know",
+  };
+
+  const handleRequestAiSummary = useCallback(() => {
+    const name = targetParty?.firstName || '';
+    const message = (aiInsightBarDict.autoSendMessage || '').replace('{{name}}', name);
+    setPendingAiMessage(message);
+    handleTabChange('details');
+  }, [targetParty?.firstName, aiInsightBarDict.autoSendMessage, handleTabChange]);
+
+  const handleNavigateToCompatibility = useCallback(() => {
+    handleTabChange('compatibility');
+  }, [handleTabChange]);
+
+  const handleAutoSendComplete = useCallback(() => {
+    setPendingAiMessage(null);
+  }, []);
+
   if (!suggestion || !targetParty || !profileWithUser) return null;
 
   const targetAge = targetParty.profile?.birthDate
@@ -126,7 +152,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
             matchingReason={suggestion.matchingReason}
             onViewProfile={() => handleTabChange('profile')}
             onStartConversation={() => handleTabChange('details')}
+            onRequestAiSummary={handleRequestAiSummary}
+            onNavigateToCompatibility={handleNavigateToCompatibility}
             dict={dict.suggestions.modal.header}
+            aiInsightBarDict={aiInsightBarDict}
             profileCardDict={dict.profileCard}
           />
         );
@@ -143,10 +172,13 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
               questionnaire={questionnaire}
               locale={locale}
               onNavigateToDetails={() => handleTabChange('details')}
+              onRequestAiSummary={handleRequestAiSummary}
+              onNavigateToCompatibility={handleNavigateToCompatibility}
               dict={{
                 modal: dict.suggestions.modal,
                 profileCard: dict.profileCard,
               }}
+              aiInsightBarDict={aiInsightBarDict}
             />
           </div>
         );
@@ -194,6 +226,9 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
                 timeline: dict.suggestions.timeline,
                 modal: dict.suggestions.modal,
               }}
+              autoSendMessage={pendingAiMessage}
+              autoSendRequestType={pendingAiMessage ? 'profile_summary' : undefined}
+              onAutoSendComplete={handleAutoSendComplete}
             />
           </div>
         );

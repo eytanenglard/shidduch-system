@@ -188,12 +188,11 @@ async function fetchProfileData(profileId: string): Promise<ProfileDataForVector
       smokingStatus: profile.smokingStatus || undefined,
       headCovering: profile.headCovering || undefined,
       kippahType: profile.kippahType || undefined,
-      hobbies: (profile as any).hobbies || undefined,
       height: profile.height || undefined,
-      maritalStatus: (profile as any).maritalStatus || undefined,
+      maritalStatus: profile.maritalStatus || undefined,
       hasChildrenFromPrevious: profile.hasChildrenFromPrevious || undefined,
-      aliyaYear: (profile as any).aliyaYear || undefined,
-      aliyaCountry: (profile as any).aliyaCountry || undefined,
+      aliyaYear: profile.aliyaYear || undefined,
+      aliyaCountry: profile.aliyaCountry || undefined,
       matchingNotes: profile.matchingNotes || undefined,
       preferredAgeMin: profile.preferredAgeMin || undefined,
       preferredAgeMax: profile.preferredAgeMax || undefined,
@@ -240,7 +239,7 @@ async function fetchProfileData(profileId: string): Promise<ProfileDataForVector
       familyVisionTags: profileTags.familyVisionTags || [],
       relationshipTags: profileTags.relationshipTags || [],
       aiDerivedTags: profileTags.aiDerivedTags || [],
-      partnerTags: profileTags.partnerTags as Record<string, any> | undefined,
+      partnerTags: profileTags.partnerTags as Record<string, unknown> | undefined,
       source: profileTags.source,
     } : undefined,
     matchmakerNotes: profile.internalMatchmakerNotes || undefined,
@@ -616,8 +615,8 @@ function isRelevantQuestion(questionId: string, type: string): boolean {
     ],
   };
 
-  const allQuestions = { ...selfQuestions, ...seekingQuestions };
-  const relevantIds = (allQuestions as any)[type] || [];
+  const allQuestions: Record<string, string[]> = { ...selfQuestions, ...seekingQuestions };
+  const relevantIds = allQuestions[type] || [];
 
   // בדיקה גם חלקית (אם questionId מכיל אחד מהמפתחות)
   return relevantIds.some((id: string) => questionId.includes(id));
@@ -767,7 +766,7 @@ export async function updateProfileVectorsAndMetrics(profileId: string): Promise
     console.log(`[UpdateProfile] Metrics saved. Confidence: ${metricsOutput.overallConfidence}%`);
 
     // Sync AI summaries → profile.aiProfileSummary so vector generation picks them up immediately
-    const { aiPersonalitySummary, aiSeekingSummary } = metricsOutput.metrics as any;
+    const { aiPersonalitySummary, aiSeekingSummary } = metricsOutput.metrics;
     if (aiPersonalitySummary || aiSeekingSummary) {
       await prisma.profile.update({
         where: { id: profileId },

@@ -26,6 +26,24 @@
       "errorLoading": "אירעה שגיאה בטעינת ההצעות: {error}",
       "unknownError": "שגיאה לא ידועה"
     },
+    "filters": {
+      "activeProcess": "הצעה פעילה",
+      "backup": "רשימת גיבוי",
+      "pending": "ממתינות לתגובה",
+      "showAll": "הצג הכל",
+      "emptyActiveProcess": "אין הצעה פעילה כרגע",
+      "emptyBackup": "אין הצעות ברשימת הגיבוי",
+      "emptyPending": "אין הצעות ממתינות לתגובה",
+      "backToFullView": "חזור לתצוגה מלאה"
+    },
+    "dateFeedback": {
+      "title": "איך היה הדייט?",
+      "description": "הפידבק שלך יעזור לנו להציע הצעות טובות יותר",
+      "shareButton": "שתף/י"
+    },
+    "chatFab": {
+      "ariaLabel": "עוזר חכם"
+    },
     "dialogs": {
       "approveTitle": "אישור הצעת השידוך",
       "declineTitle": "דחיית הצעת השידוך",
@@ -265,6 +283,15 @@
       "reOffered": {
         "description": "הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין רלוונטית עבורך?"
       }
+    },
+    "expandMore": "עוד",
+    "expandLess": "פחות",
+    "smartMatch": "הצעה חכמה",
+    "countdown": {
+      "daysLeft": "נותרו {{count}} ימים",
+      "hoursLeft": "נותרו {{count}} שעות",
+      "minutesLeft": "נותרו {{count}} דקות",
+      "expired": "פג תוקף"
     }
   },
   "modal": {
@@ -287,7 +314,12 @@
       "whatsNextSubtitle1": "כל החלטה שתקבל/י היא צעד נכון במסע שלך.",
       "whatsNextSubtitle2": "קח/י את הזמן, ובחר/י מה שהכי מרגיש לך נכון.",
       "bestTimeIsNow": "הזמן הכי טוב הוא עכשיו",
-      "toFullProfile": "לפרופיל המלא"
+      "toFullProfile": "לפרופיל המלא",
+      "testimonials": "מה חברים אומרים",
+      "showMoreTraits": "+{{count}} עוד",
+      "showLessTraits": "פחות",
+      "readMore": "קרא/י עוד",
+      "readLess": "סגור"
     },
     "tabs": {
       "presentation": "הצגה מרשימה",
@@ -331,6 +363,8 @@
       "withdrawError": "שגיאה בביטול"
     },
     "detailsTab": {
+      "timelineTitle": "מעקב סטטוס",
+      "timelineSubtitle": "מסלול ההצעה עד כה",
       "sectionTitle": "תקשורת והתייעצות",
       "sectionSubtitle": "שוחחו עם העוזר החכם או עם השדכן/ית שלכם",
       "aiChatTitle": "שאל/י את העוזר החכם",
@@ -342,6 +376,25 @@
       "contactSubtitle": "פרטי הקשר שותפו — אפשר ליצור קשר!",
       "contactPhone": "טלפון",
       "contactEmail": "אימייל",
+      "contactWhatsApp": "וואטסאפ",
+      "copied": "הועתק!",
+      "starterQuestions": [
+        "מה הנקודות החזקות של ההצעה?",
+        "מה כדאי לשאול בפגישה ראשונה?",
+        "יש נקודות שכדאי לשים לב אליהן?"
+      ],
+      "statusTips": {
+        "PENDING_FIRST_PARTY": "ההצעה ממתינה לתשובתך — קח/י את הזמן להתרשם",
+        "RE_OFFERED_TO_FIRST_PARTY": "ההצעה הוחזרה אליך — שווה לבחון מחדש",
+        "FIRST_PARTY_APPROVED": "תשובתך התקבלה! ממתינים לתשובת הצד השני",
+        "INTERESTED": "ההצעה נשמרה אצלך — תוכל/י לאשר כשתהיה/י מוכנ/ה",
+        "PENDING_SECOND_PARTY": "ההצעה נשלחה לצד השני — ממתינים לתשובתו/ה",
+        "SECOND_PARTY_APPROVED": "שני הצדדים אישרו! השדכן/ית ישתף/תשתף פרטי קשר בקרוב",
+        "CONTACT_DETAILS_SHARED": "פרטי הקשר שותפו — בהצלחה!",
+        "DATING": "בהצלחה בתהליך ההיכרות!",
+        "ENGAGED": "מזל טוב על האירוסין!",
+        "MARRIED": "מזל טוב! שתבנו בית נאמן בישראל"
+      },
       "toasts": {
         "sendSuccess": "ההודעה נשלחה בהצלחה!",
         "sendSuccessDescription": "השדכן/ית יקבל/תקבל את ההודעה שלך בקרוב",
@@ -354,6 +407,11 @@
       "errorTitle": "שגיאה בטעינת פרופיל",
       "errorDescription": "לא הצלחנו לטעון את הפרופיל. אנא פנה לשדכן לקבלת עזרה נוספת.",
       "contactMatchmaker": "פנה לשדכן"
+    },
+    "aiInsightBar": {
+      "aiSummaryButton": "סיכום AI על {{name}}",
+      "compatibilityButton": "ניתוח התאמה",
+      "autoSendMessage": "אשמח לסיכום מעמיק ומקיף על {{name}} — מי הוא/היא, אישיות, ערכים, חזון זוגי, ומה חשוב לדעת"
     },
     "aiAnalysisCta": {
       "title": "🔮 רוצה מבט מעמיק יותר?",
@@ -406,7 +464,11 @@
       "noResultsDescription": "נסה לשנות את קריטריוני החיפוש או הסינון כדי למצוא את מה שאתה מחפש.",
       "noHistoryDescription": "כשיהיו לך הצעות שהושלמו, הן יופיעו כאן.",
       "noActiveDescription": "השדכנים שלנו עובדים עכשיו על מציאת ההתאמות המושלמות עבורך.",
-      "clearFilters": "נקה סינון"
+      "clearFilters": "נקה סינון",
+      "matchmakerWorking": "השדכן/ית שלך עובד/ת על הצעות חדשות",
+      "typicalArrival": "הצעות מגיעות בדרך כלל תוך מספר ימים",
+      "askAssistant": "שאל/י את העוזר החכם",
+      "historyGuidance": "ברגע שתגיב/י להצעות, תוכל/י לראות את ההיסטוריה כאן"
     },
     "stats": {
       "showing": "מוצגות כעת",
@@ -423,6 +485,7 @@
       "filterDeclined": "שנדחו",
       "filterContactShared": "פרטי קשר שותפו",
       "sortPlaceholder": "מיון לפי",
+      "sortDefault": "ברירת מחדל",
       "sortNewest": "החדש ביותר",
       "sortOldest": "הישן ביותר",
       "sortDeadline": "תאריך יעד",

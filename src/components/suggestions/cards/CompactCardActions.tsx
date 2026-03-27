@@ -53,7 +53,7 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
           <Button
             size="sm"
             variant="outline"
-            className="h-9 rounded-lg text-amber-600 border-amber-200 hover:bg-amber-50 hover:border-amber-300 text-xs font-medium"
+            className="h-9 rounded-lg text-teal-700 border-teal-200 hover:bg-teal-50 hover:border-teal-300 text-xs font-medium"
             disabled={!!isLoading}
             onClick={(e) => { e.stopPropagation(); onInterested?.(suggestion); }}
           >
@@ -63,7 +63,7 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
           <Button
             size="sm"
             variant="outline"
-            className="h-9 rounded-lg text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-xs font-medium"
+            className="h-9 rounded-lg text-gray-400 border-gray-200 hover:bg-gray-50 hover:text-gray-600 text-xs font-medium"
             disabled={!!isLoading}
             onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
           >
@@ -88,7 +88,7 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className="h-9 rounded-lg text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-xs font-medium"
+          className="h-9 rounded-lg text-gray-400 border-gray-200 hover:bg-gray-50 hover:text-gray-600 text-xs font-medium"
           disabled={!!isLoading}
           onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
         >
@@ -115,7 +115,7 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className="h-9 rounded-lg text-rose-600 border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-xs font-medium"
+          className="h-9 rounded-lg text-gray-400 border-gray-200 hover:bg-gray-50 hover:text-gray-600 text-xs font-medium"
           disabled={!!isLoading}
           onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
         >
@@ -144,7 +144,7 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className="h-9 rounded-lg text-rose-600 border-rose-200 hover:bg-rose-50 text-xs font-medium"
+          className="h-9 rounded-lg text-gray-400 border-gray-200 hover:bg-gray-50 hover:text-gray-600 text-xs font-medium"
           disabled={!!isLoading}
           onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
         >
@@ -171,7 +171,7 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className="h-9 rounded-lg text-rose-600 border-rose-200 hover:bg-rose-50 text-xs font-medium"
+          className="h-9 rounded-lg text-gray-400 border-gray-200 hover:bg-gray-50 hover:text-gray-600 text-xs font-medium"
           disabled={!!isLoading}
           onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
         >
@@ -188,7 +188,7 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
       <div className="flex items-center gap-1.5">
         <Clock className="w-3.5 h-3.5 text-amber-500" />
         <span className="text-xs text-amber-600 font-medium">
-          {locale === 'he' ? 'בהמתנה' : 'On hold'}
+          {dict.statusLabels.onHold}
         </span>
       </div>
     );

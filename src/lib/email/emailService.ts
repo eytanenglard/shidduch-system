@@ -187,6 +187,15 @@ interface SuggestionInvitationEmailParams {
 // NEW: Report/Block Notification (Apple Guideline 1.2)
 // ═══════════════════════════════════════════════════════════════
 
+interface ChatNotificationEmailParams {
+  recipientEmail: string;
+  recipientName: string;
+  senderName: string;
+  messagePreview: string;
+  suggestionId: string;
+  locale?: Locale;
+}
+
 interface ReportNotificationEmailParams {
   locale: Locale;
   toEmail: string;
@@ -904,6 +913,69 @@ class EmailService {
   }
 
   // ═══════════════════════════════════════════════════════════════
+  // Chat Message Notification Email
+  // ═══════════════════════════════════════════════════════════════
+
+  async sendChatNotificationEmail(params: ChatNotificationEmailParams): Promise<void> {
+    const locale = await this.resolveLocale(params.recipientEmail, params.locale || 'he');
+    const isHe = locale === 'he';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const viewUrl = `${baseUrl}/${locale}/dashboard/suggestions?view=chat&suggestion=${params.suggestionId}`;
+
+    const subject = isHe
+      ? `💬 הודעה חדשה מ${params.senderName}`
+      : `💬 New message from ${params.senderName}`;
+
+    const preview = params.messagePreview.length > 150
+      ? params.messagePreview.slice(0, 150) + '…'
+      : params.messagePreview;
+
+    const html = `
+      <!DOCTYPE html>
+      <html dir="${isHe ? 'rtl' : 'ltr'}" lang="${locale}">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f0fdfa;">
+        <div style="max-width:520px;margin:32px auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+          <div style="background:linear-gradient(135deg,#14b8a6,#0891b2);padding:28px 24px;text-align:center;">
+            <div style="font-size:32px;margin-bottom:8px;">💬</div>
+            <h1 style="color:white;font-size:18px;font-weight:700;margin:0 0 4px;">
+              ${isHe ? 'הודעה חדשה' : 'New Message'}
+            </h1>
+            <p style="color:rgba(255,255,255,0.85);font-size:14px;margin:0;">
+              ${isHe ? `מ${params.senderName}` : `from ${params.senderName}`}
+            </p>
+          </div>
+          <div style="padding:24px;">
+            <p style="font-size:13px;color:#6b7280;margin:0 0 8px;font-weight:600;">
+              ${isHe ? 'תוכן ההודעה:' : 'Message:'}
+            </p>
+            <div style="background:#f0fdfa;border-radius:12px;padding:16px;border:1px solid #ccfbf1;">
+              <p style="font-size:14px;color:#374151;line-height:1.6;margin:0;">
+                &ldquo;${preview}&rdquo;
+              </p>
+            </div>
+            <div style="text-align:center;margin-top:24px;">
+              <a href="${viewUrl}" style="display:inline-block;background:linear-gradient(135deg,#14b8a6,#0891b2);color:white !important;padding:14px 36px;border-radius:12px;text-decoration:none;font-weight:600;font-size:14px;box-shadow:0 4px 12px rgba(20,184,166,0.3);">
+                ${isHe ? 'צפייה בשיחה' : 'View Conversation'}
+              </a>
+            </div>
+          </div>
+          <div style="border-top:1px solid #e5e7eb;padding:16px;text-align:center;background:#f9fafb;">
+            <p style="font-size:11px;color:#9ca3af;margin:0;">NeshamaTech</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await this.sendRawEmail({ to: params.recipientEmail, subject, html });
+    console.log(`📧 [Chat Notification] Email sent to ${params.recipientEmail} from ${params.senderName}`);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   // Verify Connection
   // ═══════════════════════════════════════════════════════════════
 
@@ -942,4 +1014,5 @@ export type {
   ProfileSummaryUpdateEmailParams,
   SuggestionInvitationEmailParams,
   ReportNotificationEmailParams,
+  ChatNotificationEmailParams,
 };

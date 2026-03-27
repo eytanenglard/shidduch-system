@@ -3,6 +3,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
   Heart,
@@ -242,6 +243,11 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
   );
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+    >
     <Card
       className={cn(
         'overflow-hidden border shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group bg-white rounded-2xl',
@@ -297,7 +303,8 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
             {/* Online-style indicator dot */}
             <div
               className={cn(
-                'absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center',
+                'absolute -bottom-0.5 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center',
+                isRtl ? '-left-0.5' : '-right-0.5',
                 config.iconBg
               )}
             >
@@ -379,14 +386,17 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
             </span>
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-400 transition-all duration-500"
-              style={{ width: `${config.progress}%` }}
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-teal-400 to-emerald-400"
+              initial={{ width: 0 }}
+              animate={{ width: `${config.progress}%` }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
             />
           </div>
         </div>
       </div>
     </Card>
+    </motion.div>
   );
 };
 

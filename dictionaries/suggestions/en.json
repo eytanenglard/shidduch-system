@@ -26,6 +26,24 @@
       "errorLoading": "An error occurred while loading your introductions: {error}",
       "unknownError": "An unknown error occurred."
     },
+    "filters": {
+      "activeProcess": "Active",
+      "backup": "Backup",
+      "pending": "Pending",
+      "showAll": "Show all",
+      "emptyActiveProcess": "No active suggestion",
+      "emptyBackup": "No backup suggestions",
+      "emptyPending": "No pending suggestions",
+      "backToFullView": "Back to full view"
+    },
+    "dateFeedback": {
+      "title": "How was the date?",
+      "description": "Your feedback helps us suggest better matches",
+      "shareButton": "Share"
+    },
+    "chatFab": {
+      "ariaLabel": "Smart assistant"
+    },
     "dialogs": {
       "approveTitle": "Confirm Your Interest",
       "declineTitle": "Decline Introduction",
@@ -264,6 +282,15 @@
       "reOffered": {
         "description": "The other side is now available and approved! Is this still relevant for you?"
       }
+    },
+    "expandMore": "more",
+    "expandLess": "less",
+    "smartMatch": "Smart Match",
+    "countdown": {
+      "daysLeft": "{{count}} days left",
+      "hoursLeft": "{{count}}h left",
+      "minutesLeft": "{{count}}m left",
+      "expired": "Expired"
     }
   },
   "modal": {
@@ -286,7 +313,12 @@
       "whatsNextSubtitle1": "Every decision you make is the right step on your journey.",
       "whatsNextSubtitle2": "Take your time and choose what feels right to you.",
       "bestTimeIsNow": "The best time is now",
-      "toFullProfile": "To the Full Profile"
+      "toFullProfile": "To the Full Profile",
+      "testimonials": "What friends say",
+      "showMoreTraits": "+{{count}} more",
+      "showLessTraits": "Less",
+      "readMore": "Read more",
+      "readLess": "Show less"
     },
     "tabs": {
       "presentation": "Presentation",
@@ -330,6 +362,8 @@
       "withdrawError": "Error withdrawing"
     },
     "detailsTab": {
+      "timelineTitle": "Status Tracking",
+      "timelineSubtitle": "The suggestion journey so far",
       "sectionTitle": "Communication & Consultation",
       "sectionSubtitle": "Chat with the smart assistant or your matchmaker",
       "aiChatTitle": "Ask Smart Assistant",
@@ -341,6 +375,25 @@
       "contactSubtitle": "Contact details have been shared — feel free to reach out!",
       "contactPhone": "Phone",
       "contactEmail": "Email",
+      "contactWhatsApp": "WhatsApp",
+      "copied": "Copied!",
+      "starterQuestions": [
+        "What are the strongest points of this suggestion?",
+        "What should I ask on a first date?",
+        "Are there any points I should pay attention to?"
+      ],
+      "statusTips": {
+        "PENDING_FIRST_PARTY": "This suggestion is waiting for your response — take your time",
+        "RE_OFFERED_TO_FIRST_PARTY": "This suggestion was re-offered to you — worth another look",
+        "FIRST_PARTY_APPROVED": "Your response was received! Waiting for the other side",
+        "INTERESTED": "Saved to your list — you can approve when ready",
+        "PENDING_SECOND_PARTY": "Sent to the other side — waiting for their response",
+        "SECOND_PARTY_APPROVED": "Both sides approved! Your matchmaker will share contact details soon",
+        "CONTACT_DETAILS_SHARED": "Contact details have been shared — good luck!",
+        "DATING": "Good luck with getting to know each other!",
+        "ENGAGED": "Congratulations on the engagement!",
+        "MARRIED": "Mazal Tov! Wishing you a wonderful life together"
+      },
       "toasts": {
         "sendSuccess": "Message sent successfully!",
         "sendSuccessDescription": "Your matchmaker will receive your message soon",
@@ -353,6 +406,11 @@
       "errorTitle": "Error Loading Profile",
       "errorDescription": "We couldn't load the profile at this time. Please contact your matchmaker for assistance.",
       "contactMatchmaker": "Contact Your Matchmaker"
+    },
+    "aiInsightBar": {
+      "aiSummaryButton": "AI Summary of {{name}}",
+      "compatibilityButton": "Compatibility Analysis",
+      "autoSendMessage": "I'd like a comprehensive, in-depth summary of {{name}} — who they are, personality, values, relationship vision, and what's important to know"
     },
     "aiAnalysisCta": {
       "title": "🔮 Ready for a Deeper Look?",
@@ -405,7 +463,11 @@
       "noResultsDescription": "Try adjusting your search or filter criteria to find what you're looking for.",
       "noHistoryDescription": "Completed introductions will appear here.",
       "noActiveDescription": "Our matchmakers are hard at work finding the perfect introductions for you.",
-      "clearFilters": "Clear Filters"
+      "clearFilters": "Clear Filters",
+      "matchmakerWorking": "Your matchmaker is working on new suggestions",
+      "typicalArrival": "Suggestions typically arrive within a few days",
+      "askAssistant": "Ask the smart assistant",
+      "historyGuidance": "Once you respond to suggestions, your history will appear here"
     },
     "stats": {
       "showing": "Showing",
@@ -422,6 +484,7 @@
       "filterDeclined": "Declined",
       "filterContactShared": "Contact Shared",
       "sortPlaceholder": "Sort by",
+      "sortDefault": "Default",
       "sortNewest": "Newest",
       "sortOldest": "Oldest",
       "sortDeadline": "Deadline",

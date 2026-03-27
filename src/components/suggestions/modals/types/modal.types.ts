@@ -111,7 +111,10 @@ export interface PresentationTabProps {
   locale: 'he' | 'en';
   onViewProfile: () => void;
   onStartConversation: () => void;
+  onRequestAiSummary: () => void;
+  onNavigateToCompatibility: () => void;
   dict: SuggestionsDictionary['modal']['header'];
+  aiInsightBarDict: { aiSummaryButton: string; compatibilityButton: string };
   profileCardDict?: ProfileCardDict;
 }
 
@@ -122,10 +125,13 @@ export interface ProfileTabProps {
   questionnaire: QuestionnaireResponse | null;
   locale: 'he' | 'en';
   onNavigateToDetails: () => void;
+  onRequestAiSummary: () => void;
+  onNavigateToCompatibility: () => void;
   dict: {
     modal: SuggestionsDictionary['modal'];
     profileCard: ProfileCardDict;
   };
+  aiInsightBarDict: { aiSummaryButton: string; compatibilityButton: string };
 }
 
 export interface CompatibilityTabProps {
@@ -161,6 +167,10 @@ export interface DetailsTabProps {
     timeline: SuggestionsDictionary['timeline'];
     modal: SuggestionsDictionary['modal'];
   };
+  /** Auto-send message to AI chat when tab opens */
+  autoSendMessage?: string | null;
+  autoSendRequestType?: 'profile_summary';
+  onAutoSendComplete?: () => void;
 }
 
 export interface QuickActionsBarProps {

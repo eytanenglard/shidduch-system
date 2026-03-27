@@ -143,6 +143,13 @@ const RELIGIOUS_LEVEL_TO_TRACK: Record<string, string> = {
   chabad: 'charedi_lite',
   breslov: 'charedi',
   other: 'masorti',
+  // Legacy mobile values (may exist in DB from older app versions)
+  ULTRA_ORTHODOX: 'charedi',
+  ORTHODOX: 'dati',
+  NATIONAL_RELIGIOUS: 'dati',
+  TRADITIONAL_RELIGIOUS: 'masorti',
+  TRADITIONAL: 'masorti',
+  SECULAR: 'hiloni',
   // Simplified values map to themselves
   charedi: 'charedi',
   charedi_lite: 'charedi_lite',

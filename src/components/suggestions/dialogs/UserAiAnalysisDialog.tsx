@@ -47,6 +47,8 @@ interface UserAiAnalysisDialogProps {
   suggestedUserName?: string;
   dict: AiAnalysisDict;
   locale: 'he' | 'en';
+  /** Render a small button instead of the large CTA */
+  compact?: boolean;
 }
 
 // --- Demo Data ---
@@ -484,7 +486,7 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
   props
 ) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { dict, locale } = props;
+  const { dict, locale, compact } = props;
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -493,21 +495,30 @@ export const UserAiAnalysisDialog: React.FC<UserAiAnalysisDialogProps> = (
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        {/* Trigger Button: Teal/Orange/Rose gradient (matching HeroSection) */}
-        <Button
-          variant="outline"
-          size="lg"
-          className="relative overflow-hidden group bg-gradient-to-r from-teal-50 via-white to-orange-50 border-2 border-teal-200 text-teal-700 hover:from-teal-100 hover:via-white hover:to-orange-100 hover:border-teal-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
-          <div className="relative z-10 flex items-center gap-3">
-            <div className="relative">
-              <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-teal-600" />
-              <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+        {compact ? (
+          <Button
+            size="sm"
+            className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-sm rounded-lg text-xs font-bold px-4 flex-shrink-0"
+          >
+            <Sparkles className={cn('w-3.5 h-3.5', locale === 'he' ? 'ml-1.5' : 'mr-1.5')} />
+            {dict.triggerButton}
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="lg"
+            className="relative overflow-hidden group bg-gradient-to-r from-teal-50 via-white to-orange-50 border-2 border-teal-200 text-teal-700 hover:from-teal-100 hover:via-white hover:to-orange-100 hover:border-teal-300 transition-all duration-300 shadow-lg hover:shadow-xl rounded-xl"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent transform -translate-x-full group-hover:animate-shimmer" />
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="relative">
+                <Brain className="w-6 h-6 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110 text-teal-600" />
+                <Sparkles className="w-3 h-3 absolute -top-1 -right-1 text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <span className="text-lg font-bold">{dict.triggerButton}</span>
             </div>
-            <span className="text-lg font-bold">{dict.triggerButton}</span>
-          </div>
-        </Button>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent
         className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden shadow-2xl rounded-2xl bg-white z-[9999]"

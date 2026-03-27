@@ -412,6 +412,15 @@ export type SuggestionsCardDict = {
     reOffered: string;                   // ✅ NEW
     waitingFirstPartyAgain: string;      // ✅ NEW
   };
+  expandMore: string;
+  expandLess: string;
+  smartMatch: string;
+  countdown: {
+    daysLeft: string;
+    hoursLeft: string;
+    minutesLeft: string;
+    expired: string;
+  };
   // ✅ NEW: fallback status display objects for MinimalSuggestionCard
   status?: {
     secondPartyNotAvailable?: {
@@ -446,6 +455,11 @@ export type SuggestionsModalDict = {
     whatsNextSubtitle2: string;
     bestTimeIsNow: string;
     toFullProfile: string;
+    testimonials: string;
+    showMoreTraits: string;
+    showLessTraits: string;
+    readMore: string;
+    readLess: string;
   };
   tabs: {
     presentation: string;
@@ -489,6 +503,8 @@ export type SuggestionsModalDict = {
     withdrawError: string;
   };
   detailsTab: {
+    timelineTitle: string;
+    timelineSubtitle: string;
     sectionTitle: string;
     sectionSubtitle: string;
     aiChatTitle: string;
@@ -500,6 +516,10 @@ export type SuggestionsModalDict = {
     contactSubtitle: string;
     contactPhone: string;
     contactEmail: string;
+    contactWhatsApp: string;
+    copied: string;
+    starterQuestions: string[];
+    statusTips: Record<string, string>;
     toasts: {
       sendSuccess: string;
       sendSuccessDescription: string;
@@ -512,6 +532,11 @@ export type SuggestionsModalDict = {
     errorTitle: string;
     errorDescription: string;
     contactMatchmaker: string;
+  };
+  aiInsightBar: {
+    aiSummaryButton: string;
+    compatibilityButton: string;
+    autoSendMessage: string;
   };
   aiAnalysisCta: {
     title: string;
@@ -567,6 +592,10 @@ export type SuggestionsListDict = {
     noHistoryDescription: string;
     noActiveDescription: string;
     clearFilters: string;
+    matchmakerWorking: string;
+    typicalArrival: string;
+    askAssistant: string;
+    historyGuidance: string;
   };
   stats: {
     showing: string;
@@ -583,6 +612,7 @@ export type SuggestionsListDict = {
     filterDeclined: string;
     filterContactShared: string;
     sortPlaceholder: string;
+    sortDefault: string;
     sortNewest: string;
     sortOldest: string;
     sortDeadline: string;
@@ -626,6 +656,24 @@ export type SuggestionsContainerDict = {
     };
     errorLoading: string;
     unknownError: string;
+  };
+  filters: {
+    activeProcess: string;
+    backup: string;
+    pending: string;
+    showAll: string;
+    emptyActiveProcess: string;
+    emptyBackup: string;
+    emptyPending: string;
+    backToFullView: string;
+  };
+  dateFeedback: {
+    title: string;
+    description: string;
+    shareButton: string;
+  };
+  chatFab: {
+    ariaLabel: string;
   };
   dialogs: {
     approveTitle: string;

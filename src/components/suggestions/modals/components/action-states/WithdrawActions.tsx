@@ -47,7 +47,7 @@ const WithdrawActions: React.FC<WithdrawActionsProps> = ({
           </div>
           <Button
             variant="outline"
-            className="w-full text-amber-700 hover:text-amber-800 hover:bg-amber-100 border-amber-300 rounded-2xl h-12 font-bold"
+            className="w-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 border-gray-300 rounded-2xl h-12 font-bold"
             disabled={isSubmitting}
             onClick={() => onWithdraw('grace_period')}
           >
@@ -98,7 +98,7 @@ const WithdrawActions: React.FC<WithdrawActionsProps> = ({
           ) : (
             <Button
               variant="outline"
-              className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 rounded-2xl h-11 font-medium text-sm"
+              className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-2xl h-11 font-medium text-sm"
               disabled={isSubmitting}
               onClick={() => setShowConfirm(true)}
             >

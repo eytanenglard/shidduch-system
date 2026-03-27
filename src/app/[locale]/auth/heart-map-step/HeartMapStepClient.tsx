@@ -18,6 +18,12 @@ import {
 
 import heDict from '@/dictionaries/soul-fingerprint/he.json';
 import enDict from '@/dictionaries/soul-fingerprint/en.json';
+import {
+  buildOptionTranslationMap,
+  createTagTranslator,
+  COMPUTED_TAG_TRANSLATIONS_HE,
+  COMPUTED_TAG_TRANSLATIONS_EN,
+} from '@/components/soul-fingerprint/tagTranslation';
 
 interface Props {
   locale: string;
@@ -71,6 +77,12 @@ export default function HeartMapStepClient({ locale }: Props) {
     (key: string) => getNestedValue(dict, key, gender),
     [dict, gender]
   );
+
+  const translateTag = useMemo(() => {
+    const optionMap = buildOptionTranslationMap(dict, gender);
+    const computedMap = locale === 'he' ? COMPUTED_TAG_TRANSLATIONS_HE : COMPUTED_TAG_TRANSLATIONS_EN;
+    return createTagTranslator(optionMap, computedMap);
+  }, [dict, gender, locale]);
 
   // Load existing soul fingerprint data (may have been imported from guest heart-map)
   useEffect(() => {
@@ -129,6 +141,7 @@ export default function HeartMapStepClient({ locale }: Props) {
         initialData={initialData as { sectionAnswers?: Record<string, unknown>; isComplete?: boolean } | null}
         locale={locale}
         t={t}
+        translateTag={translateTag}
         onComplete={handleComplete}
         onSkip={handleSkipRequest}
       />

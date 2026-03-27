@@ -7,13 +7,14 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Sparkles, X, AlertCircle, UserCheck } from 'lucide-react';
+import { MessageCircle, Sparkles, X, AlertCircle, UserCheck, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAiChat } from './useAiChat';
 import AiChatMessages from './AiChatMessages';
 import AiChatInput from './AiChatInput';
 import AiChatSearchResults from './AiChatSearchResults';
+import AiChatHowItWorks from './AiChatHowItWorks';
 
 interface AiChatPanelProps {
   locale: 'he' | 'en';
@@ -26,9 +27,17 @@ interface AiChatPanelProps {
   panelRef?: React.RefObject<HTMLDivElement | null>;
   /** When true, removes outer margin, hides close button, and always stays open */
   embedded?: boolean;
+  /** Pre-built question chips shown before any messages are sent */
+  starterQuestions?: string[];
+  /** Auto-send a message when chat is ready (after history loads) */
+  autoSendMessage?: string | null;
+  /** Request type for auto-send (e.g. 'profile_summary' for deep context) */
+  autoSendRequestType?: 'profile_summary';
+  /** Called after auto-send fires, so parent can clear the pending message */
+  onAutoSendComplete?: () => void;
 }
 
-export default function AiChatPanel({ locale, suggestionId, proactiveMessage, initialOpen, title, subtitle, onOpenChange, panelRef, embedded }: AiChatPanelProps) {
+export default function AiChatPanel({ locale, suggestionId, proactiveMessage, initialOpen, title, subtitle, onOpenChange, panelRef, embedded, starterQuestions, autoSendMessage, autoSendRequestType, onAutoSendComplete }: AiChatPanelProps) {
   const isHebrew = locale === 'he';
   const {
     messages,
@@ -53,9 +62,32 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
     executeChatAction,
     isGeneralChat,
     isLoadingDiscovery,
+    historyLoaded,
+    weeklyUsage,
+    candidateCounter,
+    showRejectionPicker,
+    setShowRejectionPicker,
   } = useAiChat({ locale, suggestionId, proactiveMessage, initialOpen });
 
   const [isEscalating, setIsEscalating] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const autoSendFired = React.useRef(false);
+
+  // Auto-send message when chat is ready (history loaded, not streaming)
+  useEffect(() => {
+    if (autoSendMessage && historyLoaded && !isLoading && !isStreaming && !autoSendFired.current) {
+      autoSendFired.current = true;
+      sendMessage(autoSendMessage, autoSendRequestType);
+      onAutoSendComplete?.();
+    }
+  }, [autoSendMessage, historyLoaded, isLoading, isStreaming, sendMessage, autoSendRequestType, onAutoSendComplete]);
+
+  // Reset the auto-send guard when the message changes
+  useEffect(() => {
+    if (!autoSendMessage) {
+      autoSendFired.current = false;
+    }
+  }, [autoSendMessage]);
 
   // Notify parent when open state changes
   useEffect(() => {
@@ -164,14 +196,32 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                     </span>
                   )}
                 </div>
-                {!embedded && (
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="w-7 h-7 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
-                  >
-                    <X className="w-4 h-4 text-white" />
-                  </button>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {/* Weekly usage badge */}
+                  {isGeneralChat && weeklyUsage && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90 font-medium">
+                      {weeklyUsage.used}/{weeklyUsage.limit} {isHebrew ? 'השבוע' : 'this week'}
+                    </span>
+                  )}
+                  {/* How it works button */}
+                  {isGeneralChat && (
+                    <button
+                      onClick={() => setShowHowItWorks(true)}
+                      className="w-7 h-7 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
+                      title={isHebrew ? 'איך זה עובד?' : 'How it works?'}
+                    >
+                      <HelpCircle className="w-4 h-4 text-white/80" />
+                    </button>
+                  )}
+                  {!embedded && (
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="w-7 h-7 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
+                    >
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Escalation Notice */}
@@ -204,6 +254,11 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                   actionButtons={actionButtons}
                   onChatAction={executeChatAction}
                   isLoadingDiscovery={isLoadingDiscovery}
+                  showRejectionPicker={showRejectionPicker}
+                  onRejectWithCategory={(category) => {
+                    executeChatAction('not_for_me', { rejectionCategory: category });
+                  }}
+                  onCancelRejection={() => setShowRejectionPicker(false)}
                 />
 
                 {/* Legacy search results (for suggestion-specific chats only) */}
@@ -219,6 +274,26 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                     <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">
                       <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                       {error}
+                    </div>
+                  </div>
+                )}
+
+                {/* Starter question chips — shown before any messages */}
+                {starterQuestions && starterQuestions.length > 0 && messages.length === 0 && !isStreaming && !isLoading && (
+                  <div className="px-4 py-2 border-t border-gray-100">
+                    <p className="text-[10px] font-medium text-violet-500 mb-1.5 uppercase tracking-wider">
+                      {isHebrew ? 'שאלות לדוגמה' : 'Try asking'}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {starterQuestions.map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => sendMessage(q)}
+                          className="text-xs px-3 py-1.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 hover:border-violet-300 transition-colors text-start"
+                        >
+                          {q}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -266,6 +341,15 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* How it works dialog */}
+      {showHowItWorks && (
+        <AiChatHowItWorks
+          locale={locale}
+          open={showHowItWorks}
+          onOpenChange={setShowHowItWorks}
+        />
+      )}
     </div>
   );
 }

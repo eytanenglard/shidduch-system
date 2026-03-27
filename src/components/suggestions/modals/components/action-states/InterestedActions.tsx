@@ -30,7 +30,7 @@ const InterestedActions: React.FC<Props> = ({
     <div className="flex flex-col sm:flex-row gap-3">
       {!isUserInActiveProcess && (
         <Button
-          className="sm:flex-[2] bg-teal-600 hover:bg-teal-700 text-white shadow-sm rounded-xl h-11 font-bold text-sm"
+          className="sm:flex-[2] bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md rounded-xl h-11 font-bold text-sm"
           disabled={isSubmitting}
           onClick={onApprove}
         >
@@ -41,7 +41,7 @@ const InterestedActions: React.FC<Props> = ({
       <Button
         variant="outline"
         className={cn(
-          'text-gray-500 hover:text-rose-600 hover:bg-rose-50 border-gray-200 hover:border-rose-200 rounded-xl h-11 font-medium text-sm',
+          'text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl h-11 font-medium text-sm',
           isUserInActiveProcess ? 'w-full' : 'sm:flex-1'
         )}
         disabled={isSubmitting}

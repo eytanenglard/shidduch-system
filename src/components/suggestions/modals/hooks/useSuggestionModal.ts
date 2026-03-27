@@ -63,6 +63,8 @@ export const useSuggestionModal = (
         setActiveTab(view === 'chat' ? 'details' : 'presentation');
       }
       setIsActionsExpanded(false);
+      setActionFeedback(null);
+      setVisitedTabs(new Set(['presentation']));
       setIsInitialLoad(true);
       const timer = setTimeout(() => setIsInitialLoad(false), 250);
       return () => clearTimeout(timer);
@@ -121,16 +123,19 @@ export const useSuggestionModal = (
   // Handlers
   const handleApprove = useCallback(() => {
     if (!suggestion) return;
+    setActionFeedback('success');
     onActionRequest(suggestion, 'approve');
   }, [suggestion, onActionRequest]);
 
   const handleDecline = useCallback(() => {
     if (!suggestion) return;
+    setActionFeedback('declined');
     onActionRequest(suggestion, 'decline');
   }, [suggestion, onActionRequest]);
 
   const handleInterested = useCallback(() => {
     if (!suggestion) return;
+    setActionFeedback('success');
     onActionRequest(suggestion, 'interested');
   }, [suggestion, onActionRequest]);
 

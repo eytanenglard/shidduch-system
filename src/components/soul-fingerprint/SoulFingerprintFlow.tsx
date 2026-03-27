@@ -21,6 +21,7 @@ interface Props {
   initialData?: { sectionAnswers?: Record<string, unknown>; isComplete?: boolean } | null;
   locale: string;
   t: (key: string) => string;
+  translateTag: (tag: string) => string;
   onComplete?: () => void;
   onSkip?: () => void;
 }
@@ -30,6 +31,7 @@ export default function SoulFingerprintFlow({
   initialData,
   locale,
   t,
+  translateTag,
   onComplete,
   onSkip,
 }: Props) {
@@ -69,6 +71,8 @@ export default function SoulFingerprintFlow({
     switchToSelf,
     saveNow,
     totalSections,
+    allRequiredAnswered,
+    markComplete,
   } = useSoulFingerprint(gender, initialData as { sectionAnswers?: Record<string, string | string[] | number | null>; isComplete?: boolean } | null);
 
   // Check which required questions in the current view are unanswered
@@ -275,12 +279,17 @@ export default function SoulFingerprintFlow({
       }, 600);
       return;
     }
-    // If on last section, go to complete
+    // If on last section, validate and go to complete
     if (state.currentSectionIndex === totalSections - 1) {
-      saveNow().then(() => {
-        setScreen('complete');
-        onComplete?.();
-      });
+      if (allRequiredAnswered()) {
+        markComplete();
+        saveNow(true).then(() => {
+          setScreen('complete');
+          onComplete?.();
+        });
+      } else {
+        handleScrollToUnanswered();
+      }
       return;
     }
     // Otherwise next section
@@ -294,6 +303,9 @@ export default function SoulFingerprintFlow({
     totalSections,
     saveNow,
     onComplete,
+    allRequiredAnswered,
+    markComplete,
+    handleScrollToUnanswered,
   ]);
 
   const handleBack = useCallback(() => {
@@ -338,6 +350,7 @@ export default function SoulFingerprintFlow({
         onEdit={handleEditFromComplete}
         onContinue={() => onComplete?.()}
         t={t}
+        translateTag={translateTag}
         isRTL={isRTL}
       />
     );

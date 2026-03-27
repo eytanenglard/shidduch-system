@@ -747,7 +747,7 @@ export default function UserChatPanel({
           </div>
         ) : (
           <ScrollArea className={cn(isSplitMode ? 'h-[calc(100%-1px)]' : 'max-h-[600px]')}>
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100" dir={isHe ? 'rtl' : 'ltr'}>
               {filteredChats.map((chat) => (
                 <ChatRow
                   key={chat.id}

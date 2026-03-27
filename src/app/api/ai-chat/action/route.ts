@@ -18,6 +18,7 @@ import { statusTransitionService } from '@/components/matchmaker/suggestions/ser
 import { getDictionary } from '@/lib/dictionaries';
 import type { EmailDictionary } from '@/types/dictionary';
 import { AiChatService } from '@/lib/services/aiChatService';
+import { WeeklyLimitService } from '@/lib/services/weeklyLimitService';
 
 const actionSchema = z.discriminatedUnion('actionType', [
   // Existing: action on existing suggestion
@@ -34,12 +35,20 @@ const actionSchema = z.discriminatedUnion('actionType', [
     conversationId: z.string(),
     potentialMatchId: z.string(),
   }),
-  // Smart Assistant: candidate not a match
+  // Smart Assistant: candidate not a match — with optional rejection feedback
   z.object({
     actionType: z.literal('not_for_me'),
     candidateUserId: z.string(),
     conversationId: z.string(),
     feedback: z.string().optional(),
+    rejectionCategory: z.string().optional(),
+    missingTraits: z.array(z.string()).optional(),
+  }),
+  // Smart Assistant: skip to next without feedback
+  z.object({
+    actionType: z.literal('next_candidate'),
+    candidateUserId: z.string(),
+    conversationId: z.string(),
   }),
   // Smart Assistant: want more info
   z.object({
@@ -123,10 +132,19 @@ export async function POST(req: NextRequest) {
       // Add to presented list and clear current
       await AiChatService.updateConversationPhase(
         data.conversationId,
-        'discovery', // Go back to discovery temporarily
+        'discovery',
         null,
         data.candidateUserId,
       );
+
+      // Save structured rejection feedback (for preference learning)
+      if (data.rejectionCategory || data.missingTraits?.length) {
+        try {
+          const { AutoSuggestionFeedbackService } = await import('@/lib/services/autoSuggestionFeedbackService');
+          // Save feedback for learning (non-blocking)
+          void AutoSuggestionFeedbackService.recalculatePreferences(userId).catch(() => {});
+        } catch { /* ignore */ }
+      }
 
       // Save feedback message if provided
       if (data.feedback) {
@@ -134,55 +152,30 @@ export async function POST(req: NextRequest) {
           data.conversationId,
           'user',
           data.feedback,
-          { type: 'decline_feedback' },
+          { type: 'decline_feedback', rejectionCategory: data.rejectionCategory },
         );
-      }
-
-      // Try to find next candidate
-      const nextCandidate = await AiChatService.getNextCandidate(userId, data.conversationId);
-
-      if (nextCandidate) {
-        await AiChatService.updateConversationPhase(
-          data.conversationId,
-          'presenting',
-          nextCandidate.candidateUserId,
-          nextCandidate.candidateUserId,
-        );
-
-        // Save profile card message
+      } else if (data.rejectionCategory) {
         await AiChatService.saveMessage(
           data.conversationId,
-          'assistant',
-          'הנה מישהו/י אחר/ת שיכול/ה להתאים:',
-          { type: 'profile_card', candidateUserId: nextCandidate.candidateUserId },
+          'user',
+          `סיבה: ${data.rejectionCategory}`,
+          { type: 'decline_feedback', rejectionCategory: data.rejectionCategory },
         );
-
-        return NextResponse.json({
-          success: true,
-          phase: 'presenting',
-          candidateUserId: nextCandidate.candidateUserId,
-          actionButtons: [
-            { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
-            { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
-            { type: 'tell_me_more', label: { he: 'ספר/י לי עוד', en: 'Tell me more' } },
-          ],
-          potentialMatchId: nextCandidate.potentialMatchId,
-        });
       }
 
-      // No more candidates
-      await AiChatService.saveMessage(
+      return await handleGetNextCandidate(userId, data.conversationId, 'הנה מישהו/י אחר/ת שיכול/ה להתאים:');
+    }
+
+    if (data.actionType === 'next_candidate') {
+      // Skip without feedback — just add to presented list
+      await AiChatService.updateConversationPhase(
         data.conversationId,
-        'assistant',
-        'כרגע אין לי עוד התאמות חדשות להציע. בואו נמשיך לדבר כדי שאוכל למצוא לך התאמות טובות יותר בהמשך. 💬',
-        { type: 'no_more_candidates' },
+        'discovery',
+        null,
+        data.candidateUserId,
       );
 
-      return NextResponse.json({
-        success: true,
-        phase: 'discovery',
-        noMoreCandidates: true,
-      });
+      return await handleGetNextCandidate(userId, data.conversationId, 'הנה מישהו/י אחר/ת:');
     }
 
     if (data.actionType === 'tell_me_more') {
@@ -195,49 +188,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (data.actionType === 'trigger_search') {
-      const nextCandidate = await AiChatService.getNextCandidate(userId, data.conversationId);
-
-      if (nextCandidate) {
-        await AiChatService.updateConversationPhase(
-          data.conversationId,
-          'presenting',
-          nextCandidate.candidateUserId,
-          nextCandidate.candidateUserId,
-        );
-
-        // Save profile card message
-        await AiChatService.saveMessage(
-          data.conversationId,
-          'assistant',
-          'מצאתי מישהו/י שיכול/ה להתאים לך:',
-          { type: 'profile_card', candidateUserId: nextCandidate.candidateUserId },
-        );
-
-        return NextResponse.json({
-          success: true,
-          phase: 'presenting',
-          candidateUserId: nextCandidate.candidateUserId,
-          actionButtons: [
-            { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
-            { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
-            { type: 'tell_me_more', label: { he: 'ספר/י לי עוד', en: 'Tell me more' } },
-          ],
-          potentialMatchId: nextCandidate.potentialMatchId,
-        });
-      }
-
-      await AiChatService.saveMessage(
-        data.conversationId,
-        'assistant',
-        'חיפשתי במאגר ולא מצאתי כרגע התאמות חדשות. ככל שנמשיך לדייק את מה שחשוב לך, יעלו התאמות חדשות. 🔍',
-        { type: 'no_candidates_found' },
-      );
-
-      return NextResponse.json({
-        success: true,
-        phase: 'discovery',
-        noMoreCandidates: true,
-      });
+      return await handleGetNextCandidate(userId, data.conversationId, 'מצאתי מישהו/י שיכול/ה להתאים לך:');
     }
 
     return NextResponse.json({ error: 'Unknown action type' }, { status: 400 });
@@ -248,6 +199,84 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+// === Helper: get next candidate and build response ===
+const ACTION_BUTTONS = [
+  { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
+  { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
+  { type: 'tell_me_more', label: { he: 'ספר/י לי עוד', en: 'Tell me more' } },
+  { type: 'next_candidate', label: { he: 'הבא/ה', en: 'Next' } },
+];
+
+async function handleGetNextCandidate(userId: string, conversationId: string, introMessage: string) {
+  const nextCandidate = await AiChatService.getNextCandidate(userId, conversationId);
+
+  // Weekly limit reached
+  if (nextCandidate?.limitReached) {
+    const usage = nextCandidate.weeklyUsage!;
+    await AiChatService.saveMessage(
+      conversationId,
+      'assistant',
+      `הגעת למכסה השבועית (${usage.limit} הצעות). המכסה תתאפס ב-${new Date(usage.resetsAt).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}. בינתיים, נוכל להמשיך לדבר ולדייק את מה שחשוב לך!`,
+      { type: 'limit_reached', weeklyUsage: usage },
+    );
+
+    return NextResponse.json({
+      success: true,
+      phase: 'discovery',
+      limitReached: true,
+      weeklyUsage: usage,
+    });
+  }
+
+  if (nextCandidate && nextCandidate.candidateUserId) {
+    await AiChatService.updateConversationPhase(
+      conversationId,
+      'presenting',
+      nextCandidate.candidateUserId,
+      nextCandidate.candidateUserId,
+    );
+
+    await AiChatService.saveMessage(
+      conversationId,
+      'assistant',
+      introMessage,
+      { type: 'profile_card', candidateUserId: nextCandidate.candidateUserId },
+    );
+
+    // Get weekly usage for display
+    const weeklyUsage = await WeeklyLimitService.getUsage(userId);
+
+    return NextResponse.json({
+      success: true,
+      phase: 'presenting',
+      candidateUserId: nextCandidate.candidateUserId,
+      actionButtons: ACTION_BUTTONS,
+      potentialMatchId: nextCandidate.potentialMatchId,
+      candidateCounter: nextCandidate.candidateCounter,
+      weeklyUsage: {
+        used: weeklyUsage.used,
+        limit: weeklyUsage.limit,
+        remaining: weeklyUsage.remaining,
+        resetsAt: weeklyUsage.resetsAt,
+      },
+    });
+  }
+
+  // No more candidates
+  await AiChatService.saveMessage(
+    conversationId,
+    'assistant',
+    'כרגע אין לי עוד התאמות חדשות להציע. בואו נמשיך לדבר כדי שאוכל למצוא לך התאמות טובות יותר בהמשך.',
+    { type: 'no_more_candidates' },
+  );
+
+  return NextResponse.json({
+    success: true,
+    phase: 'discovery',
+    noMoreCandidates: true,
+  });
 }
 
 // === Existing suggestion status handler ===

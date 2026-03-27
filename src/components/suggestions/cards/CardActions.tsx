@@ -49,7 +49,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           <Button
             size="sm"
             variant="default"
-            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+            className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium h-10"
             onClick={(e) => {
               e.stopPropagation();
               onInterested?.(suggestion);
@@ -62,9 +62,9 @@ const CardActions: React.FC<CardActionsProps> = ({
               (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
           </Button>
 
-          <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 rounded-lg border border-amber-200/50">
-            <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-amber-800 leading-relaxed">
+          <div className="flex items-start gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
+            <Info className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-slate-600 leading-relaxed">
               {dict.activeProcessExplanation ||
                 (locale === 'he'
                   ? 'יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים.'
@@ -75,7 +75,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           <Button
             size="sm"
             variant="outline"
-            className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300 h-9"
+            className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 h-9"
             onClick={(e) => {
               e.stopPropagation();
               onDecline?.(suggestion);
@@ -95,7 +95,7 @@ const CardActions: React.FC<CardActionsProps> = ({
         <Button
           size="sm"
           variant="default"
-          className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+          className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium h-10"
           onClick={(e) => {
             e.stopPropagation();
             onApprove?.(suggestion);
@@ -111,7 +111,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           <Button
             size="sm"
             variant="outline"
-            className="w-full text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200 hover:border-amber-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
+            className="w-full text-teal-700 hover:text-teal-800 hover:bg-teal-50 border-teal-200 hover:border-teal-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
             onClick={(e) => {
               e.stopPropagation();
               onInterested?.(suggestion);
@@ -130,7 +130,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           <Button
             size="sm"
             variant="outline"
-            className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
+            className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 text-xs h-9"
             onClick={(e) => {
               e.stopPropagation();
               onDecline?.(suggestion);
@@ -156,7 +156,7 @@ const CardActions: React.FC<CardActionsProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 hover:border-rose-300 rounded-xl font-medium transition-all duration-300"
+          className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300"
           onClick={(e) => {
             e.stopPropagation();
             onDecline?.(suggestion);
@@ -171,7 +171,7 @@ const CardActions: React.FC<CardActionsProps> = ({
         <Button
           size="sm"
           variant="default"
-          className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+          className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium"
           onClick={(e) => {
             e.stopPropagation();
             onApprove?.(suggestion);
@@ -194,7 +194,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           <Button
             size="sm"
             variant="default"
-            className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium h-10"
+            className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium h-10"
             onClick={(e) => {
               e.stopPropagation();
               onApprove?.(suggestion);
@@ -211,7 +211,7 @@ const CardActions: React.FC<CardActionsProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 border-rose-200 rounded-xl font-medium transition-all duration-300 h-9"
+          className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 h-9"
           onClick={(e) => {
             e.stopPropagation();
             onDecline?.(suggestion);
@@ -276,7 +276,7 @@ const CardActions: React.FC<CardActionsProps> = ({
         <Button
           size="sm"
           variant="default"
-          className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg rounded-xl font-medium h-10"
+          className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md rounded-xl font-medium h-10"
           onClick={(e) => {
             e.stopPropagation();
             onApprove?.(suggestion);
@@ -304,7 +304,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           <Button
             size="sm"
             variant="outline"
-            className="w-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 rounded-xl font-medium"
+            className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium"
             onClick={(e) => {
               e.stopPropagation();
               onDecline?.(suggestion);
@@ -318,7 +318,7 @@ const CardActions: React.FC<CardActionsProps> = ({
           <Button
             size="sm"
             variant="default"
-            className="w-full bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg rounded-xl font-medium"
+            className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md rounded-xl font-medium"
             onClick={(e) => {
               e.stopPropagation();
               onApprove?.(suggestion);
@@ -355,7 +355,7 @@ const CardActions: React.FC<CardActionsProps> = ({
       <Button
         size="sm"
         variant="default"
-        className="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl font-medium"
+        className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium"
         onClick={() => onClick(suggestion)}
       >
         <Eye

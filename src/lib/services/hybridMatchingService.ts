@@ -19,7 +19,7 @@
 // ============================================================
 
 import prisma from "@/lib/prisma";
-import { Gender, AvailabilityStatus, MatchSuggestionStatus, PotentialMatchStatus } from "@prisma/client";
+import { Gender, AvailabilityStatus, MatchSuggestionStatus, PotentialMatchStatus, Prisma } from "@prisma/client";
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import {
   getReligiousCompatibilityScore as _getReligiousCompatibilityScore,
@@ -2038,7 +2038,7 @@ async function generateContentWithTimeout(
     }, timeoutMs);
 
     model.generateContent(prompt).then(
-      (result) => { clearTimeout(timer); resolve(result as any); },
+      (result) => { clearTimeout(timer); resolve(result); },
       (err)    => { clearTimeout(timer); reject(err); }
     );
   });
@@ -2109,15 +2109,15 @@ async function saveResults(
             firstPassScore: match.tier2Score,
             shortReasoning: match.detailedReasoning,
             scannedAt: new Date(),
-            scoreBreakdown: match.scoreBreakdown as any,
+            scoreBreakdown: JSON.parse(JSON.stringify(match.scoreBreakdown)) as Prisma.InputJsonValue,
             scoreForMale: scoreForMaleVal,
             scoreForFemale: scoreForFemaleVal,
             asymmetryGap: asymmetry,
             hybridScore: match.finalScore,
             hybridReasoning: match.detailedReasoning,
             hybridScannedAt: new Date(),
-            hybridScoreBreakdown: match.scoreBreakdown as any,
-            ...(tagBreakdown ? { tagMatchBreakdown: tagBreakdown as any } : {}),
+            hybridScoreBreakdown: JSON.parse(JSON.stringify(match.scoreBreakdown)) as Prisma.InputJsonValue,
+            ...(tagBreakdown ? { tagMatchBreakdown: JSON.parse(JSON.stringify(tagBreakdown)) as Prisma.InputJsonValue } : {}),
             ...(scanSessionId ? { scanSessionId } : {}),
           },
         });
@@ -2129,7 +2129,7 @@ async function saveResults(
             femaleUserId,
             aiScore: match.finalScore,
             firstPassScore: match.tier2Score,
-            scoreBreakdown: match.scoreBreakdown as any,
+            scoreBreakdown: JSON.parse(JSON.stringify(match.scoreBreakdown)) as Prisma.InputJsonValue,
             status: 'PENDING',
             shortReasoning: match.detailedReasoning,
             scoreForMale: scoreForMaleVal,
@@ -2138,8 +2138,8 @@ async function saveResults(
             hybridScore: match.finalScore,
             hybridReasoning: match.detailedReasoning,
             hybridScannedAt: new Date(),
-            hybridScoreBreakdown: match.scoreBreakdown as any,
-            ...(tagBreakdown ? { tagMatchBreakdown: tagBreakdown as any } : {}),
+            hybridScoreBreakdown: JSON.parse(JSON.stringify(match.scoreBreakdown)) as Prisma.InputJsonValue,
+            ...(tagBreakdown ? { tagMatchBreakdown: JSON.parse(JSON.stringify(tagBreakdown)) as Prisma.InputJsonValue } : {}),
             ...(scanSessionId ? { scanSessionId } : {}),
           },
         });
@@ -2765,7 +2765,7 @@ export async function hybridScan(
       backgroundProfile: userBackgroundProfile,
       metrics: metrics,
       profileUpdatedAt: profile.updatedAt,
-      contentUpdatedAt: (profile as any).contentUpdatedAt ?? profile.updatedAt, // significant changes only
+      contentUpdatedAt: profile.contentUpdatedAt ?? profile.updatedAt, // significant changes only
     },
     useVectors,
     useBackgroundAnalysis,
@@ -2988,7 +2988,7 @@ export async function hybridScan(
     scannedPairsSaved = await saveScannedPairs(
       userId,
       profile.gender,
-      (profile as any).contentUpdatedAt ?? profile.updatedAt,
+      profile.contentUpdatedAt ?? profile.updatedAt,
       finalCandidates
     );
   }
