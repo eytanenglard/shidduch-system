@@ -155,6 +155,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   const [viewProfileId, setViewProfileId] = useState<string | null>(null);
   const [fullProfileData, setFullProfileData] = useState<any | null>(null);
   const [questionnaireData, setQuestionnaireData] = useState<any | null>(null);
+  const [sfAnswersData, setSfAnswersData] = useState<Record<string, unknown> | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isMatchmakerView, setIsMatchmakerView] = useState(true);
 
@@ -272,16 +273,19 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
       if (!viewProfileId) {
         setFullProfileData(null);
         setQuestionnaireData(null);
+        setSfAnswersData(null);
         return;
       }
 
       setIsLoadingProfile(true);
       try {
-        const profileResponse = await fetch(
-          `/api/matchmaker/candidates/${viewProfileId}`
-        );
-        const profileJson = await profileResponse.json();
+        const [profileResponse, questionnaireResponse, sfProfileResponse] = await Promise.all([
+          fetch(`/api/matchmaker/candidates/${viewProfileId}`),
+          fetch(`/api/profile/questionnaire?userId=${viewProfileId}&locale=${locale}`),
+          fetch(`/api/profile?userId=${viewProfileId}`),
+        ]);
 
+        const profileJson = await profileResponse.json();
         if (profileJson.success) {
           const formattedData = {
             ...profileJson,
@@ -295,17 +299,16 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           toast.error('לא ניתן היה לטעון את הפרופיל');
         }
 
-        const questionnaireResponse = await fetch(
-          `/api/profile/questionnaire?userId=${viewProfileId}&locale=${locale}`
-        );
         const questionnaireJson = await questionnaireResponse.json();
-
         if (
           questionnaireJson.success &&
           questionnaireJson.questionnaireResponse
         ) {
           setQuestionnaireData(questionnaireJson.questionnaireResponse);
         }
+
+        const sfProfileJson = await sfProfileResponse.json();
+        setSfAnswersData(sfProfileJson.success ? sfProfileJson.sfAnswers || null : null);
       } catch (err) {
         toast.error('שגיאה בטעינת פרופיל המועמד');
       } finally {
@@ -757,6 +760,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 profile={fullProfileData.profile}
                 images={fullProfileData.images}
                 questionnaire={questionnaireData}
+                sfAnswers={sfAnswersData}
                 viewMode={isMatchmakerView ? 'matchmaker' : 'candidate'}
                 isProfileComplete={
                   fullProfileData.profile?.isProfileComplete || false

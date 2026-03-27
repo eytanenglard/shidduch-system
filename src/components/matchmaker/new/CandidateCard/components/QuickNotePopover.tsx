@@ -40,7 +40,7 @@ const QuickNotePopover: React.FC<QuickNotePopoverProps> = ({
             <Button
               variant="outline"
               size="icon"
-              className="h-7 w-7 min-h-[44px] min-w-[44px] bg-white/95 shadow-xl border-0 hover:bg-white hover:scale-105 transition-all duration-200 relative"
+              className="h-7 w-7 min-h-[44px] min-w-[44px] lg:min-h-[32px] lg:min-w-[32px] bg-white/95 shadow-xl border-0 hover:bg-white hover:scale-105 transition-all duration-200 relative"
               onClick={(e) => e.stopPropagation()}
             >
               <StickyNote className="h-3 w-3 text-gray-600" />

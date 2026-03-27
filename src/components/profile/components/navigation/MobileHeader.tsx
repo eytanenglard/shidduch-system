@@ -25,16 +25,14 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({
 }) => (
   <div
     className={cn(
-      'flex-shrink-0 flex items-center',
-      'border-b border-gray-200 sticky top-0 z-30',
-      'bg-white/95 backdrop-blur-md px-3 py-2 min-h-[48px]'
+      'absolute top-2 z-30',
+      direction === 'rtl' ? 'left-2' : 'right-2'
     )}
-    dir={direction}
   >
     <Button
       variant="ghost"
       size="icon"
-      className="w-9 h-9 min-h-[44px] min-w-[44px] rounded-full text-gray-500 hover:text-gray-700 touch-manipulation"
+      className="w-9 h-9 min-h-[44px] min-w-[44px] rounded-full bg-white/80 backdrop-blur-sm shadow-sm text-gray-500 hover:text-gray-700 hover:bg-white touch-manipulation"
       onClick={handleClose}
       aria-label={displayDict.mobileNav.closePreview}
     >

@@ -1,15 +1,15 @@
 // Filter option constants used across filter sub-components
 
 export const RELIGIOUS_OPTIONS = [
+  { value: 'dati_leumi_torani', label: 'דתי/ה לאומי/ת תורני/ת' },
+  { value: 'dati_leumi_standard', label: 'דתי/ה לאומי/ת (סטנדרטי)' },
+  { value: 'dati_leumi_liberal', label: 'דתי/ה לאומי/ת ליברלי/ת' },
   { value: 'charedi_litvak', label: 'חרדי/ת ליטאי/ת' },
   { value: 'charedi_hasidic', label: 'חרדי/ת חסידי/ת' },
   { value: 'charedi_sephardic', label: 'חרדי/ת ספרדי/ת' },
   { value: 'charedi_modern', label: 'חרדי/ת מודרני/ת' },
   { value: 'chabad', label: 'חב״ד' },
   { value: 'breslov', label: 'ברסלב' },
-  { value: 'dati_leumi_torani', label: 'דתי/ה לאומי/ת תורני/ת' },
-  { value: 'dati_leumi_standard', label: 'דתי/ה לאומי/ת (סטנדרטי)' },
-  { value: 'dati_leumi_liberal', label: 'דתי/ה לאומי/ת ליברלי/ת' },
   { value: 'masorti_strong', label: 'מסורתי/ת (קרוב/ה לדת)' },
   { value: 'masorti_light', label: 'מסורתי/ת (קשר קל למסורת)' },
   { value: 'secular_traditional_connection', label: 'חילוני/ת עם זיקה למסורת' },

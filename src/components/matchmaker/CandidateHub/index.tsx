@@ -1052,6 +1052,7 @@ export default function CandidateHub({
   const [searchQuery, setSearchQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [candidateSfAnswers, setCandidateSfAnswers] = useState<Record<string, unknown> | null>(null);
   const [activeTab, setActiveTab] = useState('profile');
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLDivElement>(null);
@@ -1062,6 +1063,15 @@ export default function CandidateHub({
   const [suggestionsRefreshKey, setSuggestionsRefreshKey] = useState(0);
 
   const { candidates, loading: candidatesLoading } = useCandidates();
+
+  // Fetch SF answers for selected candidate
+  useEffect(() => {
+    if (!selectedCandidate?.id) { setCandidateSfAnswers(null); return; }
+    fetch(`/api/profile?userId=${selectedCandidate.id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => setCandidateSfAnswers(data?.sfAnswers || null))
+      .catch(() => setCandidateSfAnswers(null));
+  }, [selectedCandidate?.id]);
 
   // --- Search filter ---
   const filteredCandidates = useMemo(() => {
@@ -1320,6 +1330,7 @@ export default function CandidateHub({
                       profile={selectedCandidate.profile as any}
                       isProfileComplete={selectedCandidate.isProfileComplete}
                       images={selectedCandidate.images}
+                      sfAnswers={candidateSfAnswers}
                       viewMode="matchmaker"
                       candidate={selectedCandidate}
                       allCandidates={candidates}

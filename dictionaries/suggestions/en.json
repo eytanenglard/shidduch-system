@@ -42,7 +42,7 @@
       "shareButton": "Share"
     },
     "chatFab": {
-      "ariaLabel": "Smart assistant"
+      "ariaLabel": "Neshama"
     },
     "dialogs": {
       "approveTitle": "Confirm Your Interest",
@@ -333,18 +333,18 @@
       "exitFullscreen": "Exit Fullscreen"
     },
     "actions": {
-      "titleExpanded": "✨ This is a key moment. What's your decision?",
-      "titleCollapsed": "🎯 Quick Actions",
+      "titleExpanded": "What's your decision?",
+      "titleCollapsed": "Quick Actions",
       "subtitle": "Every decision is a new opportunity.",
-      "approve": "💝 Yes, I'm open to this",
-      "interested": "🔖 Save for later",
-      "activateNow": "💚 Approve now",
-      "removeFromList": "🗑️ Remove from list",
+      "approve": "Yes, I'm open to this",
+      "interested": "Save for later",
+      "activateNow": "Approve now",
+      "removeFromList": "Remove from list",
       "activeProcessExplanation": "You already have an active suggestion. This one will be saved to your waitlist and you can approve it when the current process ends.",
       "sending": "Sending...",
       "updating": "Updating...",
-      "ask": "🤔 Ask the Matchmaker",
-      "decline": "😔 Not for me right now",
+      "ask": "Ask the Matchmaker",
+      "decline": "Not for me right now",
       "reminder": "Remember: Your decision helps us move one step closer to finding your perfect match.",
       "withdraw": {
         "gracePeriodTitle": "You can cancel your approval",
@@ -365,8 +365,8 @@
       "timelineTitle": "Status Tracking",
       "timelineSubtitle": "The suggestion journey so far",
       "sectionTitle": "Communication & Consultation",
-      "sectionSubtitle": "Chat with the smart assistant or your matchmaker",
-      "aiChatTitle": "Ask Smart Assistant",
+      "sectionSubtitle": "Chat with Neshama or your matchmaker",
+      "aiChatTitle": "Ask Neshama",
       "aiChatSubtitle": "Ask me about this suggestion",
       "chatTitle": "Chat with {{name}}",
       "chatTitleFallback": "Matchmaker",
@@ -466,7 +466,7 @@
       "clearFilters": "Clear Filters",
       "matchmakerWorking": "Your matchmaker is working on new suggestions",
       "typicalArrival": "Suggestions typically arrive within a few days",
-      "askAssistant": "Ask the smart assistant",
+      "askAssistant": "Ask Neshama",
       "historyGuidance": "Once you respond to suggestions, your history will appear here"
     },
     "stats": {

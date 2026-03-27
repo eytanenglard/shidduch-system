@@ -344,7 +344,7 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
         <div className="space-y-3">
           <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
             <User className="w-5 h-5 text-violet-600" />
-            {dict.maritalStatusLabel || 'מצב משפחתי'}
+            {dict.maritalStatusLabel}
           </Label>
           <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
             <Select
@@ -360,13 +360,13 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
               <SelectTrigger className="w-full border-0 bg-transparent focus:ring-2 focus:ring-violet-200 rounded-xl">
                 <SelectValue
                   placeholder={
-                    dict.placeholders?.selectMaritalStatus || 'בחר מצב משפחתי'
+                    dict.placeholders.selectMaritalStatus
                   }
                 />
               </SelectTrigger>
               <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl">
                 <SelectItem value="all" className="hover:bg-violet-50">
-                  {dict.options?.all || 'הכל'}
+                  {dict.options.all}
                 </SelectItem>
                 {MARITAL_STATUS_OPTIONS.map((ms) => (
                   <SelectItem
@@ -386,7 +386,7 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
         <div className="space-y-3">
           <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
             <Zap className="w-5 h-5 text-teal-600" />
-            {dict.languageLabel || 'שפות'}
+            {dict.languageLabel}
           </Label>
           <LanguageMultiSelect
             selectedValues={filters.languages || []}
@@ -403,7 +403,7 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
         <div className="space-y-3">
           <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
             <Ruler className="w-5 h-5 text-rose-500" />
-            גזרה
+            {dict.bodyTypeLabel}
           </Label>
           <div className="flex flex-wrap gap-1.5">
             {BODY_TYPE_OPTIONS.map((opt) => {
@@ -434,7 +434,7 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
         <div className="space-y-3">
           <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
             <Palette className="w-5 h-5 text-purple-500" />
-            גוון מראה
+            {dict.appearanceToneLabel}
           </Label>
           <div className="flex flex-wrap gap-1.5">
             {APPEARANCE_TONE_OPTIONS.map((opt) => {
@@ -465,7 +465,7 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
         <div className="space-y-3">
           <Label className="text-base font-bold text-gray-800 flex items-center gap-2">
             <Globe className="w-5 h-5 text-amber-600" />
-            רקע עדתי
+            {dict.ethnicBackgroundLabel}
           </Label>
           <div className="flex flex-wrap gap-1.5">
             {ETHNIC_BACKGROUND_OPTIONS.map((opt) => {
@@ -515,7 +515,7 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
             },
             {
               key: 'availabilityStatus',
-              label: 'פנויים בלבד',
+              label: dict.availableOnlyLabel,
               icon: <Heart className="w-4 h-4" />,
               gradient: 'from-pink-500 to-rose-500',
               value: filters.availabilityStatus === 'AVAILABLE',
@@ -527,7 +527,7 @@ const GenderFilterPanel: React.FC<GenderFilterPanelProps> = ({
             },
             {
               key: 'lastActiveDays',
-              label: 'פעילים לאחרונה (7 ימים)',
+              label: dict.activeRecentlyLabel,
               icon: <Activity className="w-4 h-4" />,
               gradient: 'from-blue-500 to-cyan-500',
               value: filters.lastActiveDays === 7,

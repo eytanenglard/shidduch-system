@@ -48,8 +48,13 @@ export async function GET(req: Request) {
         },
         images: {
             orderBy: {
-                isMain: 'desc' 
+                isMain: 'desc'
             }
+        },
+        profileTags: {
+          select: {
+            sectionAnswers: true,
+          }
         },
       }
     });
@@ -83,7 +88,8 @@ export async function GET(req: Request) {
     return NextResponse.json({
       success: true,
       profile: profileResponseData,
-      images: userWithProfile.images || []
+      images: userWithProfile.images || [],
+      sfAnswers: userWithProfile.profileTags?.sectionAnswers || null,
     });
 
   } catch (error) {

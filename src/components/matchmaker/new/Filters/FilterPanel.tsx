@@ -10,8 +10,10 @@ import {
   Calendar,
   Crown,
   Filter as FilterIcon,
+  Globe,
   Heart,
   MapPin,
+  Palette,
   RefreshCw,
   Ruler,
   Save,
@@ -59,6 +61,9 @@ import {
   AGE_RANGE,
   HEIGHT_RANGE,
   POPULAR_CITIES,
+  BODY_TYPE_OPTIONS,
+  APPEARANCE_TONE_OPTIONS,
+  ETHNIC_BACKGROUND_OPTIONS,
 } from '../constants/filterOptions';
 import type { CandidatesFilter } from '../types/candidates';
 import type { FilterState } from '../types/filters';
@@ -482,45 +487,12 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     )}
                   </FilterSection>
 
-                  {/* Religious Level */}
-                  <FilterSection
-                    title={dict.religiousLevelLabel}
-                    icon={<Scroll className="w-5 h-5" />}
-                    gradient="from-amber-500 to-orange-500"
-                    defaultOpen={true}
-                    badge={filters.religiousLevel?.length || undefined}
-                  >
-                    <ReligiousMultiSelect
-                      selectedValues={filters.religiousLevel || []}
-                      onChange={(values) =>
-                        onFiltersChange({ ...filters, religiousLevel: values })
-                      }
-                      dict={dict}
-                    />
-                  </FilterSection>
-
-                  {/* Languages */}
-                  <FilterSection
-                    title={dict.languageLabel || 'שפות'}
-                    icon={<Zap className="w-5 h-5" />}
-                    gradient="from-teal-500 to-cyan-500"
-                    defaultOpen={false}
-                    badge={filters.languages?.length || undefined}
-                  >
-                    <LanguageMultiSelect
-                      selectedValues={filters.languages || []}
-                      onChange={(values) =>
-                        onFiltersChange({ ...filters, languages: values })
-                      }
-                      dict={dict}
-                    />
-                  </FilterSection>
-
                   {/* Age */}
                   <FilterSection
                     title={dict.sections.age}
                     icon={<Calendar className="w-5 h-5" />}
                     gradient="from-emerald-500 to-green-500"
+                    defaultOpen={true}
                     badge={
                       filters.ageRange &&
                       (filters.ageRange.min !== AGE_RANGE.default.min ||
@@ -598,6 +570,23 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         />
                       </div>
                     </div>
+                  </FilterSection>
+
+                  {/* Religious Level */}
+                  <FilterSection
+                    title={dict.religiousLevelLabel}
+                    icon={<Scroll className="w-5 h-5" />}
+                    gradient="from-amber-500 to-orange-500"
+                    defaultOpen={true}
+                    badge={filters.religiousLevel?.length || undefined}
+                  >
+                    <ReligiousMultiSelect
+                      selectedValues={filters.religiousLevel || []}
+                      onChange={(values) =>
+                        onFiltersChange({ ...filters, religiousLevel: values })
+                      }
+                      dict={dict}
+                    />
                   </FilterSection>
 
                   {/* Height */}
@@ -733,66 +722,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     </div>
                   </FilterSection>
 
-                  {/* Marital Status */}
-                  <FilterSection
-                    title={dict.maritalStatusLabel || 'מצב משפחתי'}
-                    icon={<User className="w-5 h-5" />}
-                    gradient="from-violet-500 to-purple-500"
-                    badge={filters.maritalStatus ? 1 : undefined}
-                  >
-                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
-                      <div className="grid grid-cols-2 gap-2">
-                        {MARITAL_STATUS_OPTIONS.map((option) => (
-                          <Button
-                            key={option.value}
-                            type="button"
-                            variant={
-                              filters.maritalStatus === option.value
-                                ? 'default'
-                                : 'outline'
-                            }
-                            onClick={() =>
-                              onFiltersChange({
-                                ...filters,
-                                maritalStatus:
-                                  filters.maritalStatus === option.value
-                                    ? undefined
-                                    : option.value,
-                              })
-                            }
-                            className={cn(
-                              'h-10 rounded-xl font-medium text-sm transition-all duration-300 hover:scale-105',
-                              filters.maritalStatus === option.value
-                                ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg'
-                                : 'bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-violet-300'
-                            )}
-                          >
-                            {option.label}
-                          </Button>
-                        ))}
-                      </div>
-                      {filters.maritalStatus && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            onFiltersChange({
-                              ...filters,
-                              maritalStatus: undefined,
-                            })
-                          }
-                          className="w-full mt-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl text-xs"
-                        >
-                          {dict.buttons?.removeSelection || 'הסר בחירה'}
-                        </Button>
-                      )}
-                    </div>
-                  </FilterSection>
-
                   {/* Status Toggles */}
                   <FilterSection
-                    title="סטטוס וסינונים נוספים"
+                    title={dict.sections.status}
                     icon={<Activity className="w-5 h-5" />}
                     gradient="from-pink-500 to-rose-500"
                     defaultOpen={true}
@@ -801,7 +733,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       {[
                         {
                           key: 'availabilityStatus',
-                          label: 'פנויים בלבד',
+                          label: dict.popularFilters.availableOnly,
                           icon: <Heart className="w-4 h-4" />,
                           gradient: 'from-pink-500 to-rose-500',
                           value: filters.availabilityStatus === 'AVAILABLE',
@@ -815,7 +747,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                         },
                         {
                           key: 'lastActiveDays',
-                          label: 'פעילים לאחרונה (7 ימים)',
+                          label: dict.popularFilters.activeRecently,
                           icon: <Activity className="w-4 h-4" />,
                           gradient: 'from-blue-500 to-cyan-500',
                           value: filters.lastActiveDays === 7,
@@ -882,6 +814,176 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                           />
                         </div>
                       ))}
+                    </div>
+                  </FilterSection>
+
+                  {/* Marital Status */}
+                  <FilterSection
+                    title={dict.maritalStatusLabel}
+                    icon={<User className="w-5 h-5" />}
+                    gradient="from-violet-500 to-purple-500"
+                    badge={filters.maritalStatus ? 1 : undefined}
+                  >
+                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-gray-100/50">
+                      <div className="grid grid-cols-2 gap-2">
+                        {MARITAL_STATUS_OPTIONS.map((option) => (
+                          <Button
+                            key={option.value}
+                            type="button"
+                            variant={
+                              filters.maritalStatus === option.value
+                                ? 'default'
+                                : 'outline'
+                            }
+                            onClick={() =>
+                              onFiltersChange({
+                                ...filters,
+                                maritalStatus:
+                                  filters.maritalStatus === option.value
+                                    ? undefined
+                                    : option.value,
+                              })
+                            }
+                            className={cn(
+                              'h-10 rounded-xl font-medium text-sm transition-all duration-300 hover:scale-105',
+                              filters.maritalStatus === option.value
+                                ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg'
+                                : 'bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-violet-300'
+                            )}
+                          >
+                            {option.label}
+                          </Button>
+                        ))}
+                      </div>
+                      {filters.maritalStatus && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            onFiltersChange({
+                              ...filters,
+                              maritalStatus: undefined,
+                            })
+                          }
+                          className="w-full mt-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl text-xs"
+                        >
+                          {dict.buttons.removeSelection}
+                        </Button>
+                      )}
+                    </div>
+                  </FilterSection>
+
+                  {/* Languages */}
+                  <FilterSection
+                    title={dict.languageLabel}
+                    icon={<Zap className="w-5 h-5" />}
+                    gradient="from-teal-500 to-cyan-500"
+                    defaultOpen={false}
+                    badge={filters.languages?.length || undefined}
+                  >
+                    <LanguageMultiSelect
+                      selectedValues={filters.languages || []}
+                      onChange={(values) =>
+                        onFiltersChange({ ...filters, languages: values })
+                      }
+                      dict={dict}
+                    />
+                  </FilterSection>
+
+                  {/* Body Type */}
+                  <FilterSection
+                    title={dict.sections.bodyType}
+                    icon={<Ruler className="w-5 h-5" />}
+                    gradient="from-rose-500 to-pink-500"
+                    badge={filters.bodyType?.length || undefined}
+                  >
+                    <div className="flex flex-wrap gap-1.5">
+                      {BODY_TYPE_OPTIONS.map((opt) => {
+                        const selected = (filters.bodyType || []).includes(opt.value);
+                        return (
+                          <Button
+                            key={opt.value}
+                            type="button"
+                            variant={selected ? 'default' : 'outline'}
+                            size="sm"
+                            className="text-xs rounded-full"
+                            onClick={() => {
+                              const current = filters.bodyType || [];
+                              const updated = selected
+                                ? current.filter((v: string) => v !== opt.value)
+                                : [...current, opt.value];
+                              onFiltersChange({ ...filters, bodyType: updated });
+                            }}
+                          >
+                            {opt.label}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </FilterSection>
+
+                  {/* Appearance Tone */}
+                  <FilterSection
+                    title={dict.sections.appearanceTone}
+                    icon={<Palette className="w-5 h-5" />}
+                    gradient="from-purple-500 to-fuchsia-500"
+                    badge={filters.appearanceTone?.length || undefined}
+                  >
+                    <div className="flex flex-wrap gap-1.5">
+                      {APPEARANCE_TONE_OPTIONS.map((opt) => {
+                        const selected = (filters.appearanceTone || []).includes(opt.value);
+                        return (
+                          <Button
+                            key={opt.value}
+                            type="button"
+                            variant={selected ? 'default' : 'outline'}
+                            size="sm"
+                            className="text-xs rounded-full"
+                            onClick={() => {
+                              const current = filters.appearanceTone || [];
+                              const updated = selected
+                                ? current.filter((v: string) => v !== opt.value)
+                                : [...current, opt.value];
+                              onFiltersChange({ ...filters, appearanceTone: updated });
+                            }}
+                          >
+                            {opt.label}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </FilterSection>
+
+                  {/* Ethnic Background */}
+                  <FilterSection
+                    title={dict.sections.ethnicBackground}
+                    icon={<Globe className="w-5 h-5" />}
+                    gradient="from-amber-500 to-yellow-500"
+                    badge={filters.ethnicBackground?.length || undefined}
+                  >
+                    <div className="flex flex-wrap gap-1.5">
+                      {ETHNIC_BACKGROUND_OPTIONS.map((opt) => {
+                        const selected = (filters.ethnicBackground || []).includes(opt.value);
+                        return (
+                          <Button
+                            key={opt.value}
+                            type="button"
+                            variant={selected ? 'default' : 'outline'}
+                            size="sm"
+                            className="text-xs rounded-full"
+                            onClick={() => {
+                              const current = filters.ethnicBackground || [];
+                              const updated = selected
+                                ? current.filter((v: string) => v !== opt.value)
+                                : [...current, opt.value];
+                              onFiltersChange({ ...filters, ethnicBackground: updated });
+                            }}
+                          >
+                            {opt.label}
+                          </Button>
+                        );
+                      })}
                     </div>
                   </FilterSection>
                 </TabsContent>

@@ -1,7 +1,7 @@
 // src/components/suggestions/modals/SuggestionDetailsModal.tsx
 'use client';
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,6 +15,7 @@ import ModalShell from './components/ModalShell';
 import TabHeader from './components/TabHeader';
 import PresentationTab from './components/PresentationTab';
 import PresentationTabSkeleton from './components/PresentationTabSkeleton';
+import CompatibilityTabSkeleton from './components/CompatibilityTabSkeleton';
 import ProfileTab from './components/ProfileTab';
 import CompatibilityTab from './components/CompatibilityTab';
 import DetailsTab from './components/DetailsTab';
@@ -61,6 +62,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
     isActionsExpanded,
     setIsActionsExpanded,
     isInitialLoad,
+    visitedTabs,
     isMobile,
     isFullscreen,
     isTransitioning,
@@ -89,6 +91,16 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
     if (viewport) viewport.scrollTop = 0;
   }, [activeTab]);
 
+  // SF answers for ProfileCard
+  const [sfAnswers, setSfAnswers] = useState<Record<string, unknown> | null>(null);
+  useEffect(() => {
+    if (!isOpen || !targetParty?.id) { setSfAnswers(null); return; }
+    fetch(`/api/profile?userId=${targetParty.id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => setSfAnswers(data?.sfAnswers || null))
+      .catch(() => setSfAnswers(null));
+  }, [isOpen, targetParty?.id]);
+
   // AI Summary auto-send state
   const [pendingAiMessage, setPendingAiMessage] = useState<string | null>(null);
 
@@ -115,6 +127,21 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
     setPendingAiMessage(null);
   }, []);
 
+  // Build combined enum labels map for compatibility view translations
+  const enumLabels = useMemo(() => {
+    const opts = dict.profileCard.options;
+    const labels: Record<string, string> = {};
+    // Merge all translatable enum maps
+    for (const map of [opts.religiousLevel, opts.educationLevel] as unknown as Record<string, string>[]) {
+      if (map && typeof map === 'object') {
+        for (const [key, val] of Object.entries(map)) {
+          if (typeof val === 'string') labels[key] = val;
+        }
+      }
+    }
+    return labels;
+  }, [dict.profileCard.options]);
+
   if (!suggestion || !targetParty || !profileWithUser) return null;
 
   const targetAge = targetParty.profile?.birthDate
@@ -127,6 +154,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
     // Show skeleton on initial load
     if (isInitialLoad) {
       if (activeTab === 'presentation') return <PresentationTabSkeleton />;
+      if (activeTab === 'compatibility') return <CompatibilityTabSkeleton />;
       return (
         <div className="p-5 md:p-8 space-y-4 bg-gray-50 min-h-[400px] animate-in fade-in-0">
           <Skeleton className="w-48 h-6 rounded" />
@@ -170,6 +198,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
               isQuestionnaireLoading={isQuestionnaireLoading}
               targetParty={targetParty}
               questionnaire={questionnaire}
+              sfAnswers={sfAnswers}
               locale={locale}
               onNavigateToDetails={() => handleTabChange('details')}
               onRequestAiSummary={handleRequestAiSummary}
@@ -199,7 +228,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
               }
               suggestedUserName={targetParty.firstName}
               locale={locale}
-              enumLabels={dict.profileCard.options.religiousLevel as unknown as Record<string, string>}
+              enumLabels={enumLabels}
               dict={{
                 aiAnalysisCta: dict.suggestions.modal.aiAnalysisCta,
                 aiAnalysis: dict.suggestions.aiAnalysis,
@@ -267,6 +296,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
               personAge={targetAge}
               statusLabel={statusInfo.shortLabel}
               statusBadgeClass={statusInfo.className}
+              visitedTabs={visitedTabs}
             />
 
             {/* Animated tab content with swipe support */}

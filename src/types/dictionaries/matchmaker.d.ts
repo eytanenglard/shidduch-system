@@ -171,10 +171,15 @@ type FilterPanelDict = {
     verifiedOnlyLabel: string;
     withRecommendationsLabel: string;
     fullProfileLabel: string;
+    availableOnlyLabel: string;
+    activeRecentlyLabel: string;
+    bodyTypeLabel: string;
+    appearanceToneLabel: string;
+    ethnicBackgroundLabel: string;
     placeholders: {
       selectReligious: string;
       selectCity: string;
-      selectMaritalStatus: string;  // ← חדש
+      selectMaritalStatus: string;
       searchLanguage?: string;
     };
     options: {
@@ -195,6 +200,9 @@ type FilterPanelDict = {
     religious: string;
     languages: string;
     status: string;
+    bodyType: string;
+    appearanceTone: string;
+    ethnicBackground: string;
   };
   buttons: {
     male: string;

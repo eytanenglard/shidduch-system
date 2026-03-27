@@ -540,6 +540,11 @@
         "verifiedOnlyLabel": "Verified Only",
         "withRecommendationsLabel": "With Recommendations",
         "fullProfileLabel": "Full Profile",
+        "availableOnlyLabel": "Available Only",
+        "activeRecentlyLabel": "Active Recently (7 days)",
+        "bodyTypeLabel": "Body Type",
+        "appearanceToneLabel": "Appearance Tone",
+        "ethnicBackgroundLabel": "Ethnic Background",
        "placeholders": {
   "selectReligious": "Select religious level",
   "selectCity": "Select city",
@@ -563,7 +568,10 @@
         "location": "Location",
         "religious": "Religious Background",
         "languages": "Languages",
-        "status": "Status & Verification"
+        "status": "Status & Verification",
+        "bodyType": "Body Type",
+        "appearanceTone": "Appearance Tone",
+        "ethnicBackground": "Ethnic Background"
       },
       "buttons": {
         "male": "Men",

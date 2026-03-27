@@ -91,12 +91,12 @@ export default function AiChatHowItWorks({ locale, open, onOpenChange }: AiChatH
       <DialogContent className={cn('max-w-md', isHebrew && 'text-right')}>
         <DialogHeader>
           <DialogTitle className="text-lg">
-            {isHebrew ? 'איך העוזר החכם עובד?' : 'How does the Smart Assistant work?'}
+            {isHebrew ? 'איך נשמה עובדת?' : 'How does Neshama work?'}
           </DialogTitle>
           <DialogDescription>
             {isHebrew
-              ? 'העוזר החכם מלווה אותך בתהליך מובנה למציאת ההתאמה הטובה ביותר'
-              : 'The Smart Assistant guides you through a structured process to find your best match'}
+              ? 'נשמה מלווה אותך בתהליך מובנה למציאת ההתאמה הטובה ביותר'
+              : 'Neshama guides you through a structured process to find your best match'}
           </DialogDescription>
         </DialogHeader>
 

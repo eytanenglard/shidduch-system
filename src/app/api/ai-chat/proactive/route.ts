@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
 
       // Send push notification
       await sendPushToUser(targetUserId, {
-        title: locale === 'he' ? '💬 העוזר החכם שלך' : '💬 Your Smart Assistant',
+        title: locale === 'he' ? '💬 נשמה' : '💬 Neshama',
         body: message.length > 120 ? message.slice(0, 120) + '…' : message,
         data: {
           type: 'AI_CHAT_PROACTIVE',
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
 
       // Send push notification
       await sendPushToUser(declinerId, {
-        title: locale === 'he' ? '💬 העוזר החכם שלך' : '💬 Your Smart Assistant',
+        title: locale === 'he' ? '💬 נשמה' : '💬 Neshama',
         body: message.length > 120 ? message.slice(0, 120) + '…' : message,
         data: {
           type: 'AI_CHAT_PROACTIVE',

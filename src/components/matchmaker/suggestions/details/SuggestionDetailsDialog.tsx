@@ -873,7 +873,23 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
     null
   );
   const [showStatusChange, setShowStatusChange] = useState(false);
+  const [firstPartySfAnswers, setFirstPartySfAnswers] = useState<Record<string, unknown> | null>(null);
+  const [secondPartySfAnswers, setSecondPartySfAnswers] = useState<Record<string, unknown> | null>(null);
   const { refreshNotifications } = useNotifications();
+
+  // Fetch SF answers for both parties
+  useEffect(() => {
+    if (!isOpen || !suggestion) return;
+    const fetchSf = async (userId: string) => {
+      try {
+        const res = await fetch(`/api/profile?userId=${userId}`);
+        const data = await res.json();
+        return data.success ? data.sfAnswers || null : null;
+      } catch { return null; }
+    };
+    fetchSf(suggestion.firstPartyId).then(setFirstPartySfAnswers);
+    fetchSf(suggestion.secondPartyId).then(setSecondPartySfAnswers);
+  }, [isOpen, suggestion?.firstPartyId, suggestion?.secondPartyId]);
 
   useEffect(() => {
     if (isOpen && suggestion) {
@@ -1110,6 +1126,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   profile={suggestion.firstParty.profile}
                   images={suggestion.firstParty.images}
                   questionnaire={firstPartyQuestionnaire}
+                  sfAnswers={firstPartySfAnswers}
                   viewMode="matchmaker"
                   isProfileComplete={suggestion.firstParty.isProfileComplete}
                   dict={profileDict.profileCard}
@@ -1125,6 +1142,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   profile={suggestion.secondParty.profile}
                   images={suggestion.secondParty.images}
                   questionnaire={secondPartyQuestionnaire}
+                  sfAnswers={secondPartySfAnswers}
                   viewMode="matchmaker"
                   isProfileComplete={suggestion.secondParty.isProfileComplete}
                   dict={profileDict.profileCard}

@@ -783,8 +783,8 @@ Generate a **comprehensive, honest, and deep profile summary** of ${targetUser.f
   }
 
   private static buildHebrewSystemPrompt(userContext: string[], phase?: string): string {
-    let prompt = `את השדכנית של NeshamaTech - מערכת שידוכים חכמה שמשלבת טכנולוגיה עם ליווי אנושי.
-דברי תמיד בלשון נקבה על עצמך.
+    let prompt = `את נשמה, השדכנית החכמה של NeshamaTech - מערכת שידוכים שמשלבת טכנולוגיה עם ליווי אנושי.
+דברי תמיד בלשון נקבה על עצמך. השם שלך הוא "נשמה".
 
 ## התפקיד שלך
 - עזרי למשתמש/ת לדייק מה הם מחפשים בבן/בת זוג
@@ -974,7 +974,7 @@ Examples:
     const chat = model.startChat({
       history: [
         { role: 'user', parts: [{ text: `[SYSTEM INSTRUCTIONS]\n${systemPrompt}` }] },
-        { role: 'model', parts: [{ text: 'מובן. אני מוכן/ה לעזור. איך אפשר לעזור לך היום?' }] },
+        { role: 'model', parts: [{ text: 'מובן. אני נשמה, ואני כאן כדי לעזור לך. איך אפשר לעזור לך היום?' }] },
         ...geminiHistory,
       ],
     });
@@ -1854,8 +1854,8 @@ ${conversationText}
     const question = questions[Math.floor(Math.random() * questions.length)];
 
     const greeting = isHebrew
-      ? `שלום! 👋 אני העוזר החכם שלך. כל פעם שנדבר, אני לומד יותר על מה שחשוב לך — וזה עוזר לי למצוא לך התאמות טובות יותר.\n\n${question}`
-      : `Hi! 👋 I'm your smart assistant. Every time we chat, I learn more about what matters to you — and that helps me find better matches.\n\n${question}`;
+      ? `שלום! 👋 אני נשמה. כל פעם שנדבר, אני לומדת יותר על מה שחשוב לך — וזה עוזר לי למצוא לך התאמות טובות יותר.\n\n${question}`
+      : `Hi! 👋 I'm Neshama. Every time we chat, I learn more about what matters to you — and that helps me find better matches.\n\n${question}`;
 
     return greeting;
   }
@@ -2167,7 +2167,7 @@ ${conversationText}
           status: 'PENDING_FIRST_PARTY',
           priority: 'MEDIUM',
           matchingReason: potentialMatch?.shortReasoning || `התאמת AI - ציון ${Math.round(potentialMatch?.aiScore || 0)}`,
-          firstPartyNotes: 'הצעה שנוצרה מתוך שיחה עם העוזר החכם',
+          firstPartyNotes: 'הצעה שנוצרה מתוך שיחה עם נשמה',
           internalNotes: `הצעה מצ'אט AI | PotentialMatch: ${potentialMatchId} | Score: ${potentialMatch?.aiScore || 0}`,
           decisionDeadline,
           firstPartySent: new Date(),
@@ -2181,7 +2181,7 @@ ${conversationText}
         data: {
           suggestionId: suggestion.id,
           status: 'PENDING_FIRST_PARTY',
-          notes: 'נוצר מתוך שיחת AI עם העוזר החכם',
+          notes: 'נוצר מתוך שיחה עם נשמה',
         },
       });
 

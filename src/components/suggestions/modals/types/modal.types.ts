@@ -123,6 +123,7 @@ export interface ProfileTabProps {
   isQuestionnaireLoading: boolean;
   targetParty: ExtendedMatchSuggestion['secondParty'] | null;
   questionnaire: QuestionnaireResponse | null;
+  sfAnswers?: Record<string, unknown> | null;
   locale: 'he' | 'en';
   onNavigateToDetails: () => void;
   onRequestAiSummary: () => void;

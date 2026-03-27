@@ -303,8 +303,8 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         reason: compatible
           ? dict.reasons.mutualMatch.replace('{{criterion}}', dict.criteria.education)
           : dict.reasons.mismatch.replace('{{criterion}}', dict.criteria.education),
-        first: firstProfile.education,
-        second: secondProfile.education,
+        first: translateEnum(firstProfile.education),
+        second: translateEnum(secondProfile.education),
         importance: 'medium',
         category: 'preferences',
       });

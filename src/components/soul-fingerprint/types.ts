@@ -206,8 +206,11 @@ export function deriveTagsFromAnswers(answers: SFAnswers): SFTagResult {
   // Identity tags
   const studyWork = answers['s1_charedi_study_work'] as string;
   if (studyWork) result.sectorTags.push(studyWork);
-  const armyType = answers['s1_dl_army_type'] as string;
-  if (armyType) result.sectorTags.push(armyType);
+  const armyType = answers['s1_dl_army_type'];
+  if (armyType) {
+    const armyArr = Array.isArray(armyType) ? armyType : [armyType as string];
+    armyArr.forEach(v => result.sectorTags.push(v));
+  }
   const zionism = answers['s1_dl_zionism'] as string;
   if (zionism) result.sectorTags.push(zionism);
   const btPath = answers['s1_bt_path'] as string;

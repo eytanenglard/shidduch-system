@@ -56,6 +56,48 @@ function getAnswerLabel(question: SFQuestion, answer: string | string[] | number
   return String(answer);
 }
 
+// --- Slider bar component ---
+function SliderBar({
+  value,
+  min,
+  max,
+  leftLabel,
+  rightLabel,
+  color,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  leftLabel: string;
+  rightLabel: string;
+  color: string;
+}) {
+  const range = max - min || 1;
+  const pct = Math.round(((value - min) / range) * 100);
+  const barColor = color || 'bg-teal-400';
+  return (
+    <div className="space-y-1">
+      <div className="relative h-2.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className={cn('absolute inset-y-0 start-0 rounded-full transition-all', barColor)}
+          style={{ width: `${pct}%` }}
+        />
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full border-2 border-current shadow-sm"
+          style={{
+            insetInlineStart: `calc(${pct}% - 7px)`,
+            borderColor: 'currentColor',
+          }}
+        />
+      </div>
+      <div className="flex justify-between text-[10px] text-gray-400">
+        <span>{leftLabel}</span>
+        <span>{rightLabel}</span>
+      </div>
+    </div>
+  );
+}
+
 // --- Section color themes ---
 const SECTION_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
   anchor: { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', dot: 'bg-teal-400' },
@@ -104,6 +146,12 @@ interface RenderedAnswer {
   questionText: string;
   answerText: string;
   sectionId: string;
+  isSlider?: boolean;
+  sliderValue?: number;
+  sliderMin?: number;
+  sliderMax?: number;
+  sliderLeftLabel?: string;
+  sliderRightLabel?: string;
 }
 
 const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
@@ -144,27 +192,25 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
           )
         : [];
 
-      const answeredSelf = selfQuestions
-        .filter((q) => {
-          const ans = answers[q.id];
-          return ans !== null && ans !== undefined && ans !== '' && !(Array.isArray(ans) && ans.length === 0);
-        })
-        .map((q) => ({
-          questionText: t(q.textKey),
-          answerText: getAnswerLabel(q, answers[q.id], t),
-          sectionId: section.id,
-        }));
+      const mapQuestion = (q: SFQuestion): RenderedAnswer => ({
+        questionText: t(q.textKey),
+        answerText: getAnswerLabel(q, answers[q.id], t),
+        sectionId: section.id,
+        isSlider: q.type === 'slider',
+        sliderValue: q.type === 'slider' ? Number(answers[q.id]) : undefined,
+        sliderMin: q.sliderMin,
+        sliderMax: q.sliderMax,
+        sliderLeftLabel: q.sliderLeftKey ? t(q.sliderLeftKey) : undefined,
+        sliderRightLabel: q.sliderRightKey ? t(q.sliderRightKey) : undefined,
+      });
 
-      const answeredPartner = partnerQuestions
-        .filter((q) => {
-          const ans = answers[q.id];
-          return ans !== null && ans !== undefined && ans !== '' && !(Array.isArray(ans) && ans.length === 0);
-        })
-        .map((q) => ({
-          questionText: t(q.textKey),
-          answerText: getAnswerLabel(q, answers[q.id], t),
-          sectionId: section.id,
-        }));
+      const hasAnswer = (q: SFQuestion) => {
+        const ans = answers[q.id];
+        return ans !== null && ans !== undefined && ans !== '' && !(Array.isArray(ans) && ans.length === 0);
+      };
+
+      const answeredSelf = selfQuestions.filter(hasAnswer).map(mapQuestion);
+      const answeredPartner = partnerQuestions.filter(hasAnswer).map(mapQuestion);
 
       if (answeredSelf.length > 0 || answeredPartner.length > 0) {
         result.push({
@@ -180,10 +226,70 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
     return result;
   }, [answers, sectionIds, sectorGroup, sector, lifeStage, gender, t, sectionTitles, selfOnly, partnerOnly]);
 
-  if (sectionData.length === 0) return null;
+  // Anchor data labels
+  const anchorLabels = useMemo(() => {
+    const sectorAnswer = answers['anchor_sector'];
+    const lifeStageAnswer = answers['anchor_life_stage'];
+    if (!sectorAnswer && !lifeStageAnswer) return null;
+
+    const sectorLabel = sectorAnswer ? t(`options.anchor_sector.${sectorAnswer}`) : null;
+    const lifeStageLabel = lifeStageAnswer ? t(`options.anchor_life_stage.${lifeStageAnswer}`) : null;
+    return { sector: sectorLabel, lifeStage: lifeStageLabel };
+  }, [answers, t]);
+
+  if (sectionData.length === 0 && !anchorLabels) return null;
+
+  const renderAnswer = (item: RenderedAnswer, idx: number, dotColor: string) => {
+    if (item.isSlider && item.sliderValue !== undefined) {
+      return (
+        <div key={idx}>
+          <p className="text-xs text-gray-500 mb-1.5">{item.questionText}</p>
+          <SliderBar
+            value={item.sliderValue}
+            min={item.sliderMin ?? 0}
+            max={item.sliderMax ?? 100}
+            leftLabel={item.sliderLeftLabel || ''}
+            rightLabel={item.sliderRightLabel || ''}
+            color={dotColor}
+          />
+        </div>
+      );
+    }
+    return (
+      <div key={idx}>
+        <p className="text-xs text-gray-500 mb-0.5">{item.questionText}</p>
+        <p className="text-sm font-medium text-gray-800 break-words">{item.answerText}</p>
+      </div>
+    );
+  };
+
+  const badgeText = locale === 'he' ? 'מטביעת הנשמה 🔮' : 'From Soul Fingerprint 🔮';
 
   return (
     <div className="space-y-4" dir={direction}>
+      {/* Questionnaire source badge */}
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-200/50 text-xs font-medium text-purple-600">
+          {badgeText}
+        </span>
+      </div>
+
+      {/* Anchor data: sector + life stage */}
+      {anchorLabels && (
+        <div className="flex flex-wrap gap-2">
+          {anchorLabels.sector && (
+            <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium', SECTION_COLORS.anchor.bg, SECTION_COLORS.anchor.text)}>
+              {anchorLabels.sector}
+            </span>
+          )}
+          {anchorLabels.lifeStage && (
+            <span className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium', SECTION_COLORS.anchor.bg, SECTION_COLORS.anchor.text)}>
+              {anchorLabels.lifeStage}
+            </span>
+          )}
+        </div>
+      )}
+
       {sectionData.map((section) => {
         const colors = SECTION_COLORS[section.sectionId] || SECTION_COLORS.personality;
         const allAnswers = selfOnly
@@ -207,12 +313,7 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
             <div className="p-4">
               {allAnswers.length > 0 && (
                 <div className="space-y-3">
-                  {allAnswers.map((item, idx) => (
-                    <div key={idx}>
-                      <p className="text-xs text-gray-500 mb-0.5">{item.questionText}</p>
-                      <p className="text-sm font-medium text-gray-800 break-words">{item.answerText}</p>
-                    </div>
-                  ))}
+                  {allAnswers.map((item, idx) => renderAnswer(item, idx, colors.dot))}
                 </div>
               )}
               {partnerAnswers.length > 0 && (
@@ -223,12 +324,7 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
                       : 'Looking for'}
                   </p>
                   <div className="space-y-3">
-                    {partnerAnswers.map((item, idx) => (
-                      <div key={idx}>
-                        <p className="text-xs text-gray-500 mb-0.5">{item.questionText}</p>
-                        <p className="text-sm font-medium text-gray-800 break-words">{item.answerText}</p>
-                      </div>
-                    ))}
+                    {partnerAnswers.map((item, idx) => renderAnswer(item, idx, colors.dot))}
                   </div>
                 </div>
               )}

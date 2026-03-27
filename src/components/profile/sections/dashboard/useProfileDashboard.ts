@@ -157,6 +157,7 @@ export function useProfileDashboard({
 
       setProfileData(profileJson.profile);
       setImages(profileJson.images || []);
+      if (profileJson.sfAnswers) setSfAnswers(profileJson.sfAnswers);
       if (profileJson.profile?.hasViewedProfilePreview) setHasSeenPreview(true);
 
       const params = new URLSearchParams();

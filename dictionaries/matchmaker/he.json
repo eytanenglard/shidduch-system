@@ -473,6 +473,11 @@
     "verifiedOnlyLabel": "מאומתים בלבד",
     "withRecommendationsLabel": "עם המלצות",
     "fullProfileLabel": "פרופיל מלא",
+    "availableOnlyLabel": "פנויים בלבד",
+    "activeRecentlyLabel": "פעילים לאחרונה (7 ימים)",
+    "bodyTypeLabel": "גזרה",
+    "appearanceToneLabel": "גוון מראה",
+    "ethnicBackgroundLabel": "רקע עדתי",
     "placeholders": {
       "selectReligious": "בחר רמת דתיות",
       "selectCity": "בחר עיר",
@@ -496,7 +501,10 @@
     "location": "מיקום מגורים",
     "religious": "רקע דתי",
     "languages": "שפות",
-    "status": "סטטוס ואימות"
+    "status": "סטטוס ואימות",
+    "bodyType": "גזרה",
+    "appearanceTone": "גוון מראה",
+    "ethnicBackground": "רקע עדתי"
   },
   "buttons": {
     "male": "גברים",

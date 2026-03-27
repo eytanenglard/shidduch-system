@@ -106,14 +106,20 @@ const PhotoSection: React.FC<PhotoSectionProps> = ({
         <>
           <button
             onClick={goPrev}
-            className="absolute start-1 top-1/2 -translate-y-1/2 z-30 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className={cn(
+              'absolute start-1 top-1/2 -translate-y-1/2 z-30 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-opacity duration-200',
+              isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            )}
             aria-label="Previous photo"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={goNext}
-            className="absolute end-1 top-1/2 -translate-y-1/2 z-30 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className={cn(
+              'absolute end-1 top-1/2 -translate-y-1/2 z-30 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-opacity duration-200',
+              isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            )}
             aria-label="Next photo"
           >
             <ChevronLeft className="w-4 h-4" />

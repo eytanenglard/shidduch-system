@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import {
   User,
@@ -97,6 +97,15 @@ const SuggestionDetailPanel: React.FC<SuggestionDetailPanelProps> = ({
   const questionnaire = useMemo(() => {
     return targetParty?.questionnaireResponses?.[0] ?? null;
   }, [targetParty]);
+
+  const [sfAnswers, setSfAnswers] = useState<Record<string, unknown> | null>(null);
+  useEffect(() => {
+    if (!targetParty?.id) { setSfAnswers(null); return; }
+    fetch(`/api/profile?userId=${targetParty.id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => setSfAnswers(data?.sfAnswers || null))
+      .catch(() => setSfAnswers(null));
+  }, [targetParty?.id]);
 
   if (!suggestion || !targetParty) return null;
 
@@ -208,6 +217,7 @@ const SuggestionDetailPanel: React.FC<SuggestionDetailPanelProps> = ({
                   isProfileComplete={targetParty.isProfileComplete}
                   images={allImages}
                   questionnaire={questionnaire}
+                  sfAnswers={sfAnswers}
                   viewMode="candidate"
                   dict={dict.profileCard}
                   locale={locale}
@@ -255,7 +265,7 @@ const SuggestionDetailPanel: React.FC<SuggestionDetailPanelProps> = ({
 
             {/* AI Chat (collapsible) */}
             <CollapsibleSection
-              title={locale === 'he' ? 'שאל את העוזר החכם' : 'Ask Smart Assistant'}
+              title={locale === 'he' ? 'שאל/י את נשמה' : 'Ask Neshama'}
               icon={<Bot className="w-4 h-4 text-teal-500" />}
               isExpanded={expandedSections.chat}
               onToggle={() => toggleSection('chat')}

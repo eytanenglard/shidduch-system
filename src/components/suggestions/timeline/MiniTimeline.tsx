@@ -85,22 +85,22 @@ export default function MiniTimeline({
 
   return (
     <div className={cn('space-y-0', className)}>
-      {/* Mini bar */}
+      {/* Mini bar — compact on mobile */}
       <button
         onClick={() => setIsExpanded((prev) => !prev)}
         className={cn(
-          'w-full flex items-center justify-between gap-3 px-4 py-3',
-          'bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100',
+          'w-full flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3',
+          'bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl border border-gray-100',
           'hover:bg-gray-50 transition-colors group cursor-pointer',
           'shadow-sm'
         )}
       >
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {/* Animated dot */}
           <div className="relative flex-shrink-0">
             <div
               className={cn(
-                'w-3 h-3 rounded-full',
+                'w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full',
                 getCategoryDot(latestStatus.status)
               )}
             />
@@ -111,24 +111,24 @@ export default function MiniTimeline({
               ) && (
                 <div
                   className={cn(
-                    'absolute inset-0 w-3 h-3 rounded-full animate-ping opacity-40',
+                    'absolute inset-0 w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full animate-ping opacity-40',
                     getCategoryDot(latestStatus.status)
                   )}
                 />
               )}
           </div>
 
-          <span className="text-sm font-medium text-gray-700 truncate">
+          <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">
             {statusInfo.label}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xs text-gray-400">{formattedDate}</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          <span className="text-[10px] sm:text-xs text-gray-400">{formattedDate}</span>
           {isExpanded ? (
-            <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            <ChevronUp className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            <ChevronDown className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
           )}
         </div>
       </button>

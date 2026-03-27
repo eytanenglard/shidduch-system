@@ -159,11 +159,13 @@ export const IDENTITY_QUESTIONS: SFQuestion[] = [
   },
   {
     id: 's1_dl_army_type',
-    type: 'singleChoice',
+    type: 'multiSelect',
     textKey: 'questions.s1_dl_army_type.text',
+    subtitleKey: 'questions.s1_dl_army_type.subtitle',
     category: 'sector',
     forSelf: true,
     forPartner: false,
+    maxSelections: 3,
     conditions: { sectorGroups: ['dati_leumi'], genders: ['MALE'] },
     options: [
       { value: 'combat_full', labelKey: 'options.s1_dl_army_type.combat_full', icon: '🎖️' },
@@ -180,11 +182,13 @@ export const IDENTITY_QUESTIONS: SFQuestion[] = [
   },
   {
     id: 's1_dl_service_f',
-    type: 'singleChoice',
+    type: 'multiSelect',
     textKey: 'questions.s1_dl_service_f.text',
+    subtitleKey: 'questions.s1_dl_service_f.subtitle',
     category: 'sector',
     forSelf: true,
     forPartner: false,
+    maxSelections: 3,
     conditions: { sectorGroups: ['dati_leumi'], genders: ['FEMALE'] },
     options: [
       { value: 'national_service', labelKey: 'options.s1_dl_service_f.national_service', icon: '🇮🇱' },

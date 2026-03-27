@@ -42,7 +42,7 @@ export default function AiChatWelcome({
       <div className="text-center py-8">
         <div className="text-4xl mb-3">✨</div>
         <h3 className="text-sm font-semibold text-gray-700 mb-1">
-          {isHebrew ? 'שלום! אני העוזר החכם שלך' : "Hi! I'm your smart assistant"}
+          {isHebrew ? 'שלום! אני נשמה 💜' : "Hi! I'm Neshama 💜"}
         </h3>
         <p className="text-xs text-gray-500 max-w-[280px] mx-auto leading-relaxed">
           {isHebrew
@@ -74,7 +74,7 @@ export default function AiChatWelcome({
         <Sparkles className="w-7 h-7 text-violet-600" />
       </div>
       <h3 className="text-base font-semibold text-gray-800 mb-1">
-        {isHebrew ? 'העוזר החכם שלך' : 'Your Smart Assistant'}
+        {isHebrew ? 'נשמה' : 'Neshama'}
       </h3>
       <p className="text-xs text-gray-500 max-w-[300px] mx-auto leading-relaxed mb-5">
         {isHebrew

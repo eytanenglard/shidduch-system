@@ -131,11 +131,11 @@
     },
     "s1_dl_army_type": {
       "text": "What is your service path?",
-      "subtitle": "Including active and past service"
+      "subtitle": "You can select up to 3 — e.g. yeshiva + army, mechina + army"
     },
     "s1_dl_service_f": {
       "text": "What is your path after high school?",
-      "subtitle": "Every path is respected"
+      "subtitle": "You can select up to 3 — e.g. national service + midrasha"
     },
     "s1_dl_midrasha_specific": {
       "text": "Which midrasha/seminary? (Optional)",

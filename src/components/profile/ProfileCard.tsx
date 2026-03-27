@@ -644,7 +644,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       {isDesktop ? (
         <DesktopLayout />
       ) : (
-        <div className="flex flex-col h-full w-full max-w-full min-w-0 overflow-hidden">
+        <div className="relative flex flex-col h-full w-full max-w-full min-w-0 overflow-hidden">
           {onClose && (
             <MobileHeader
               direction={direction}

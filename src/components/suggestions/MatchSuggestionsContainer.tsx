@@ -15,7 +15,6 @@ import {
   CheckCircle,
   Target,
   XCircle,
-  Loader2,
   Bookmark,
   Star,
   Clock,
@@ -31,6 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import SuggestionsList from './list/SuggestionsList';
 import InterestedQueue from '@/components/suggestions/interested/InterestedQueue';
 import SuggestionDetailsModal from '@/components/suggestions/modals/SuggestionDetailsModal';
+import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import { cn } from '@/lib/utils';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 
@@ -64,27 +64,6 @@ import { useSuggestionActions } from './hooks/useSuggestionActions';
 // --- Filter Type ---
 type ActiveFilter = 'all' | 'active_process' | 'backup' | 'pending';
 
-// --- Loading Skeleton ---
-const LoadingSkeleton: React.FC<{
-  dict: SuggestionsDictionary['container']['loading'];
-}> = ({ dict }) => (
-  <div className="min-h-screen bg-gray-50">
-    <div className="max-w-[900px] mx-auto px-4 py-8">
-      <div className="flex items-center justify-center mb-8">
-        <div className="text-center space-y-2">
-          <Loader2 className="w-8 h-8 text-teal-600 animate-spin mx-auto" />
-          <h3 className="text-lg font-semibold text-gray-700">{dict.title}</h3>
-          <p className="text-sm text-gray-500">{dict.subtitle}</p>
-        </div>
-      </div>
-      <div className="space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-20 bg-white rounded-xl border border-gray-200 animate-pulse" />
-        ))}
-      </div>
-    </div>
-  </div>
-);
 
 // --- Filter Chip ---
 interface FilterChipProps {
@@ -203,7 +182,13 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
   // --- Loading ---
   if (suggestions.isLoading) {
-    return <LoadingSkeleton dict={suggestionsDict.container.loading} />;
+    return (
+      <StandardizedLoadingSpinner
+        text={suggestionsDict.container.loading.title}
+        subtext={suggestionsDict.container.loading.subtitle}
+        className="min-h-[60vh]"
+      />
+    );
   }
 
   // --- Filter labels ---

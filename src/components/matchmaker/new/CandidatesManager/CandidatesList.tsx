@@ -154,6 +154,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   );
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
+  const [sfAnswers, setSfAnswers] = useState<Record<string, unknown> | null>(null);
   const [isMatchmaker, setIsMatchmaker] = useState(true);
   // QuickView Sheet state (replaces hover-based QuickView)
   const [quickViewCandidate, setQuickViewCandidate] =
@@ -249,6 +250,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     const loadQuestionnaire = async () => {
       if (!selectedCandidate) {
         setQuestionnaireResponse(null);
+        setSfAnswers(null);
         return;
       }
       try {
@@ -256,15 +258,20 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         params.append('userId', selectedCandidate.id);
         params.append('locale', locale);
 
-        const response = await fetch(
-          `/api/profile/questionnaire?${params.toString()}`
-        );
-        const data = await response.json();
+        const [questionnaireRes, profileRes] = await Promise.all([
+          fetch(`/api/profile/questionnaire?${params.toString()}`),
+          fetch(`/api/profile?userId=${selectedCandidate.id}`),
+        ]);
+
+        const data = await questionnaireRes.json();
         if (data.success && data.questionnaireResponse) {
           setQuestionnaireResponse(data.questionnaireResponse);
         } else {
           setQuestionnaireResponse(null);
         }
+
+        const profileData = await profileRes.json();
+        setSfAnswers(profileData.success ? profileData.sfAnswers || null : null);
       } catch {
         toast.error('שגיאה בטעינת השאלון');
       }
@@ -520,17 +527,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             onTagsChanged={onTagsChanged}
             dict={dict.candidatesManager.list.minimalCard}
           />
-          <button
-            className="absolute top-2 left-2 bg-primary text-white min-h-[44px] min-w-[44px] p-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleAction('edit', candidate);
-            }}
-            aria-label={dict.candidatesManager.list.editProfileTooltip}
-            title={dict.candidatesManager.list.editProfileTooltip}
-          >
-            <Edit className="w-4 h-4" />
-          </button>
         </div>
       );
     },
@@ -676,7 +672,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 </div>
               )}
               endReached={onEndReached}
-              overscan={200}
+              overscan={100}
               components={{
                 Footer: () =>
                   isLoadingMore ? (
@@ -695,7 +691,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
               listClassName={gridLayoutClass}
               itemContent={(index) => renderCard(index, candidates[index])}
               endReached={onEndReached}
-              overscan={200}
+              overscan={100}
               components={{
                 Footer: () =>
                   isLoadingMore ? (
@@ -818,6 +814,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 profile={selectedCandidate.profile}
                 images={selectedCandidate.images}
                 questionnaire={questionnaireResponse}
+                sfAnswers={sfAnswers}
                 viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
                 isProfileComplete={selectedCandidate.isProfileComplete}
                 dict={profileDict.profileCard}

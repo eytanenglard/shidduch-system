@@ -42,7 +42,7 @@
       "shareButton": "שתף/י"
     },
     "chatFab": {
-      "ariaLabel": "עוזר חכם"
+      "ariaLabel": "נשמה"
     },
     "dialogs": {
       "approveTitle": "אישור הצעת השידוך",
@@ -334,18 +334,18 @@
       "exitFullscreen": "צא ממסך מלא"
     },
     "actions": {
-      "titleExpanded": "✨ זה הרגע הכי חשוב - מה ההחלטה שלך?",
-      "titleCollapsed": "🎯 פעולות מהירות",
+      "titleExpanded": "מה ההחלטה שלך?",
+      "titleCollapsed": "פעולות מהירות",
       "subtitle": "כל החלטה היא הזדמנות חדשה",
-      "approve": "💝 מעוניין/ת להכיר!",
-      "interested": "🔖 שומר/ת לגיבוי",
-      "activateNow": "💚 אשר/י עכשיו",
-      "removeFromList": "🗑️ הסר/י מהרשימה",
+      "approve": "מעוניין/ת להכיר",
+      "interested": "שומר/ת לגיבוי",
+      "activateNow": "אשר/י עכשיו",
+      "removeFromList": "הסר/י מהרשימה",
       "activeProcessExplanation": "יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים.",
       "sending": "שולח...",
       "updating": "מעדכן...",
-      "ask": "🤔 שאלות לשדכן",
-      "decline": "😔 לא מתאים כרגע",
+      "ask": "שאלות לשדכן",
+      "decline": "לא מתאים כרגע",
       "reminder": "זכור: כל החלטה שתקבל תעביר אותנו צעד אחד קדימה במציאת ההתאמה המושלמת עבורך.",
       "withdraw": {
         "gracePeriodTitle": "ניתן לבטל את האישור",
@@ -366,8 +366,8 @@
       "timelineTitle": "מעקב סטטוס",
       "timelineSubtitle": "מסלול ההצעה עד כה",
       "sectionTitle": "תקשורת והתייעצות",
-      "sectionSubtitle": "שוחחו עם העוזר החכם או עם השדכן/ית שלכם",
-      "aiChatTitle": "שאל/י את העוזר החכם",
+      "sectionSubtitle": "שוחחו עם נשמה או עם השדכן/ית שלכם",
+      "aiChatTitle": "שאל/י את נשמה",
       "aiChatSubtitle": "שאל/י אותי על ההצעה הזו",
       "chatTitle": "שיחה עם {{name}}",
       "chatTitleFallback": "השדכן/ית",
@@ -467,7 +467,7 @@
       "clearFilters": "נקה סינון",
       "matchmakerWorking": "השדכן/ית שלך עובד/ת על הצעות חדשות",
       "typicalArrival": "הצעות מגיעות בדרך כלל תוך מספר ימים",
-      "askAssistant": "שאל/י את העוזר החכם",
+      "askAssistant": "שאל/י את נשמה",
       "historyGuidance": "ברגע שתגיב/י להצעות, תוכל/י לראות את ההיסטוריה כאן"
     },
     "stats": {

@@ -115,7 +115,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
     }
   }, [suggestionId, conversationId, isHebrew, isEscalating]);
 
-  const panelTitle = title || (isHebrew ? 'העוזר החכם' : 'Smart Assistant');
+  const panelTitle = title || (isHebrew ? 'נשמה' : 'Neshama');
   const panelSubtitle = subtitle || (
     isGeneralChat
       ? (isHebrew ? 'שוחח/י איתי כדי למצוא התאמות טובות' : 'Chat with me to find great matches')
@@ -153,7 +153,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
             </div>
             <div className={cn('flex-1', isHebrew ? 'text-right' : 'text-left')}>
               <h3 className="text-sm font-semibold text-violet-800">
-                {isHebrew ? 'העוזר החכם שלך' : 'Your Smart Assistant'}
+                {isHebrew ? 'נשמה' : 'Neshama'}
               </h3>
               <p className="text-xs text-violet-600/70">
                 {panelSubtitle}
