@@ -53,6 +53,7 @@ interface UserAiAnalysisDialogProps {
 const mockAnalysisResult: AiSuggestionAnalysisResult = {
   overallScore: 91,
   matchTitle: 'A Partnership of Stability and Creativity',
+  worldInsights: [],
   matchSummary:
     "The connection between Daniel and Noa shows particularly high potential, based on a fascinating balance between shared core values and complementary personalities. The combination of Daniel's practical, ambitious nature and Noa's emotional depth and creativity creates a solid foundation for a long-term partnership.",
   compatibilityPoints: [

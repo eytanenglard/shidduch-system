@@ -44,8 +44,8 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
     if (!isOpen) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') isRtl ? goNext() : goPrev();
-      if (e.key === 'ArrowRight') isRtl ? goPrev() : goNext();
+      if (e.key === 'ArrowLeft') { if (isRtl) { goNext(); } else { goPrev(); } }
+      if (e.key === 'ArrowRight') { if (isRtl) { goPrev(); } else { goNext(); } }
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
@@ -73,9 +73,9 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
       const SWIPE_THRESHOLD = 50;
       if (Math.abs(diff) >= SWIPE_THRESHOLD) {
         if (diff > 0) {
-          isRtl ? goNext() : goPrev();
+          if (isRtl) { goNext(); } else { goPrev(); }
         } else {
-          isRtl ? goPrev() : goNext();
+          if (isRtl) { goPrev(); } else { goNext(); }
         }
       }
       touchStartX.current = null;

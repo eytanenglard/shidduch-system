@@ -28,6 +28,8 @@ export const useSuggestionModal = (
   const [isQuestionnaireLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [visitedTabs, setVisitedTabs] = useState<Set<string>>(new Set(['presentation']));
+  const [actionFeedback, setActionFeedback] = useState<'success' | 'declined' | null>(null);
 
   const TAB_ORDER = ['presentation', 'profile', 'compatibility', 'details'];
 
@@ -73,6 +75,7 @@ export const useSuggestionModal = (
     const newIdx = TAB_ORDER.indexOf(newTab);
     setTabDirection(newIdx > oldIdx ? 1 : -1);
     setActiveTab(newTab);
+    setVisitedTabs(prev => new Set(prev).add(newTab));
   }, [activeTab, TAB_ORDER]);
 
   // Keyboard arrow navigation for tabs
@@ -202,6 +205,8 @@ export const useSuggestionModal = (
     isActionsExpanded,
     setIsActionsExpanded,
     isInitialLoad,
+    visitedTabs,
+    actionFeedback,
     isMobile,
     isFullscreen,
     isTransitioning,

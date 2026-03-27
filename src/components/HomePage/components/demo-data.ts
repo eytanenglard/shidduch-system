@@ -335,20 +335,22 @@ export const generateDemoData = async (locale: Locale) => {
   } as unknown as ExtendedMatchSuggestion;
 
   const demoAiAnalysisForDaniel: AiSuggestionAnalysisResult = {
-    overallScore: 91, 
-    matchTitle: aiAnalysisContent.forMaleTitle, 
+    overallScore: 91,
+    matchTitle: aiAnalysisContent.forMaleTitle,
     matchSummary: aiAnalysisContent.forMaleSummary,
     compatibilityPoints: aiAnalysisContent.compatibilityPoints,
     pointsToConsider: aiAnalysisContent.pointsToConsider,
+    worldInsights: [],
     suggestedConversationStarters: aiAnalysisContent.suggestedConversationStarters,
   };
 
   const demoAiAnalysisForNoa: AiSuggestionAnalysisResult = {
-    overallScore: 91, 
-    matchTitle: aiAnalysisContent.forFemaleTitle, 
+    overallScore: 91,
+    matchTitle: aiAnalysisContent.forFemaleTitle,
     matchSummary: aiAnalysisContent.forFemaleSummary,
     compatibilityPoints: aiAnalysisContent.compatibilityPoints,
     pointsToConsider: aiAnalysisContent.pointsToConsider,
+    worldInsights: [],
     suggestedConversationStarters: aiAnalysisContent.suggestedConversationStarters,
   };
 
