@@ -2787,6 +2787,7 @@ export type ProfileCardDisplayDict = {
     };
     questionnaire: {
       questionFromCategory: string;
+      fromSoulFingerprint: string;
       confidential: string;
       confidentialTooltip: string;
     };

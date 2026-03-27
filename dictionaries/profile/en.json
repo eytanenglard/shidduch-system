@@ -1284,6 +1284,7 @@
         },
         "questionnaire": {
           "questionFromCategory": "Question from {{worldName}}:",
+          "fromSoulFingerprint": "From the Soul Fingerprint questionnaire",
           "confidential": "Confidential",
           "confidentialTooltip": "This answer is confidential and only visible to matchmakers."
         },

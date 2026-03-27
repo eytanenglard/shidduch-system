@@ -144,6 +144,7 @@ export interface CompatibilityTabProps {
   currentUserName: string;
   suggestedUserName: string;
   locale: 'he' | 'en';
+  enumLabels?: Record<string, string>;
   dict: {
     aiAnalysisCta: SuggestionsDictionary['modal']['aiAnalysisCta'];
     aiAnalysis: SuggestionsDictionary['aiAnalysis'];

@@ -1306,6 +1306,7 @@
         },
         "questionnaire": {
           "questionFromCategory": "שאלה מקטגוריית {{worldName}}:",
+          "fromSoulFingerprint": "מתוך שאלון טביעת הנשמה",
           "confidential": "חסוי",
           "confidentialTooltip": "תשובה זו חסויה ומוצגת לשדכנים בלבד."
         },

@@ -161,7 +161,11 @@ export async function POST(req: NextRequest) {
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           }
 
-          // Save assistant message
+          // Extract AI-generated suggestions from the response
+          const { cleanedResponse, suggestions: aiSuggestions } = AiChatService.extractSuggestionsFromResponse(fullResponse);
+          fullResponse = cleanedResponse;
+
+          // Save assistant message (cleaned, without suggestion tags)
           const msgMetadata: Record<string, unknown> = {};
           if (searchResults.length > 0) {
             msgMetadata.matchSearchResults = searchResults.map((r) => r.id);
@@ -221,19 +225,24 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // Generate quick reply suggestions
-          const messageCount = history.length + 1;
-          let suggestionStatus: string | null = null;
-          if (effectiveSuggestionId) {
-            const sg = await (await import('@/lib/prisma')).default.matchSuggestion.findUnique({
-              where: { id: effectiveSuggestionId },
-              select: { status: true },
-            });
-            suggestionStatus = sg?.status || null;
+          // Use AI-generated suggestions if available, otherwise fall back to static ones
+          let quickReplies: string[];
+          if (aiSuggestions.length > 0) {
+            quickReplies = aiSuggestions;
+          } else {
+            const messageCount = history.length + 1;
+            let suggestionStatus: string | null = null;
+            if (effectiveSuggestionId) {
+              const sg = await (await import('@/lib/prisma')).default.matchSuggestion.findUnique({
+                where: { id: effectiveSuggestionId },
+                select: { status: true },
+              });
+              suggestionStatus = sg?.status || null;
+            }
+            quickReplies = AiChatService.getQuickReplies(
+              locale, effectiveSuggestionId || null, suggestionStatus, messageCount,
+            );
           }
-          const quickReplies = AiChatService.getQuickReplies(
-            locale, effectiveSuggestionId || null, suggestionStatus, messageCount,
-          );
 
           // Send done event
           const doneData = JSON.stringify({

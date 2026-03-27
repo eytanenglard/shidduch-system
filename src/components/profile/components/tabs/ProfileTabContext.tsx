@@ -56,6 +56,9 @@ export interface ProfileTabContextType {
   relationshipContent: TabContentData;
   partnerContent: TabContentData;
 
+  // Soul Fingerprint (Heart Map) answers
+  sfAnswers: Record<string, unknown> | null;
+
   // Boolean flags
   hasAnyPreferences: boolean;
   hasEducationAndCareerDetails: boolean;

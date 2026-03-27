@@ -54,6 +54,7 @@ export interface MainContentTabsProps {
   religionAnswers: FormattedAnswer[];
   relationshipAnswers: FormattedAnswer[];
   partnerAnswers: FormattedAnswer[];
+  sfAnswers?: Record<string, unknown> | null;
   hasAnyPreferences: boolean;
   hasEducationAndCareerDetails: boolean;
   hasFamilyBackgroundDetails: boolean;
@@ -107,6 +108,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
   religionAnswers,
   relationshipAnswers,
   partnerAnswers,
+  sfAnswers,
   hasAnyPreferences,
   hasEducationAndCareerDetails,
   hasFamilyBackgroundDetails,
@@ -201,6 +203,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
       religionContent,
       relationshipContent,
       partnerContent,
+      sfAnswers: sfAnswers || null,
       hasAnyPreferences,
       hasEducationAndCareerDetails,
       hasFamilyBackgroundDetails,
@@ -237,6 +240,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
       religionContent,
       relationshipContent,
       partnerContent,
+      sfAnswers,
       hasAnyPreferences,
       hasEducationAndCareerDetails,
       hasFamilyBackgroundDetails,

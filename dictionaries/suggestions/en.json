@@ -321,8 +321,8 @@
       "readLess": "Show less"
     },
     "tabs": {
-      "presentation": "Presentation",
-      "presentationShort": "Intro",
+      "presentation": "Overview",
+      "presentationShort": "Overview",
       "profile": "Full Profile",
       "profileShort": "Profile",
       "compatibility": "Compatibility",

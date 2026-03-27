@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import SectionCard from '../shared/SectionCard';
 import QuestionnaireItem from './QuestionnaireItem';
+import SoulFingerprintSection from './SoulFingerprintSection';
 import FriendTestimonials from '../content/FriendTestimonials';
 import { formatEnumValue } from '../../utils/formatters';
 import { useProfileTab } from './ProfileTabContext';
@@ -27,6 +28,7 @@ const EssenceTab: React.FC = () => {
     THEME,
     WORLDS,
     personalityContent,
+    sfAnswers,
     characterTraitMap,
     hobbiesMap,
     renderMobileNav,
@@ -181,7 +183,7 @@ const EssenceTab: React.FC = () => {
             <SectionDivider />
             <SectionCard
               title={displayDict.content.deepDivePersonality}
-              subtitle={displayDict.content.moreAnswersPersonality}
+              subtitle={displayDict.content.questionnaire.fromSoulFingerprint}
               icon={Telescope}
             >
               <div className="grid grid-cols-1 gap-4">
@@ -199,6 +201,19 @@ const EssenceTab: React.FC = () => {
                 ))}
               </div>
             </SectionCard>
+          </>
+        )}
+        {sfAnswers && (
+          <>
+            <SectionDivider />
+            <SoulFingerprintSection
+              sfAnswers={sfAnswers}
+              sectionIds={['personality', 'lifestyle']}
+              gender={profile.gender}
+              locale={locale}
+              direction={direction}
+              selfOnly
+            />
           </>
         )}
         {renderMobileNav()}

@@ -20,6 +20,7 @@ const CompatibilityTab: React.FC<CompatibilityTabProps> = ({
   currentUserName,
   suggestedUserName,
   locale,
+  enumLabels,
   dict,
 }) => {
   const isHe = locale === 'he';
@@ -82,6 +83,7 @@ const CompatibilityTab: React.FC<CompatibilityTabProps> = ({
         firstParty={firstParty}
         secondParty={secondParty}
         dict={dict.compatibility}
+        enumLabels={enumLabels}
       />
     </div>
   );

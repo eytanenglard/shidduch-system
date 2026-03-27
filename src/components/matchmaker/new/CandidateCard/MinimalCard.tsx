@@ -180,6 +180,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
             hasAiData={state.hasAiData}
             isVectorResult={state.isVectorResult}
             isAiTarget={isAiTarget}
+            isHovered={state.isHovered}
             onSetAiTarget={onSetAiTarget}
             onEdit={onEdit}
             onAnalyze={onAnalyze}
@@ -214,6 +215,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
             isSuggestionBlocked={state.isSuggestionBlocked}
             hasExistingSuggestion={state.hasExistingSuggestion}
             suggestionOverride={state.suggestionOverride}
+            isHovered={state.isHovered}
             onToggleComparison={onToggleComparison}
             onOverride={() => state.setSuggestionOverride(true)}
             dict={dict}

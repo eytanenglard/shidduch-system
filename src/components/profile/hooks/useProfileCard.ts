@@ -51,6 +51,7 @@ interface UseProfileCardParams {
   isProfileComplete: boolean;
   images: UserImageType[];
   questionnaire?: QuestionnaireResponse | null;
+  sfAnswers?: Record<string, unknown> | null;
   viewMode: 'matchmaker' | 'candidate';
   onClose?: () => void;
   dict: ProfileCardDict;
@@ -62,6 +63,7 @@ export function useProfileCard({
   isProfileComplete,
   images,
   questionnaire,
+  sfAnswers,
   viewMode,
   onClose,
   dict,

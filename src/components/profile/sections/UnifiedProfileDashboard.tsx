@@ -70,6 +70,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
     setCompletionPercentage,
     sfCompleted,
     sfProgress,
+    sfAnswers,
     isMobile,
     direction,
     isOwnProfile,
@@ -205,6 +206,7 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                         profile={profileData}
                         images={images}
                         questionnaire={questionnaireResponse}
+                        sfAnswers={sfAnswers}
                         viewMode="candidate"
                         isProfileComplete={session?.user?.isProfileComplete ?? false}
                         onClose={() => setPreviewOpen(false)}

@@ -215,10 +215,11 @@ async function handleGetNextCandidate(userId: string, conversationId: string, in
   // Weekly limit reached
   if (nextCandidate?.limitReached) {
     const usage = nextCandidate.weeklyUsage!;
+    const resetDate = new Date(usage.resetsAt).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
     await AiChatService.saveMessage(
       conversationId,
       'assistant',
-      `הגעת למכסה השבועית (${usage.limit} הצעות). המכסה תתאפס ב-${new Date(usage.resetsAt).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}. בינתיים, נוכל להמשיך לדבר ולדייק את מה שחשוב לך!`,
+      `⏳ הגעת למכסה השבועית של ${usage.limit} הצעות.\n\nלמה יש מגבלה? אנחנו רוצים שכל הצעה שתקבל/י תהיה איכותית ומדויקת. כשמגבילים את הכמות, את/ה יכול/ה להתמקד באמת בכל הצעה ולא לדפדף בלי סוף.\n\n📅 המכסה תתאפס ב**${resetDate}**.\n\nבינתיים, נוכל להמשיך לדבר — ככל שאני לומדת עלייך יותר, כך ההצעות הבאות יהיו מדויקות יותר! 💬`,
       { type: 'limit_reached', weeklyUsage: usage },
     );
 

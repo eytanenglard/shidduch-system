@@ -47,17 +47,17 @@ const QuestionnaireItem: React.FC<QuestionnaireItemProps> = ({
           <Quote className={cn('w-4 h-4', colors.text)} />
         </div>
         <div className="flex-1 min-w-0">
+          {/* World badge — indicates this is a questionnaire answer */}
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', colors.bg, colors.text)}>
+              {worldName}
+            </span>
+          </div>
           <h4
             dir="auto"
             className="font-semibold text-sm text-gray-800 mb-2 flex items-center justify-between gap-2 text-start"
           >
             <span className="flex-1 break-words hyphens-auto overflow-wrap-anywhere min-w-0">
-              <span className="sr-only">
-                {displayDict.content.questionnaire.questionFromCategory.replace(
-                  '{{worldName}}',
-                  worldName
-                )}{' '}
-              </span>
               {answer.question}
             </span>
             {answer.isVisible === false && (

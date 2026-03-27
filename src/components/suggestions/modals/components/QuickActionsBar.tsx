@@ -38,9 +38,7 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
     (status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
     (status === 'PENDING_SECOND_PARTY' && !isFirstParty);
 
-  const forceExpanded = hasPendingAction;
-
-  // Auto-expand on pending statuses (for non-forced cases)
+  // Auto-expand on pending statuses
   useEffect(() => {
     if (hasPendingAction && !isExpanded) {
       onToggleExpand();
@@ -100,7 +98,7 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
     status === 'FIRST_PARTY_INTERESTED' ||
     status === 'RE_OFFERED_TO_FIRST_PARTY';
 
-  const isOpen = isExpanded || forceExpanded;
+  const isOpen = isExpanded;
 
   return (
     <div
@@ -110,12 +108,11 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
       )}
     >
       <div className="max-w-4xl mx-auto relative z-10">
-        {/* Collapsible header — hidden when force-expanded */}
-        {!forceExpanded && (
-          <div
-            className="flex justify-between items-center cursor-pointer group"
-            onClick={onToggleExpand}
-          >
+        {/* Collapsible header — always shown */}
+        <div
+          className="flex justify-between items-center cursor-pointer group"
+          onClick={onToggleExpand}
+        >
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center shadow-sm">
                 <Zap className="w-4.5 h-4.5 text-white" />
@@ -139,15 +136,11 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
             >
               {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
             </Button>
-          </div>
-        )}
+        </div>
 
         {/* Action buttons */}
         {isOpen && (
-          <div className={cn(
-            'space-y-2.5',
-            !forceExpanded && 'mt-4 animate-in fade-in-50 slide-in-from-bottom-4 duration-500'
-          )}>
+          <div className="space-y-2.5 mt-4 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
             {renderButtons()}
             {showAskExtra && (
               <button

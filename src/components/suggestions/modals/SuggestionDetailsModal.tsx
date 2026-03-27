@@ -199,6 +199,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
               }
               suggestedUserName={targetParty.firstName}
               locale={locale}
+              enumLabels={dict.profileCard.options.religiousLevel as unknown as Record<string, string>}
               dict={{
                 aiAnalysisCta: dict.suggestions.modal.aiAnalysisCta,
                 aiAnalysis: dict.suggestions.aiAnalysis,

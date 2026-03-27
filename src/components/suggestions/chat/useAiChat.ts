@@ -260,7 +260,9 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
 
             if (data.type === 'chunk') {
               accumulated += data.content;
-              setStreamingContent(accumulated);
+              // Strip [SUGGESTIONS: ...] tag from display during streaming
+              const displayContent = accumulated.replace(/\n?\[SUGGESTIONS:.*$/, '').trimEnd();
+              setStreamingContent(displayContent);
             } else if (data.type === 'done') {
               if (data.conversationId) {
                 setConversationId(data.conversationId);
@@ -314,12 +316,13 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
         }
       }
 
-      // Move streaming content to messages
+      // Move streaming content to messages (strip AI suggestion tags from display)
       if (accumulated) {
+        const cleanContent = accumulated.replace(/\n?\[SUGGESTIONS:.*?\]\s*$/, '').trimEnd();
         const assistantMessage: ChatMessage = {
           id: `msg-${Date.now()}`,
           role: 'assistant',
-          content: accumulated,
+          content: cleanContent,
           createdAt: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
@@ -447,8 +450,8 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
           id: `limit-${Date.now()}`,
           role: 'assistant',
           content: locale === 'he'
-            ? `הגעת למכסה השבועית (${usage.limit} הצעות). המכסה תתאפס ב-${resetDate}. בינתיים, נוכל להמשיך לדבר ולדייק!`
-            : `You've reached the weekly limit (${usage.limit} suggestions). Resets ${resetDate}. We can keep chatting meanwhile!`,
+            ? `⏳ הגעת למכסה השבועית של ${usage.limit} הצעות.\n\nלמה יש מגבלה? אנחנו רוצים שכל הצעה שתקבל/י תהיה איכותית ומדויקת. כשמגבילים את הכמות, את/ה יכול/ה להתמקד באמת בכל הצעה ולא לדפדף בלי סוף.\n\n📅 המכסה תתאפס ב**${resetDate}**.\n\nבינתיים, נוכל להמשיך לדבר — ככל שאני לומדת עלייך יותר, כך ההצעות הבאות יהיו מדויקות יותר! 💬`
+            : `⏳ You've reached the weekly limit of ${usage.limit} suggestions.\n\nWhy is there a limit? We want every suggestion you receive to be high-quality and well-matched. By limiting quantity, you can truly focus on each suggestion rather than endlessly scrolling.\n\n📅 Your limit resets on **${resetDate}**.\n\nMeanwhile, we can keep chatting — the more I learn about you, the better your next suggestions will be! 💬`,
           createdAt: new Date().toISOString(),
           metadata: { type: 'limit_reached', weeklyUsage: usage },
         };

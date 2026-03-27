@@ -22,6 +22,7 @@ import {
 import SectionCard from '../shared/SectionCard';
 import DetailItem from '../shared/DetailItem';
 import QuestionnaireItem from './QuestionnaireItem';
+import SoulFingerprintSection from './SoulFingerprintSection';
 import { formatEnumValue, formatBooleanPreference } from '../../utils/formatters';
 import { useProfileTab } from './ProfileTabContext';
 
@@ -35,6 +36,7 @@ const JourneyTab: React.FC = () => {
     WORLDS,
     valuesContent,
     religionContent,
+    sfAnswers,
     hasEducationAndCareerDetails,
     hasFamilyBackgroundDetails,
     hasJudaismConnectionDetails,
@@ -191,7 +193,7 @@ const JourneyTab: React.FC = () => {
             <SectionDivider />
             <SectionCard
               title={displayDict.content.valuesAndPrinciples}
-              subtitle={displayDict.content.answersOnWhatMatters}
+              subtitle={displayDict.content.questionnaire.fromSoulFingerprint}
               icon={BookMarked}
             >
               <div className="grid grid-cols-1 gap-4">
@@ -332,7 +334,7 @@ const JourneyTab: React.FC = () => {
         {religionContent.deeperAnswers.length > 0 && (
           <SectionCard
             title={displayDict.content.myReligiousAndSpiritualWorld}
-            subtitle={displayDict.content.answersOnFaith}
+            subtitle={displayDict.content.questionnaire.fromSoulFingerprint}
             icon={Star}
           >
             <div className="grid grid-cols-1 gap-4">
@@ -350,6 +352,19 @@ const JourneyTab: React.FC = () => {
               ))}
             </div>
           </SectionCard>
+        )}
+        {sfAnswers && (
+          <>
+            <SectionDivider />
+            <SoulFingerprintSection
+              sfAnswers={sfAnswers}
+              sectionIds={['identity', 'background', 'career']}
+              gender={profile.gender}
+              locale={locale}
+              direction={direction}
+              selfOnly
+            />
+          </>
         )}
         {renderMobileNav()}
       </div>

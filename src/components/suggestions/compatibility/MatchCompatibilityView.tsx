@@ -36,6 +36,7 @@ interface MatchCompatibilityProps {
   secondParty: PartyInfo;
   className?: string;
   dict: SuggestionsCompatibilityDict;
+  enumLabels?: Record<string, string>;
 }
 
 const calculateAge = (birthDate?: Date | string | null): number | null => {
@@ -85,54 +86,56 @@ const CompatibilityRow: React.FC<{
 }> = ({ item, firstName, secondName, dict }) => (
   <div
     className={cn(
-      'flex items-center gap-2 px-3 py-2.5 rounded-lg transition-colors',
+      'px-3 py-2.5 rounded-lg transition-colors',
       item.compatible ? 'bg-white hover:bg-teal-50/40' : 'bg-rose-50/40 hover:bg-rose-50/70'
     )}
   >
-    {/* Icon */}
-    <div
-      className={cn(
-        'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center',
-        item.compatible ? 'bg-teal-100 text-teal-600' : 'bg-rose-100 text-rose-500'
-      )}
-    >
-      {item.icon}
-    </div>
-
-    {/* Criterion + reason */}
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-1.5">
-        <span className="text-sm font-semibold text-gray-800">{item.criterion}</span>
-        {importanceBadge(item.importance, dict)}
+    <div className="flex items-center gap-2">
+      {/* Icon */}
+      <div
+        className={cn(
+          'flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center',
+          item.compatible ? 'bg-teal-100 text-teal-600' : 'bg-rose-100 text-rose-500'
+        )}
+      >
+        {item.icon}
       </div>
-      <p className={cn('text-xs leading-snug mt-0.5', item.compatible ? 'text-gray-500' : 'text-rose-600')}>
-        {item.reason}
-      </p>
+
+      {/* Criterion + reason */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-sm font-semibold text-gray-800">{item.criterion}</span>
+          {importanceBadge(item.importance, dict)}
+        </div>
+        <p className={cn('text-xs leading-snug mt-0.5', item.compatible ? 'text-gray-500' : 'text-rose-600')}>
+          {item.reason}
+        </p>
+      </div>
+
+      {/* Status icon */}
+      <div className="flex-shrink-0">
+        {item.compatible ? (
+          <CheckCircle className="w-4.5 h-4.5 text-teal-500" />
+        ) : (
+          <XCircle className="w-4.5 h-4.5 text-rose-400" />
+        )}
+      </div>
     </div>
 
-    {/* Values comparison */}
+    {/* Values comparison — stacked below on mobile for better fit */}
     {(item.first != null || item.second != null) && (
-      <div className="flex-shrink-0 flex items-center gap-1.5 text-xs">
-        <div className="text-center bg-gray-50 rounded-md px-2 py-1 min-w-[50px]">
-          <div className="text-[10px] text-gray-400 font-medium">{firstName}</div>
-          <div className="font-semibold text-gray-700">{item.first ?? dict.card.notSpecified}</div>
+      <div className="flex items-center gap-1.5 text-xs mt-2 ms-10">
+        <div className="text-center bg-gray-50 rounded-md px-2 py-1 flex-1 min-w-0">
+          <div className="text-[10px] text-gray-400 font-medium truncate">{firstName}</div>
+          <div className="font-semibold text-gray-700 truncate">{item.first ?? dict.card.notSpecified}</div>
         </div>
-        <span className="text-gray-300">|</span>
-        <div className="text-center bg-gray-50 rounded-md px-2 py-1 min-w-[50px]">
-          <div className="text-[10px] text-gray-400 font-medium">{secondName}</div>
-          <div className="font-semibold text-gray-700">{item.second ?? dict.card.notSpecified}</div>
+        <span className="text-gray-300 flex-shrink-0">|</span>
+        <div className="text-center bg-gray-50 rounded-md px-2 py-1 flex-1 min-w-0">
+          <div className="text-[10px] text-gray-400 font-medium truncate">{secondName}</div>
+          <div className="font-semibold text-gray-700 truncate">{item.second ?? dict.card.notSpecified}</div>
         </div>
       </div>
     )}
-
-    {/* Status icon */}
-    <div className="flex-shrink-0">
-      {item.compatible ? (
-        <CheckCircle className="w-4.5 h-4.5 text-teal-500" />
-      ) : (
-        <XCircle className="w-4.5 h-4.5 text-rose-400" />
-      )}
-    </div>
   </div>
 );
 
@@ -165,6 +168,7 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
   secondParty,
   className,
   dict,
+  enumLabels = {},
 }) => {
   if (!firstParty.profile || !secondParty.profile) {
     return (
@@ -201,6 +205,11 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
     if (value == null) return false;
     if (preferredList == null || preferredList.length === 0) return true;
     return preferredList.includes(value);
+  };
+
+  const translateEnum = (value: string | null | undefined): string | null => {
+    if (!value) return null;
+    return enumLabels[value] || value;
   };
 
   const calculateCompatibilityItems = (): CompatibilityItem[] => {
@@ -275,8 +284,8 @@ const MatchCompatibilityView: React.FC<MatchCompatibilityProps> = ({
         reason: compatible
           ? dict.reasons.mutualMatch.replace('{{criterion}}', dict.criteria.religiousLevel)
           : dict.reasons.mismatch.replace('{{criterion}}', dict.criteria.religiousLevel),
-        first: firstProfile.religiousLevel,
-        second: secondProfile.religiousLevel,
+        first: translateEnum(firstProfile.religiousLevel),
+        second: translateEnum(secondProfile.religiousLevel),
         importance: 'high',
         category: 'values',
       });

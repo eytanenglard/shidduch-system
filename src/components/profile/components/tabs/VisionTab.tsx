@@ -5,6 +5,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { Heart, Stars } from 'lucide-react';
 import SectionCard from '../shared/SectionCard';
 import QuestionnaireItem from './QuestionnaireItem';
+import SoulFingerprintSection from './SoulFingerprintSection';
 import { useProfileTab } from './ProfileTabContext';
 
 const VisionTab: React.FC = () => {
@@ -16,6 +17,7 @@ const VisionTab: React.FC = () => {
     dict,
     WORLDS,
     relationshipContent,
+    sfAnswers,
     renderMobileNav,
     SectionDivider,
   } = useProfileTab();
@@ -69,7 +71,7 @@ const VisionTab: React.FC = () => {
             <SectionDivider />
             <SectionCard
               title={displayDict.content.moreOnMyVision}
-              subtitle={displayDict.content.answersOnLoveAndFamily}
+              subtitle={displayDict.content.questionnaire.fromSoulFingerprint}
               icon={Heart}
             >
               <div className="grid grid-cols-1 gap-4">
@@ -87,6 +89,19 @@ const VisionTab: React.FC = () => {
                 ))}
               </div>
             </SectionCard>
+          </>
+        )}
+        {sfAnswers && (
+          <>
+            <SectionDivider />
+            <SoulFingerprintSection
+              sfAnswers={sfAnswers}
+              sectionIds={['family', 'relationship']}
+              gender={profile.gender}
+              locale={locale}
+              direction={direction}
+              selfOnly
+            />
           </>
         )}
         {renderMobileNav()}

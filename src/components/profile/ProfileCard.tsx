@@ -46,6 +46,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   isProfileComplete,
   images = [],
   questionnaire,
+  sfAnswers,
   viewMode = 'candidate',
   className,
   onClose,
@@ -57,6 +58,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     isProfileComplete,
     images,
     questionnaire,
+    sfAnswers,
     viewMode,
     onClose,
     dict,
@@ -132,6 +134,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     religionAnswers,
     relationshipAnswers,
     partnerAnswers,
+    sfAnswers,
     hasAnyPreferences,
     hasEducationAndCareerDetails,
     hasFamilyBackgroundDetails,
@@ -201,31 +204,20 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       {/* Hero photo section */}
       <div
         className="relative w-full flex-shrink-0 bg-gray-100 overflow-hidden group cursor-pointer"
-        style={{ height: '380px' }}
+        style={{ height: '450px' }}
         onClick={() =>
           orderedImages.length > 0 && handleOpenImageDialog(orderedImages[0])
         }
       >
         {mainImageToDisplay?.url ? (
-          <>
-            <Image
-              src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
-              alt={profile.user?.firstName || ''}
-              fill
-              className="object-cover object-[50%_25%] transition-transform duration-500 group-hover:scale-[1.02]"
-              sizes="100vw"
-              priority
-            />
-            {/* Hover overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 shadow-lg">
-                <Eye className="w-4 h-4 text-gray-700" />
-                <span className="text-sm font-medium text-gray-700">
-                  {displayDict.gallery.subtitle}
-                </span>
-              </div>
-            </div>
-          </>
+          <Image
+            src={getRelativeCloudinaryPath(mainImageToDisplay.url)}
+            alt={profile.user?.firstName || ''}
+            fill
+            className="object-cover object-[50%_30%] transition-transform duration-500 group-hover:scale-[1.02]"
+            sizes="100vw"
+            priority
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
             <Camera className="w-16 h-16 text-gray-300" />
@@ -234,10 +226,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
         {/* Name overlay on gradient */}
         <div
-          className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent px-6 pb-5 pt-20"
+          className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent px-6 pb-5 pt-24"
           dir={direction}
         >
-          <h1 className="text-3xl font-bold text-white drop-shadow-sm">
+          <h1 className="text-3xl font-bold text-white drop-shadow-md">
             {profile.user?.firstName
               ? `${profile.user.firstName} ${profile.user.lastName || ''}`.trim()
               : ''}
@@ -249,7 +241,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               profile.city,
             ].filter(Boolean);
             return subtitleParts.length > 0 ? (
-              <p className="text-base text-white/85 mt-1 flex items-center gap-2 flex-wrap">
+              <p className="text-base text-white/90 mt-1 flex items-center gap-2 flex-wrap">
                 {profile.city && (
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                 )}
@@ -260,63 +252,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <div className="mt-2 flex items-center gap-2">
             <span
               className={cn(
-                'w-2 h-2 rounded-full flex-shrink-0',
+                'w-2.5 h-2.5 rounded-full flex-shrink-0',
                 availability.dotColor
               )}
             />
-            <span className="text-sm text-white/80">
+            <span className="text-sm text-white/85">
               {availability.text}
             </span>
           </div>
         </div>
-
-        {/* Thumbnail strip at bottom-start */}
-        {orderedImages.length > 1 && (
-          <div
-            className={cn(
-              'absolute bottom-4 z-10 flex gap-2',
-              direction === 'rtl' ? 'left-6' : 'right-6'
-            )}
-          >
-            {orderedImages.slice(0, 5).map((img, idx) => (
-              <div
-                key={img.id}
-                className={cn(
-                  'relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 transition-all duration-200',
-                  'border-2 hover:scale-110',
-                  idx === 0
-                    ? cn('border-white opacity-100 ring-1 ring-white/50')
-                    : 'border-white/40 opacity-75 hover:opacity-100 hover:border-white/80'
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenImageDialog(img);
-                }}
-              >
-                <Image
-                  src={getRelativeCloudinaryPath(img.url)}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="48px"
-                />
-              </div>
-            ))}
-            {orderedImages.length > 5 && (
-              <div
-                className="relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-black/50 backdrop-blur-sm flex items-center justify-center border-2 border-white/30 hover:border-white/60 transition-all duration-200 hover:scale-110"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenImageDialog(orderedImages[5]);
-                }}
-              >
-                <span className="text-white text-sm font-semibold">
-                  +{orderedImages.length - 5}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Image count badge */}
         {orderedImages.length > 1 && (
@@ -326,13 +270,52 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               direction === 'rtl' ? 'left-3' : 'right-3'
             )}
           >
-            <Badge className="bg-black/50 backdrop-blur-sm text-white border-0 text-xs px-2.5 py-1 gap-1.5 shadow-sm">
+            <Badge className="bg-black/40 backdrop-blur-md text-white border-0 text-xs px-2.5 py-1 gap-1.5 shadow-sm">
               <Camera className="w-3 h-3" />
               <span>{orderedImages.length}</span>
             </Badge>
           </div>
         )}
       </div>
+
+      {/* Thumbnail strip below hero */}
+      {orderedImages.length > 1 && (
+        <div className="flex-shrink-0 bg-white border-b border-gray-100 px-6 py-3" dir={direction}>
+          <div className="flex gap-2">
+            {orderedImages.slice(0, 6).map((img, idx) => (
+              <div
+                key={img.id}
+                className={cn(
+                  'relative w-14 h-14 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 transition-all duration-200',
+                  'border-2 hover:scale-105',
+                  idx === 0
+                    ? 'border-teal-500 ring-1 ring-teal-200'
+                    : 'border-gray-200 hover:border-teal-300'
+                )}
+                onClick={() => handleOpenImageDialog(img)}
+              >
+                <Image
+                  src={getRelativeCloudinaryPath(img.url)}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                />
+              </div>
+            ))}
+            {orderedImages.length > 6 && (
+              <div
+                className="relative w-14 h-14 rounded-lg overflow-hidden cursor-pointer flex-shrink-0 bg-gray-100 flex items-center justify-center border-2 border-gray-200 hover:border-teal-300 transition-all duration-200 hover:scale-105"
+                onClick={() => handleOpenImageDialog(orderedImages[6])}
+              >
+                <span className="text-gray-600 text-sm font-semibold">
+                  +{orderedImages.length - 6}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Content panel below hero */}
       <div className="flex-1 min-h-0 flex flex-col bg-white" dir={direction}>
@@ -662,18 +645,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <DesktopLayout />
       ) : (
         <div className="flex flex-col h-full w-full max-w-full min-w-0 overflow-hidden">
-          <MobileHeader
-            direction={direction}
-            displayDict={displayDict}
-            mobileViewLayout={mobileViewLayout}
-            setMobileViewLayout={setMobileViewLayout}
-            handleClose={handleClose}
-          />
-          {mobileViewLayout === 'detailed' ? (
-            <DetailedMobileLayout />
-          ) : (
-            <FocusMobileLayout />
+          {onClose && (
+            <MobileHeader
+              direction={direction}
+              displayDict={displayDict}
+              handleClose={handleClose}
+            />
           )}
+          <DetailedMobileLayout />
         </div>
       )}
 

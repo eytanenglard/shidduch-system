@@ -36,6 +36,7 @@ interface FloatingActionsProps {
   hasAiData: boolean;
   isVectorResult: boolean;
   isAiTarget: boolean;
+  isHovered?: boolean;
   onSetAiTarget?: (candidate: Candidate, e: React.MouseEvent) => void;
   onEdit?: (candidate: Candidate, e: React.MouseEvent) => void;
   onAnalyze?: (candidate: Candidate, e: React.MouseEvent) => void;
@@ -57,6 +58,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   hasAiData,
   isVectorResult,
   isAiTarget,
+  isHovered = false,
   onSetAiTarget,
   onEdit,
   onAnalyze,
@@ -73,14 +75,15 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   dict,
 }) => {
   const isHe = !!(dict.heightLabel && /[\u0590-\u05FF]/.test(dict.heightLabel));
+  const isVisible = hasAiData || isHovered;
 
   return (
   <div
     className={cn(
-      'absolute bottom-2.5 start-2.5 z-20 flex items-center gap-1.5 transition-all duration-200',
-      hasAiData
-        ? 'opacity-100'
-        : 'opacity-100 lg:opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0'
+      'absolute bottom-2.5 start-2.5 z-20 flex flex-wrap items-center gap-1.5 transition-all duration-200',
+      isVisible
+        ? 'opacity-100 translate-y-0'
+        : 'opacity-0 translate-y-1 pointer-events-none'
     )}
   >
     {/* AI Reasoning button */}

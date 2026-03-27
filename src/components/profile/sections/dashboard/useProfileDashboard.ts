@@ -52,6 +52,7 @@ export function useProfileDashboard({
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [sfCompleted, setSfCompleted] = useState(false);
   const [sfProgress, setSfProgress] = useState<{ total: number; answered: number } | undefined>(undefined);
+  const [sfAnswers, setSfAnswers] = useState<Record<string, unknown> | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
@@ -77,6 +78,7 @@ export function useProfileDashboard({
       .then(async (data) => {
         if (data?.profileTags?.completedAt) setSfCompleted(true);
         if (data?.profileTags?.sectionAnswers) {
+          setSfAnswers(data.profileTags.sectionAnswers as Record<string, unknown>);
           try {
             const { computeSFProgress } = await import('@/components/soul-fingerprint/questions');
             const gender = profileData?.gender || null;
@@ -430,6 +432,7 @@ export function useProfileDashboard({
     setCompletionPercentage,
     sfCompleted,
     sfProgress,
+    sfAnswers,
     isMobile,
     direction,
     isOwnProfile,

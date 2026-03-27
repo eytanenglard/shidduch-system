@@ -10,6 +10,7 @@ import {
   Copy,
   Check,
   Lightbulb,
+  Bot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MiniTimeline from '../../timeline/MiniTimeline';
@@ -84,6 +85,9 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
   const isHe = locale === 'he';
   const showContact = CONTACT_SHARED_STATUSES.has(status) && targetPartyContact;
   const statusTip = detailsDict.statusTips?.[status];
+  const [activeChatTab, setActiveChatTab] = useState<'matchmaker' | 'ai'>(
+    autoSendMessage ? 'ai' : 'matchmaker'
+  );
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
@@ -216,10 +220,70 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
         </div>
       </div>
 
-      {/* Chats — side by side on desktop, matchmaker first on mobile */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* AI Chat Assistant — embedded, always open, with starter questions */}
-        <div className="order-2 lg:order-1">
+      {/* Chats — side by side on desktop, tab switcher on mobile */}
+      {/* Mobile: Tab switcher */}
+      <div className="lg:hidden">
+        <div className="flex bg-gray-100 rounded-xl p-1 mb-4" dir={isHe ? 'rtl' : 'ltr'}>
+          <button
+            type="button"
+            onClick={() => setActiveChatTab('matchmaker')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-all',
+              activeChatTab === 'matchmaker'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            )}
+          >
+            <MessageCircle className="w-4 h-4" />
+            {detailsDict.chatTitleFallback}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveChatTab('ai')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-all',
+              activeChatTab === 'ai'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            )}
+          >
+            <Bot className="w-4 h-4" />
+            {detailsDict.aiChatTitle}
+          </button>
+        </div>
+
+        {activeChatTab === 'matchmaker' ? (
+          <SuggestionChat
+            suggestionId={suggestionId}
+            locale={locale}
+            heightClass="h-[450px] min-h-[350px]"
+            header={{
+              title: detailsDict.chatTitle.replace(
+                '{{name}}',
+                matchmakerFirstName || detailsDict.chatTitleFallback
+              ),
+              subtitle: detailsDict.chatSubtitle,
+            }}
+          />
+        ) : (
+          <AiChatPanel
+            locale={locale}
+            suggestionId={suggestionId}
+            title={detailsDict.aiChatTitle}
+            subtitle={detailsDict.aiChatSubtitle}
+            initialOpen
+            embedded
+            starterQuestions={detailsDict.starterQuestions}
+            autoSendMessage={autoSendMessage}
+            autoSendRequestType={autoSendRequestType}
+            onAutoSendComplete={onAutoSendComplete}
+          />
+        )}
+      </div>
+
+      {/* Desktop: Side by side */}
+      <div className="hidden lg:grid lg:grid-cols-2 gap-4">
+        <div>
           <AiChatPanel
             locale={locale}
             suggestionId={suggestionId}
@@ -233,9 +297,7 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
             onAutoSendComplete={onAutoSendComplete}
           />
         </div>
-
-        {/* Chat with matchmaker — shown first on mobile */}
-        <div className="order-1 lg:order-2">
+        <div>
           <SuggestionChat
             suggestionId={suggestionId}
             locale={locale}

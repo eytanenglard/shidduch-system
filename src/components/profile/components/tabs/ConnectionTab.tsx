@@ -14,6 +14,7 @@ import SectionCard from '../shared/SectionCard';
 import EmptyState from '../shared/EmptyState';
 import PreferenceBadges from '../shared/PreferenceBadges';
 import QuestionnaireItem from './QuestionnaireItem';
+import SoulFingerprintSection from './SoulFingerprintSection';
 import { useProfileTab } from './ProfileTabContext';
 
 const ConnectionTab: React.FC = () => {
@@ -25,6 +26,7 @@ const ConnectionTab: React.FC = () => {
     dict,
     WORLDS,
     partnerContent,
+    sfAnswers,
     hasAnyPreferences,
     maritalStatusMap,
     religiousLevelMap,
@@ -101,7 +103,7 @@ const ConnectionTab: React.FC = () => {
             <SectionDivider />
             <SectionCard
               title={displayDict.content.howIVisionMyPartner}
-              subtitle={displayDict.content.moreAnswersAboutPartner}
+              subtitle={displayDict.content.questionnaire.fromSoulFingerprint}
               icon={Target}
             >
               <div className="grid grid-cols-1 gap-4">
@@ -119,6 +121,19 @@ const ConnectionTab: React.FC = () => {
                 ))}
               </div>
             </SectionCard>
+          </>
+        )}
+        {sfAnswers && (
+          <>
+            <SectionDivider />
+            <SoulFingerprintSection
+              sfAnswers={sfAnswers}
+              sectionIds={['identity', 'background', 'personality', 'career', 'lifestyle', 'family', 'relationship']}
+              gender={profile.gender}
+              locale={locale}
+              direction={direction}
+              partnerOnly
+            />
           </>
         )}
         {renderMobileNav()}

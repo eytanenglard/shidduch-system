@@ -121,6 +121,10 @@ export async function POST(req: NextRequest) {
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           }
 
+          // Extract AI-generated suggestions from the response
+          const { cleanedResponse, suggestions: aiSuggestions } = AiChatService.extractSuggestionsFromResponse(fullResponse);
+          fullResponse = cleanedResponse;
+
           const metadata: Record<string, unknown> = {};
           if (searchResults.length > 0) {
             metadata.matchSearchResults = searchResults.map((r) => r.id);
@@ -155,19 +159,24 @@ export async function POST(req: NextRequest) {
             actions = await AiChatService.getAvailableActions(effectiveSuggestionId, userId);
           }
 
-          // Generate quick reply suggestions
-          const messageCount = history.length + 1;
-          let suggestionStatus: string | null = null;
-          if (effectiveSuggestionId) {
-            const sg = await prisma.matchSuggestion.findUnique({
-              where: { id: effectiveSuggestionId },
-              select: { status: true },
-            });
-            suggestionStatus = sg?.status || null;
+          // Use AI-generated suggestions if available, otherwise fall back to static ones
+          let quickReplies: string[];
+          if (aiSuggestions.length > 0) {
+            quickReplies = aiSuggestions;
+          } else {
+            const messageCount = history.length + 1;
+            let suggestionStatus: string | null = null;
+            if (effectiveSuggestionId) {
+              const sg = await prisma.matchSuggestion.findUnique({
+                where: { id: effectiveSuggestionId },
+                select: { status: true },
+              });
+              suggestionStatus = sg?.status || null;
+            }
+            quickReplies = AiChatService.getQuickReplies(
+              locale, effectiveSuggestionId || null, suggestionStatus, messageCount,
+            );
           }
-          const quickReplies = AiChatService.getQuickReplies(
-            locale, effectiveSuggestionId || null, suggestionStatus, messageCount,
-          );
 
           const doneData = JSON.stringify({
             type: 'done',

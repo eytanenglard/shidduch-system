@@ -7,6 +7,16 @@ import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Users, Activity } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // --- Custom Hooks ---
 import { useCandidates } from '../hooks/useCandidates';
@@ -161,6 +171,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         : 0;
     return { total, male, female, verified, activeToday, profilesComplete };
   }, [candidates, pagination.total]);
+
+  // --- Pending AI Target (for confirmation dialog) ---
+  const [pendingAiTarget, setPendingAiTarget] = useState<Candidate | null>(null);
 
   // --- System-wide stats (unfiltered, fetched once on mount) ---
   const [systemStats, setSystemStats] = useState<{
@@ -353,13 +366,28 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' });
         return;
       }
+      // If there's already a target, ask for confirmation before replacing
+      if (aiTargetCandidate) {
+        setPendingAiTarget(candidate);
+        return;
+      }
       setAiTarget(candidate);
       toast.info(`מועמד מטרה נבחר: ${candidate.firstName}.`, {
         position: 'bottom-center',
       });
     },
-    [aiTargetCandidate?.id, clearAiTarget, setAiTarget]
+    [aiTargetCandidate, clearAiTarget, setAiTarget]
   );
+
+  const handleConfirmAiTargetSwitch = useCallback(() => {
+    if (pendingAiTarget) {
+      setAiTarget(pendingAiTarget);
+      toast.info(`מועמד מטרה הוחלף ל: ${pendingAiTarget.firstName}.`, {
+        position: 'bottom-center',
+      });
+      setPendingAiTarget(null);
+    }
+  }, [pendingAiTarget, setAiTarget]);
 
   const handleClearAiTarget = useCallback(
     (e: React.MouseEvent) => {
@@ -720,6 +748,28 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
           }
           locale={locale}
         />
+
+        {/* AI Target Switch Confirmation */}
+        <AlertDialog
+          open={!!pendingAiTarget}
+          onOpenChange={(open) => { if (!open) setPendingAiTarget(null); }}
+        >
+          <AlertDialogContent className="text-right" dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>החלפת מועמד מטרה</AlertDialogTitle>
+              <AlertDialogDescription>
+                מועמד המטרה הנוכחי הוא <strong>{aiTargetCandidate?.firstName}</strong>.
+                {' '}האם ברצונך להחליף ל<strong>{pendingAiTarget?.firstName}</strong>?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogAction onClick={handleConfirmAiTargetSwitch}>
+                כן, החלף
+              </AlertDialogAction>
+              <AlertDialogCancel>ביטול</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* All Dialogs */}
         <DialogsContainer

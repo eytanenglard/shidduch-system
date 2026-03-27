@@ -14,6 +14,7 @@ interface ComparisonCheckboxProps {
   isSuggestionBlocked: boolean;
   hasExistingSuggestion: boolean;
   suggestionOverride: boolean;
+  isHovered?: boolean;
   onToggleComparison?: (candidate: Candidate, e: React.MouseEvent) => void;
   onOverride: () => void;
   dict: MinimalCardDict;
@@ -26,19 +27,22 @@ const ComparisonCheckboxComponent: React.FC<ComparisonCheckboxProps> = ({
   isSuggestionBlocked,
   hasExistingSuggestion,
   suggestionOverride,
+  isHovered = false,
   onToggleComparison,
   onOverride,
   dict,
 }) => {
   if (!isSelectableForComparison || !onToggleComparison) return null;
 
+  const isVisible = isSelectedForComparison || hasExistingSuggestion || isHovered;
+
   return (
     <div
       className={cn(
         'absolute top-12 end-3 z-30 transition-all duration-200',
-        isSelectedForComparison || hasExistingSuggestion
+        isVisible
           ? 'opacity-100'
-          : 'opacity-100 lg:opacity-0 group-hover:opacity-100'
+          : 'opacity-0 pointer-events-none'
       )}
       onPointerDown={(e) => {
         e.stopPropagation();

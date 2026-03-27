@@ -35,6 +35,7 @@ export interface ProfileCardProps {
   isProfileComplete: boolean;
   images?: UserImageType[];
   questionnaire?: QuestionnaireResponse | null;
+  sfAnswers?: Record<string, unknown> | null;
   viewMode?: 'matchmaker' | 'candidate';
   className?: string;
   candidate?: Candidate;
