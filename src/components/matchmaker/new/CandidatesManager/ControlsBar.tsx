@@ -16,6 +16,7 @@ import {
   Bookmark,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
@@ -87,6 +88,11 @@ interface ControlsBarProps {
   // Presets
   onLoadPreset?: (id: string) => void;
 
+  // Page size
+  pageSize: number;
+  totalCount: number;
+  onPageSizeChange: (size: number) => void;
+
   // Locale & dict
   locale: string;
   dict: MatchmakerPageDictionary;
@@ -124,6 +130,9 @@ const ControlsBar: React.FC<ControlsBarProps> = ({
   onSetFiltersMobile,
   matchmakerTags = [],
   onLoadPreset,
+  pageSize,
+  totalCount,
+  onPageSizeChange,
   locale,
   dict,
 }) => {
@@ -416,6 +425,27 @@ const ControlsBar: React.FC<ControlsBarProps> = ({
                 </div>
               </SheetContent>
             </Sheet>
+
+            {/* Page size selector */}
+            <div className="flex items-center gap-1.5">
+              <Select
+                value={pageSize.toString()}
+                onValueChange={(value) => onPageSizeChange(Number(value))}
+              >
+                <SelectTrigger className="h-8 w-[80px] bg-white/90 shadow-sm border border-gray-200 text-sm">
+                  <SelectValue>{pageSize === 0 ? 'הכל' : pageSize}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">הכל</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                  <SelectItem value="200">200</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-xs text-gray-500 hidden sm:inline">
+                ({totalCount})
+              </span>
+            </div>
 
             {/* View mode switcher */}
             <div className="flex gap-1 bg-white/90 p-1 rounded-lg shadow-sm border border-gray-200">

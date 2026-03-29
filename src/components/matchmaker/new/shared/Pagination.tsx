@@ -29,7 +29,7 @@ interface PaginationProps {
   dict: MatchmakerPageDictionary['pagination'];
 }
 
-const pageSizeOptions = [10, 20, 50, 100];
+const pageSizeOptions = [0, 50, 100, 200]; // 0 = show all
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
@@ -78,12 +78,15 @@ const Pagination: React.FC<PaginationProps> = ({
     return pages;
   };
 
-  const startItem = (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(currentPage * pageSize, totalItems);
-  const resultsText = dict.results
-    .replace('{{start}}', String(startItem))
-    .replace('{{end}}', String(endItem))
-    .replace('{{total}}', String(totalItems));
+  const isShowAll = pageSize === 0;
+  const startItem = isShowAll ? 1 : (currentPage - 1) * pageSize + 1;
+  const endItem = isShowAll ? totalItems : Math.min(currentPage * pageSize, totalItems);
+  const resultsText = isShowAll
+    ? `${totalItems} מועמדים`
+    : dict.results
+        .replace('{{start}}', String(startItem))
+        .replace('{{end}}', String(endItem))
+        .replace('{{total}}', String(totalItems));
 
   return (
     <div
@@ -95,13 +98,13 @@ const Pagination: React.FC<PaginationProps> = ({
           value={pageSize.toString()}
           onValueChange={(value) => onPageSizeChange(Number(value))}
         >
-          <SelectTrigger className="w-[70px]">
-            <SelectValue />
+          <SelectTrigger className="w-[80px]">
+            <SelectValue>{pageSize === 0 ? 'הכל' : pageSize}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {pageSizeOptions.map((size) => (
               <SelectItem key={size} value={size.toString()}>
-                {size}
+                {size === 0 ? 'הכל' : size}
               </SelectItem>
             ))}
           </SelectContent>
@@ -111,57 +114,59 @@ const Pagination: React.FC<PaginationProps> = ({
 
       <div className="text-sm text-gray-600">{resultsText}</div>
 
-      <div className="flex items-center gap-1">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onPageChange(1)}
-          disabled={currentPage === 1}
-        >
-          <ChevronsRight className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-        {getPageNumbers().map((page, index) =>
-          typeof page === 'number' ? (
-            <Button
-              key={index}
-              variant={currentPage === page ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onPageChange(page)}
-              className="hidden sm:inline-flex min-w-[32px]"
-            >
-              {page}
-            </Button>
-          ) : (
-            <span key={index} className="px-2">
-              {page}
-            </span>
-          )
-        )}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => onPageChange(totalPages)}
-          disabled={currentPage === totalPages}
-        >
-          <ChevronsLeft className="h-4 w-4" />
-        </Button>
-      </div>
+      {!isShowAll && (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onPageChange(1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          {getPageNumbers().map((page, index) =>
+            typeof page === 'number' ? (
+              <Button
+                key={index}
+                variant={currentPage === page ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onPageChange(page)}
+                className="hidden sm:inline-flex min-w-[32px]"
+              >
+                {page}
+              </Button>
+            ) : (
+              <span key={index} className="px-2">
+                {page}
+              </span>
+            )
+          )}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onPageChange(totalPages)}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

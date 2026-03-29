@@ -281,11 +281,15 @@ export const useCandidates = (
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<CandidatesFilter>(initialFilters);
-  const [pagination, setPagination] = useState<PaginationState>({
-    page: 1,
-    pageSize: 50,
-    total: 0,
-    totalPages: 0,
+  const [pagination, setPagination] = useState<PaginationState>(() => {
+    let savedPageSize = 0; // default: show all
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('candidates-pageSize-preference');
+        if (saved) savedPageSize = parseInt(saved, 10);
+      } catch { /* ignore */ }
+    }
+    return { page: 1, pageSize: savedPageSize, total: 0, totalPages: 0 };
   });
   const [sorting, setSortingState] = useState<{
     field: string;
@@ -563,6 +567,7 @@ export const useCandidates = (
 
   const setPageSize = useCallback((pageSize: number) => {
     setPagination((prev) => ({ ...prev, pageSize, page: 1 }));
+    try { localStorage.setItem('candidates-pageSize-preference', String(pageSize)); } catch { /* ignore */ }
   }, []);
 
   // Bulk selection actions

@@ -10,8 +10,8 @@ import { UserRole, MatchSuggestionStatus, Prisma } from '@prisma/client';
 export const dynamic = 'force-dynamic';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const DEFAULT_PAGE_SIZE = 50;
-const MAX_PAGE_SIZE = 200;
+const DEFAULT_PAGE_SIZE = 0; // 0 = all candidates (no pagination)
+const MAX_PAGE_SIZE = 10000;
 
 const BLOCKING_SUGGESTION_STATUSES: MatchSuggestionStatus[] = [
   'FIRST_PARTY_APPROVED',
@@ -229,7 +229,9 @@ export async function GET(request: NextRequest) {
       10
     );
     const page = Math.max(1, rawPage);
-    const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, rawPageSize));
+    // pageSize=0 means "all candidates" (no pagination)
+    const isShowAll = rawPageSize === 0;
+    const pageSize = isShowAll ? MAX_PAGE_SIZE : Math.min(MAX_PAGE_SIZE, Math.max(1, rawPageSize));
 
     // ─── Build User-Level WHERE ──────────────────────────────────────────
     const userWhere: Prisma.UserWhereInput = {
@@ -606,8 +608,7 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        ...(isShowAll ? {} : { skip: (page - 1) * pageSize, take: pageSize }),
       }),
       prisma.user.count({ where: userWhere }),
     ]);

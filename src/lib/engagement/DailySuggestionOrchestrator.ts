@@ -1374,62 +1374,80 @@ export class DailySuggestionOrchestrator {
     const filteredCount = filteredUsers.length;
     console.log(`🔍 After filters: ${filteredCount} users\n`);
 
-    // 5. Generate previews
+    // 5. Generate previews — batch blocking check + parallel processing
+
+    // 5a. Batch check blocking suggestions for ALL filtered users at once
+    const allUserIds = filteredUsers.map(u => u.id);
+    const blockingSuggestions = allUserIds.length > 0
+      ? await prisma.matchSuggestion.findMany({
+          where: {
+            OR: [
+              { firstPartyId: { in: allUserIds } },
+              { secondPartyId: { in: allUserIds } },
+            ],
+            status: { in: BLOCKING_SUGGESTION_STATUSES },
+          },
+          select: { firstPartyId: true, secondPartyId: true },
+        })
+      : [];
+
+    const blockedUserIds = new Set<string>();
+    for (const s of blockingSuggestions) {
+      if (allUserIds.includes(s.firstPartyId)) blockedUserIds.add(s.firstPartyId);
+      if (allUserIds.includes(s.secondPartyId)) blockedUserIds.add(s.secondPartyId);
+    }
+
+    const hasBlockingSuggestion = blockedUserIds.size;
+    const nonBlockedUsers = filteredUsers.filter(u => !blockedUserIds.has(u.id));
+
+    // 5b. Process users in parallel (concurrency = 5)
+    const CONCURRENCY = 5;
     const previews: PreviewItem[] = [];
     let withMatches = 0;
     let withoutMatches = 0;
-    let hasBlockingSuggestion = 0;
 
-    for (const user of filteredUsers) {
-      // Check blocking suggestion
-      const blockingSuggestion = await prisma.matchSuggestion.findFirst({
-        where: {
-          OR: [
-            { firstPartyId: user.id },
-            { secondPartyId: user.id },
-          ],
-          status: { in: BLOCKING_SUGGESTION_STATUSES },
-        },
-        select: { id: true, status: true },
-      });
-
-      if (blockingSuggestion) {
-        hasBlockingSuggestion++;
-        continue;
-      }
-
-      // Find top 3 matches (with optional scan method/date filter)
+    const processUser = async (user: typeof nonBlockedUsers[0]) => {
       const topMatches = await this.findTopMatches(user, 3, {
         scanMethod: filters?.scanMethod,
         scanAfter: filters?.scanAfter,
       });
 
-      // Enrich with other party info
+      // Batch fetch other party info
+      const otherPartyIds = topMatches.map(m =>
+        user.id === m.maleUserId ? m.femaleUserId : m.maleUserId
+      );
+
+      const otherParties = otherPartyIds.length > 0
+        ? await prisma.user.findMany({
+            where: { id: { in: otherPartyIds } },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              profile: {
+                select: {
+                  gender: true,
+                  city: true,
+                  birthDate: true,
+                  religiousLevel: true,
+                },
+              },
+              images: {
+                where: { isMain: true },
+                select: { url: true },
+                take: 1,
+              },
+            },
+          })
+        : [];
+
+      const otherPartyMap = new Map(otherParties.map(p => [p.id, p]));
+
       const enrichedMatches: PreviewMatch[] = [];
       for (const match of topMatches) {
         const otherPartyId = user.id === match.maleUserId ? match.femaleUserId : match.maleUserId;
-        const otherParty = await prisma.user.findUnique({
-          where: { id: otherPartyId },
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            profile: {
-              select: {
-                gender: true,
-                city: true,
-                birthDate: true,
-                religiousLevel: true,
-              },
-            },
-            images: {
-              where: { isMain: true },
-              select: { url: true },
-              take: 1,
-            },
-          },
-        });
+        const otherParty = otherPartyMap.get(otherPartyId);
 
         if (otherParty) {
           enrichedMatches.push({
@@ -1450,32 +1468,40 @@ export class DailySuggestionOrchestrator {
         }
       }
 
-      if (enrichedMatches.length > 0) {
-        withMatches++;
-      } else {
-        withoutMatches++;
-      }
-
       const daysSinceLastSuggestion = user.lastSuggestionDate
         ? Math.floor((Date.now() - user.lastSuggestionDate.getTime()) / (1000 * 60 * 60 * 24))
         : null;
 
-      previews.push({
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          gender: user.profile?.gender || null,
-          lastSuggestionDate: user.lastSuggestionDate?.toISOString() || null,
-          daysSinceLastSuggestion,
-          mainImage: user.mainImage || null,
+      return {
+        preview: {
+          user: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            gender: user.profile?.gender || null,
+            lastSuggestionDate: user.lastSuggestionDate?.toISOString() || null,
+            daysSinceLastSuggestion,
+            mainImage: user.mainImage || null,
+          },
+          selectedMatchId: enrichedMatches[0]?.matchId || null,
+          customMatchingReason: null,
+          matches: enrichedMatches,
+          status: (enrichedMatches.length > 0 ? 'ready' : 'no_matches') as 'ready' | 'no_matches',
         },
-        selectedMatchId: enrichedMatches[0]?.matchId || null,
-        customMatchingReason: null,
-        matches: enrichedMatches,
-        status: enrichedMatches.length > 0 ? 'ready' : 'no_matches',
-      });
+        hasMatches: enrichedMatches.length > 0,
+      };
+    };
+
+    // Process in batches of CONCURRENCY
+    for (let i = 0; i < nonBlockedUsers.length; i += CONCURRENCY) {
+      const batch = nonBlockedUsers.slice(i, i + CONCURRENCY);
+      const results = await Promise.all(batch.map(processUser));
+      for (const r of results) {
+        previews.push(r.preview);
+        if (r.hasMatches) withMatches++;
+        else withoutMatches++;
+      }
     }
 
     // Post-sort by best_match if needed

@@ -5,9 +5,9 @@
 
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import {
   Sparkles,
@@ -23,11 +23,9 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
-  ArrowLeft,
   Mail,
   Phone,
   MapPin,
-  Calendar,
   TrendingUp,
   Eye,
   Heart,
@@ -35,6 +33,10 @@ import {
   BarChart3,
   Search,
   UserPlus,
+  Ban,
+  HeartHandshake,
+  Timer,
+  Archive,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -168,6 +170,11 @@ const getStatusDisplay = (status: string): {
   icon: React.ReactNode;
 } => {
   const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+    DRAFT: {
+      label: 'טיוטה',
+      color: 'bg-gray-100 text-gray-700 border-gray-200',
+      icon: <Clock size={12} />,
+    },
     PENDING_FIRST_PARTY: {
       label: 'ממתין לצד ראשון',
       color: 'bg-amber-100 text-amber-800 border-amber-200',
@@ -183,30 +190,95 @@ const getStatusDisplay = (status: string): {
       color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
       icon: <CheckCircle size={12} />,
     },
-    SECOND_PARTY_APPROVED: {
-      label: 'צד שני אישר',
-      color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-      icon: <CheckCircle size={12} />,
+    FIRST_PARTY_INTERESTED: {
+      label: 'צד ראשון מעוניין',
+      color: 'bg-teal-100 text-teal-800 border-teal-200',
+      icon: <Heart size={12} />,
     },
     FIRST_PARTY_DECLINED: {
       label: 'צד ראשון דחה',
       color: 'bg-red-100 text-red-800 border-red-200',
       icon: <XCircle size={12} />,
     },
+    SECOND_PARTY_APPROVED: {
+      label: 'צד שני אישר',
+      color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      icon: <CheckCircle size={12} />,
+    },
     SECOND_PARTY_DECLINED: {
       label: 'צד שני דחה',
+      color: 'bg-red-100 text-red-800 border-red-200',
+      icon: <XCircle size={12} />,
+    },
+    AWAITING_MATCHMAKER_APPROVAL: {
+      label: 'ממתין לאישור שדכן',
+      color: 'bg-orange-100 text-orange-800 border-orange-200',
+      icon: <Timer size={12} />,
+    },
+    MATCH_APPROVED: {
+      label: 'אושר',
+      color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      icon: <CheckCircle size={12} />,
+    },
+    MATCH_DECLINED: {
+      label: 'נדחה',
       color: 'bg-red-100 text-red-800 border-red-200',
       icon: <XCircle size={12} />,
     },
     CONTACT_DETAILS_SHARED: {
       label: 'פרטים שותפו',
       color: 'bg-violet-100 text-violet-800 border-violet-200',
-      icon: <Heart size={12} />,
+      icon: <Send size={12} />,
     },
     DATING: {
-      label: 'בקשר',
+      label: 'בהיכרות',
       color: 'bg-pink-100 text-pink-800 border-pink-200',
       icon: <Heart size={12} />,
+    },
+    ENGAGED: {
+      label: 'מאורסים',
+      color: 'bg-pink-200 text-pink-900 border-pink-300',
+      icon: <HeartHandshake size={12} />,
+    },
+    MARRIED: {
+      label: 'נשואים',
+      color: 'bg-pink-200 text-pink-900 border-pink-300',
+      icon: <HeartHandshake size={12} />,
+    },
+    RE_OFFERED_TO_FIRST_PARTY: {
+      label: 'הוצע מחדש',
+      color: 'bg-amber-100 text-amber-800 border-amber-200',
+      icon: <RefreshCw size={12} />,
+    },
+    FIRST_PARTY_NOT_AVAILABLE: {
+      label: 'צד ראשון לא זמין',
+      color: 'bg-gray-100 text-gray-600 border-gray-200',
+      icon: <Ban size={12} />,
+    },
+    SECOND_PARTY_NOT_AVAILABLE: {
+      label: 'צד שני לא זמין',
+      color: 'bg-gray-100 text-gray-600 border-gray-200',
+      icon: <Ban size={12} />,
+    },
+    ENDED_AFTER_FIRST_DATE: {
+      label: 'הסתיים אחרי פגישה',
+      color: 'bg-gray-100 text-gray-600 border-gray-200',
+      icon: <XCircle size={12} />,
+    },
+    CLOSED: {
+      label: 'נסגר',
+      color: 'bg-gray-100 text-gray-600 border-gray-200',
+      icon: <Archive size={12} />,
+    },
+    EXPIRED: {
+      label: 'פג תוקף',
+      color: 'bg-gray-100 text-gray-500 border-gray-200',
+      icon: <Timer size={12} />,
+    },
+    CANCELLED: {
+      label: 'בוטל',
+      color: 'bg-gray-100 text-gray-500 border-gray-200',
+      icon: <Ban size={12} />,
     },
   };
 
@@ -294,7 +366,7 @@ const PartyMiniCard: React.FC<{
 // --- Suggestion Row ---
 const SuggestionRow: React.FC<{
   suggestion: DailySuggestionItem;
-  onViewUser: (userId: string) => void;
+  onViewUser?: (userId: string) => void;
 }> = ({ suggestion, onViewUser }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const statusDisplay = getStatusDisplay(suggestion.status);
@@ -407,18 +479,20 @@ const SuggestionRow: React.FC<{
                         </div>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="mt-2 h-7 text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-50"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onViewUser(party.id);
-                      }}
-                    >
-                      <Eye size={12} className="ml-1" />
-                      צפה בפרופיל
-                    </Button>
+                    {onViewUser && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="mt-2 h-7 text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewUser(party.id);
+                        }}
+                      >
+                        <Eye size={12} className="ml-1" />
+                        צפה בפרופיל
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -475,6 +549,7 @@ export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // ===== Personal Mode State =====
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [personalSearchQuery, setPersonalSearchQuery] = useState('');
   const [personalSearchResults, setPersonalSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -553,26 +628,30 @@ export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }
     }
   }, [onViewUserProp]);
 
-  // ===== Personal Mode: Search users =====
-  const handlePersonalSearch = useCallback(async (query: string) => {
+  // ===== Personal Mode: Search users (debounced) =====
+  const handlePersonalSearch = useCallback((query: string) => {
     setPersonalSearchQuery(query);
+
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
     if (query.length < 2) {
       setPersonalSearchResults([]);
       return;
     }
 
-    try {
-      setIsSearching(true);
-      const response = await fetch(`/api/matchmaker/users/search?q=${encodeURIComponent(query)}&limit=8`);
-      if (!response.ok) throw new Error('Search failed');
-      const data = await response.json();
-      setPersonalSearchResults(data.users || []);
-    } catch (err) {
-      // Error handled silently - results cleared
-      setPersonalSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        setIsSearching(true);
+        const response = await fetch(`/api/matchmaker/users/search?q=${encodeURIComponent(query)}&limit=8`);
+        if (!response.ok) throw new Error('Search failed');
+        const data = await response.json();
+        setPersonalSearchResults(data.users || []);
+      } catch {
+        setPersonalSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
   }, []);
 
   // ===== Personal Mode: Run for specific user =====

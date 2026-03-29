@@ -132,6 +132,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     exportCandidates,
     filters: candidatesFilters,
     pagination,
+    setPageSize,
     loadMore,
     isLoadingMore,
   } = useCandidates();
@@ -504,6 +505,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             onSetFiltersMobile={setShowFiltersMobile}
             matchmakerTags={matchmakerTags}
             onLoadPreset={loadSavedFilter}
+            pageSize={pagination.pageSize}
+            totalCount={pagination.total}
+            onPageSizeChange={setPageSize}
             locale={locale}
             dict={matchmakerDict}
           />
