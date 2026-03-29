@@ -45,14 +45,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // 2. Parse body
     const body = await req.json().catch(() => ({}));
-    const { userId, count } = body as { userId?: string; count?: number };
+    const { userId, count, matchIds } = body as { userId?: string; count?: number; matchIds?: string[] };
 
     // ===== Personal Mode: specific user =====
     if (userId) {
-      const suggestionCount = Math.min(Math.max(count || 1, 1), 10); // clamp 1-10
-      console.log(`[Daily Suggestions] Personal mode: user=${userId}, count=${suggestionCount}, triggered by ${session.user.id}`);
+      const suggestionCount = matchIds?.length || Math.min(Math.max(count || 1, 1), 10); // clamp 1-10
+      console.log(`[Daily Suggestions] Personal mode: user=${userId}, count=${suggestionCount}${matchIds ? ` (manual: ${matchIds.length})` : ''}, triggered by ${session.user.id}`);
 
-      const result = await DailySuggestionOrchestrator.runForSpecificUser(userId, suggestionCount, session.user.id);
+      const result = await DailySuggestionOrchestrator.runForSpecificUser(
+        userId,
+        suggestionCount,
+        session.user.id,
+        matchIds ? { matchIds } : undefined
+      );
       const durationMs = Date.now() - startTime;
 
       return NextResponse.json({

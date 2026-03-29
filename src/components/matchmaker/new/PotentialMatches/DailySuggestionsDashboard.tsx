@@ -135,6 +135,15 @@ interface PersonalRunResult {
   suggestions: { suggestionId: string; matchId: string; aiScore: number; otherPartyName: string }[];
   skipped: string[];
   errors: string[];
+  steps?: { timestamp: string; message: string; type: 'info' | 'success' | 'warning' | 'error' }[];
+}
+
+// V4.0: Eligibility check result
+interface EligibilityResult {
+  eligible: boolean;
+  checks: { name: string; label: string; passed: boolean; detail: string }[];
+  availableMatches: number;
+  bestScore: number | null;
 }
 
 interface UserSearchResult {
@@ -558,6 +567,16 @@ export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }
   const [isRunningPersonal, setIsRunningPersonal] = useState(false);
   const [personalResult, setPersonalResult] = useState<PersonalRunResult | null>(null);
 
+  // V4.0: Eligibility, match picker, rollback
+  const [eligibility, setEligibility] = useState<EligibilityResult | null>(null);
+  const [isCheckingEligibility, setIsCheckingEligibility] = useState(false);
+  const [matchPickerMatches, setMatchPickerMatches] = useState<any[]>([]);
+  const [matchPickerTotal, setMatchPickerTotal] = useState(0);
+  const [isLoadingMatchPicker, setIsLoadingMatchPicker] = useState(false);
+  const [showMatchPicker, setShowMatchPicker] = useState(false);
+  const [selectedMatchIds, setSelectedMatchIds] = useState<Set<string>>(new Set());
+  const [rollingBackId, setRollingBackId] = useState<string | null>(null);
+
   // ===== Fetch today's suggestions =====
   const fetchSuggestions = useCallback(async () => {
     try {
@@ -704,6 +723,123 @@ export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }
       setIsRunningPersonal(false);
     }
   }, [selectedUser, personalCount, fetchSuggestions]);
+
+  // V4.0: Check eligibility
+  const handleCheckEligibility = useCallback(async () => {
+    if (!selectedUser) return;
+    try {
+      setIsCheckingEligibility(true);
+      setEligibility(null);
+      const res = await fetch(`/api/matchmaker/daily-suggestions/preview?checkEligibility=true&userId=${selectedUser.id}`);
+      if (!res.ok) throw new Error('Failed');
+      const data = await res.json();
+      setEligibility(data);
+    } catch {
+      toast.error('שגיאה בבדיקת זכאות');
+    } finally {
+      setIsCheckingEligibility(false);
+    }
+  }, [selectedUser]);
+
+  // V4.0: Load match picker
+  const handleOpenMatchPicker = useCallback(async () => {
+    if (!selectedUser) return;
+    try {
+      setIsLoadingMatchPicker(true);
+      setShowMatchPicker(true);
+      setSelectedMatchIds(new Set());
+      const res = await fetch(`/api/matchmaker/daily-suggestions/preview?allMatches=true&userId=${selectedUser.id}&page=1&limit=30`);
+      if (!res.ok) throw new Error('Failed');
+      const data = await res.json();
+      setMatchPickerMatches(data.matches || []);
+      setMatchPickerTotal(data.total || 0);
+    } catch {
+      toast.error('שגיאה בטעינת התאמות');
+      setShowMatchPicker(false);
+    } finally {
+      setIsLoadingMatchPicker(false);
+    }
+  }, [selectedUser]);
+
+  // V4.0: Toggle match selection
+  const handleToggleMatchSelection = useCallback((matchId: string) => {
+    setSelectedMatchIds(prev => {
+      const next = new Set(prev);
+      if (next.has(matchId)) next.delete(matchId);
+      else next.add(matchId);
+      return next;
+    });
+  }, []);
+
+  // V4.0: Send selected matches
+  const handleSendSelectedMatches = useCallback(async () => {
+    if (!selectedUser || selectedMatchIds.size === 0) return;
+    try {
+      setIsRunningPersonal(true);
+      setPersonalResult(null);
+      setShowMatchPicker(false);
+
+      toast.loading(`שולח ${selectedMatchIds.size} הצעות ל${selectedUser.firstName}...`, { id: 'personal-run' });
+
+      const response = await fetch('/api/matchmaker/daily-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          matchIds: Array.from(selectedMatchIds),
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed');
+
+      const data = await response.json();
+      const result: PersonalRunResult = data.result;
+      setPersonalResult(result);
+
+      if (result.success) {
+        toast.success(`נשלחו ${result.sent} הצעות!`, {
+          id: 'personal-run',
+          description: result.suggestions.map(s => `${s.otherPartyName} (${Math.round(s.aiScore)})`).join(', '),
+          duration: 10000,
+        });
+      } else {
+        toast.error('לא נשלחו הצעות', { id: 'personal-run' });
+      }
+      await fetchSuggestions();
+    } catch {
+      toast.error('שגיאה', { id: 'personal-run' });
+    } finally {
+      setIsRunningPersonal(false);
+    }
+  }, [selectedUser, selectedMatchIds, fetchSuggestions]);
+
+  // V4.0: Rollback suggestion
+  const handleRollback = useCallback(async (suggestionId: string) => {
+    try {
+      setRollingBackId(suggestionId);
+      const res = await fetch('/api/matchmaker/daily-suggestions/rollback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ suggestionId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed');
+      }
+      toast.success('ההצעה בוטלה וההתאמה הוחזרה');
+      // Remove from personal result
+      setPersonalResult(prev => prev ? {
+        ...prev,
+        suggestions: prev.suggestions.filter(s => s.suggestionId !== suggestionId),
+        sent: prev.sent - 1,
+      } : null);
+      await fetchSuggestions();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה באיפוס');
+    } finally {
+      setRollingBackId(null);
+    }
+  }, [fetchSuggestions]);
 
   // Load on mount
   useEffect(() => {
@@ -1004,23 +1140,52 @@ export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }
                   onClick={() => {
                     setSelectedUser(null);
                     setPersonalResult(null);
+                    setEligibility(null);
+                    setShowMatchPicker(false);
                   }}
                 >
                   <XCircle size={16} />
                 </Button>
               </div>
 
-              {/* Count + Run */}
-              <div className="flex items-center gap-3">
+              {/* V4.0: Action buttons row */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Eligibility check */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCheckEligibility}
+                  disabled={isCheckingEligibility}
+                  className="text-xs border-indigo-200 text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                >
+                  {isCheckingEligibility ? <Loader2 className="w-3 h-3 ml-1 animate-spin" /> : <Eye className="w-3 h-3 ml-1" />}
+                  בדוק זכאות
+                </Button>
+
+                {/* Match picker */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleOpenMatchPicker}
+                  disabled={isLoadingMatchPicker}
+                  className="text-xs border-violet-200 text-violet-600 hover:bg-violet-50 rounded-lg"
+                >
+                  {isLoadingMatchPicker ? <Loader2 className="w-3 h-3 ml-1 animate-spin" /> : <HeartHandshake className="w-3 h-3 ml-1" />}
+                  בחר התאמות ידנית
+                </Button>
+
+                <div className="border-l border-gray-200 h-6 mx-1" />
+
+                {/* Count selector */}
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">כמות הצעות:</span>
+                  <span className="text-xs text-gray-500">כמות:</span>
                   <div className="flex items-center bg-gray-100 rounded-lg">
                     {[1, 2, 3, 5].map((n) => (
                       <button
                         key={n}
                         onClick={() => setPersonalCount(n)}
                         className={cn(
-                          'px-3 py-1.5 text-sm font-semibold rounded-lg transition-all',
+                          'px-2.5 py-1 text-xs font-semibold rounded-lg transition-all',
                           personalCount === n
                             ? 'bg-indigo-500 text-white shadow-sm'
                             : 'text-gray-600 hover:bg-gray-200'
@@ -1032,9 +1197,11 @@ export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }
                   </div>
                 </div>
 
+                {/* Send button */}
                 <Button
                   onClick={handleRunPersonal}
                   disabled={isRunningPersonal}
+                  size="sm"
                   className="mr-auto bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-xl shadow-lg"
                 >
                   {isRunningPersonal ? (
@@ -1045,6 +1212,135 @@ export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }
                   {isRunningPersonal ? 'שולח...' : `שלח ${personalCount} הצעות`}
                 </Button>
               </div>
+
+              {/* V4.0: Eligibility Result */}
+              {eligibility && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={cn(
+                    'rounded-lg border p-3 mt-3',
+                    eligibility.eligible ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    {eligibility.eligible ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    )}
+                    <span className="text-sm font-bold">
+                      {eligibility.eligible ? 'זכאי להצעות' : 'לא זכאי כרגע'}
+                    </span>
+                    <Badge variant="outline" className="text-[10px] mr-auto">
+                      {eligibility.availableMatches} התאמות זמינות
+                      {eligibility.bestScore && ` (ציון מקס׳ ${Math.round(eligibility.bestScore)})`}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {eligibility.checks.map(check => (
+                      <div key={check.name} className="flex items-center gap-1.5 text-xs">
+                        {check.passed ? (
+                          <CheckCircle className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                        ) : (
+                          <XCircle className="w-3 h-3 text-red-500 flex-shrink-0" />
+                        )}
+                        <span className={check.passed ? 'text-gray-600' : 'text-red-700 font-medium'}>
+                          {check.label}: {check.detail}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* V4.0: Match Picker (inline expanded) */}
+              {showMatchPicker && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-3 border border-violet-200 rounded-xl p-3 bg-white overflow-hidden"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold text-violet-800">
+                      בחר התאמות ({matchPickerTotal} זמינות)
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      {selectedMatchIds.size > 0 && (
+                        <Button
+                          size="sm"
+                          onClick={handleSendSelectedMatches}
+                          disabled={isRunningPersonal}
+                          className="text-xs bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg"
+                        >
+                          <Send className="w-3 h-3 ml-1" />
+                          שלח {selectedMatchIds.size} נבחרות
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={() => setShowMatchPicker(false)} className="text-xs">
+                        סגור
+                      </Button>
+                    </div>
+                  </div>
+
+                  {isLoadingMatchPicker ? (
+                    <div className="text-center py-6">
+                      <Loader2 className="w-5 h-5 animate-spin text-violet-500 mx-auto" />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                      {matchPickerMatches.map((match: any) => {
+                        const isSelected = selectedMatchIds.has(match.matchId);
+                        return (
+                          <button
+                            key={match.matchId}
+                            onClick={() => handleToggleMatchSelection(match.matchId)}
+                            className={cn(
+                              'flex items-center gap-2 p-2.5 rounded-lg border text-right transition-all',
+                              isSelected
+                                ? 'border-violet-400 bg-violet-50 ring-1 ring-violet-200'
+                                : 'border-gray-200 hover:border-gray-300'
+                            )}
+                          >
+                            <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                              {match.otherParty?.mainImage ? (
+                                <img src={match.otherParty.mainImage} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                  <Users size={14} />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-gray-800 truncate">
+                                {match.otherParty?.firstName} {match.otherParty?.lastName}
+                              </p>
+                              <p className="text-[10px] text-gray-400 truncate">
+                                {match.otherParty?.city}
+                              </p>
+                            </div>
+                            <Badge className={cn('text-[10px] font-bold border flex-shrink-0',
+                              match.aiScore >= 85 ? 'text-emerald-700 bg-emerald-100' :
+                              match.aiScore >= 75 ? 'text-blue-700 bg-blue-100' :
+                              'text-amber-700 bg-amber-100'
+                            )}>
+                              {Math.round(match.aiScore)}
+                            </Badge>
+                            {match.previousSuggestion && (
+                              <Badge variant="outline" className="text-[8px] h-4 border-amber-300 text-amber-600">
+                                נשלח בעבר
+                              </Badge>
+                            )}
+                            {isSelected && (
+                              <CheckCircle className="w-4 h-4 text-violet-600 flex-shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </motion.div>
+              )}
             </div>
           )}
 
@@ -1073,24 +1369,77 @@ export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }
                 </span>
               </div>
 
-              {/* Sent suggestions */}
+              {/* Sent suggestions with rollback + link */}
               {personalResult.suggestions.length > 0 && (
                 <div className="space-y-1.5 mt-2">
-                  {personalResult.suggestions.map((s, i) => (
+                  {personalResult.suggestions.map((s) => (
                     <div
                       key={s.suggestionId}
                       className="flex items-center gap-2 text-sm bg-white/60 rounded-lg px-3 py-2"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                         {Math.round(s.aiScore)}
                       </div>
                       <span className="font-medium text-gray-800">{s.otherPartyName}</span>
-                      <Badge variant="outline" className="text-[10px] h-5 border-emerald-300 text-emerald-700 mr-auto">
-                        נשלח ✓
-                      </Badge>
+                      <div className="flex items-center gap-1.5 mr-auto">
+                        <Badge variant="outline" className="text-[10px] h-5 border-emerald-300 text-emerald-700">
+                          נשלח
+                        </Badge>
+                        {/* V4.0: Rollback button */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-[10px] text-gray-400 hover:text-red-500 hover:bg-red-50"
+                          onClick={() => handleRollback(s.suggestionId)}
+                          disabled={rollingBackId === s.suggestionId}
+                          title="אפס הצעה — בטל ושחרר התאמה"
+                        >
+                          {rollingBackId === s.suggestionId ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Archive className="w-3 h-3" />
+                          )}
+                          אפס
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
+              )}
+
+              {/* V4.0: Timeline steps */}
+              {personalResult.steps && personalResult.steps.length > 0 && (
+                <details className="mt-3">
+                  <summary className="text-xs text-indigo-600 cursor-pointer hover:text-indigo-700 font-medium">
+                    שלבי ריצה ({personalResult.steps.length} שלבים)
+                  </summary>
+                  <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                    {personalResult.steps.map((step, i) => (
+                      <div key={i} className="flex items-start gap-2 text-xs py-1">
+                        <span className={cn(
+                          'w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5',
+                          step.type === 'success' && 'bg-emerald-100 text-emerald-600',
+                          step.type === 'error' && 'bg-red-100 text-red-600',
+                          step.type === 'warning' && 'bg-amber-100 text-amber-600',
+                          step.type === 'info' && 'bg-blue-100 text-blue-600',
+                        )}>
+                          {step.type === 'success' ? '✓' : step.type === 'error' ? '✕' : step.type === 'warning' ? '!' : '→'}
+                        </span>
+                        <span className={cn(
+                          'flex-1',
+                          step.type === 'error' ? 'text-red-700 font-medium' :
+                          step.type === 'success' ? 'text-emerald-700' :
+                          step.type === 'warning' ? 'text-amber-700' : 'text-gray-600'
+                        )}>
+                          {step.message}
+                        </span>
+                        <span className="text-gray-300 text-[10px] flex-shrink-0">
+                          {new Date(step.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
               )}
 
               {/* Skipped / Errors */}

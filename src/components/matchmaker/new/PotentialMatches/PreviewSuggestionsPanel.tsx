@@ -23,6 +23,10 @@ import {
   Search as SearchIcon,
   Zap,
   Pencil,
+  ArrowLeft,
+  X,
+  ChevronRight,
+  History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,8 +50,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import RejectionFeedbackModal, { useRejectionFeedback } from './RejectionFeedbackModal';
 
 // =============================================================================
 // TYPES
@@ -68,6 +79,15 @@ interface PreviewMatch {
   matchId: string;
   aiScore: number;
   shortReasoning: string | null;
+  partyDirection?: {
+    firstPartyGender: 'MALE' | 'FEMALE';
+    firstPartyName: string;
+    secondPartyName: string;
+  };
+  previousSuggestion?: {
+    status: string;
+    createdAt: string;
+  } | null;
   otherParty: PreviewOtherParty;
 }
 
@@ -150,7 +170,8 @@ const PreviewCard: React.FC<{
   onScanUser: (userId: string) => void;
   isScanningUser: boolean;
   onEditReason: (userId: string, reason: string) => void;
-}> = ({ item, onRemove, onChangeMatch, onViewProfile, onScanUser, isScanningUser, onEditReason }) => {
+  onExpandMatches: (userId: string) => void;
+}> = ({ item, onRemove, onChangeMatch, onViewProfile, onScanUser, isScanningUser, onEditReason, onExpandMatches }) => {
   const [isEditingReason, setIsEditingReason] = useState(false);
   const [editedReason, setEditedReason] = useState('');
 
@@ -335,36 +356,43 @@ const PreviewCard: React.FC<{
             </div>
           )}
 
-          {/* Match selector dropdown */}
-          {item.matches.length > 1 && (
-            <Select
-              value={item.selectedMatchId || ''}
-              onValueChange={(matchId) => onChangeMatch(item.user.id, matchId)}
-            >
-              <SelectTrigger className="h-8 text-xs border-dashed">
-                <SelectValue placeholder="החלף התאמה" />
-              </SelectTrigger>
-              <SelectContent>
-                {item.matches.map((m, idx) => (
-                  <SelectItem key={m.matchId} value={m.matchId}>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs">{Math.round(m.aiScore)}</span>
-                      <span className="truncate">
-                        {m.otherParty.firstName} {m.otherParty.lastName}
-                      </span>
-                      {m.otherParty.city && (
-                        <span className="text-gray-400 text-[10px]">({m.otherParty.city})</span>
-                      )}
-                      {idx === 0 && (
-                        <Badge className="text-[9px] h-4 bg-emerald-100 text-emerald-700 border-0">
-                          מומלץ
-                        </Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* V4.0: Direction indicator */}
+          {selectedMatch && (
+            <div className="flex items-center justify-center gap-1.5 text-[10px] text-gray-400 px-1">
+              <span className={cn('font-semibold', item.user.gender === 'MALE' ? 'text-blue-500' : 'text-pink-500')}>
+                {item.user.gender === 'MALE' ? '♂' : '♀'} {item.user.firstName}
+              </span>
+              <ArrowLeft size={10} className="text-gray-300" />
+              <span className={cn('font-semibold', otherParty?.gender === 'MALE' ? 'text-blue-500' : 'text-pink-500')}>
+                {otherParty?.gender === 'MALE' ? '♂' : '♀'} {otherParty?.firstName}
+              </span>
+              <Badge variant="outline" className="text-[8px] h-4 border-gray-200 text-gray-400 mr-auto">
+                צד 1 → צד 2
+              </Badge>
+            </div>
+          )}
+
+          {/* V4.0: "Show all matches" button (replaces dropdown) */}
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full h-7 text-xs border-dashed border-violet-300 text-violet-600 hover:bg-violet-50"
+            onClick={() => onExpandMatches(item.user.id)}
+          >
+            <Eye size={12} className="ml-1" />
+            הצג כל ההתאמות ({item.matches.length}+)
+            <ChevronRight size={12} className="mr-auto" />
+          </Button>
+
+          {/* V4.0: Previous suggestion badge on selected match */}
+          {selectedMatch?.previousSuggestion && (
+            <Badge variant="outline" className="text-[9px] h-5 border-amber-300 text-amber-600 bg-amber-50 w-fit">
+              <History size={10} className="ml-1" />
+              נשלח בעבר — {selectedMatch.previousSuggestion.status === 'EXPIRED' ? 'פג תוקף' :
+                selectedMatch.previousSuggestion.status === 'FIRST_PARTY_DECLINED' ? 'צד ראשון דחה' :
+                selectedMatch.previousSuggestion.status === 'SECOND_PARTY_DECLINED' ? 'צד שני דחה' :
+                selectedMatch.previousSuggestion.status === 'CLOSED' ? 'נסגר' : selectedMatch.previousSuggestion.status}
+            </Badge>
           )}
         </div>
       )}
@@ -391,6 +419,15 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
   const [hasGenerated, setHasGenerated] = useState(false);
   const [scanningUserIds, setScanningUserIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+
+  // V4.0: Expanded match panel state
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+  const [allMatches, setAllMatches] = useState<PreviewMatch[]>([]);
+  const [allMatchesTotal, setAllMatchesTotal] = useState(0);
+  const [allMatchesHasMore, setAllMatchesHasMore] = useState(false);
+  const [allMatchesPage, setAllMatchesPage] = useState(1);
+  const [isLoadingAllMatches, setIsLoadingAllMatches] = useState(false);
+  const rejectionFeedback = useRejectionFeedback();
 
   // ===== Filter State =====
   const [filters, setFilters] = useState<PreviewFilters>({
@@ -545,6 +582,100 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
       });
     }
   }, []);
+
+  // ===== V4.0: Expand all matches for a user =====
+  const handleExpandMatches = useCallback(async (userId: string) => {
+    try {
+      setExpandedUserId(userId);
+      setIsLoadingAllMatches(true);
+      setAllMatches([]);
+      setAllMatchesPage(1);
+
+      const res = await fetch(`/api/matchmaker/daily-suggestions/preview?allMatches=true&userId=${userId}&page=1&limit=20`);
+      if (!res.ok) throw new Error('Failed to load matches');
+
+      const data = await res.json();
+      setAllMatches(data.matches || []);
+      setAllMatchesTotal(data.total || 0);
+      setAllMatchesHasMore(data.hasMore || false);
+    } catch (err) {
+      toast.error('שגיאה בטעינת התאמות');
+      setExpandedUserId(null);
+    } finally {
+      setIsLoadingAllMatches(false);
+    }
+  }, []);
+
+  // ===== V4.0: Load more matches =====
+  const handleLoadMoreMatches = useCallback(async () => {
+    if (!expandedUserId || isLoadingAllMatches) return;
+    try {
+      setIsLoadingAllMatches(true);
+      const nextPage = allMatchesPage + 1;
+      const res = await fetch(`/api/matchmaker/daily-suggestions/preview?allMatches=true&userId=${expandedUserId}&page=${nextPage}&limit=20`);
+      if (!res.ok) throw new Error('Failed to load more');
+
+      const data = await res.json();
+      setAllMatches(prev => [...prev, ...(data.matches || [])]);
+      setAllMatchesHasMore(data.hasMore || false);
+      setAllMatchesPage(nextPage);
+    } catch {
+      toast.error('שגיאה בטעינת התאמות נוספות');
+    } finally {
+      setIsLoadingAllMatches(false);
+    }
+  }, [expandedUserId, allMatchesPage, isLoadingAllMatches]);
+
+  // ===== V4.0: Select match from expanded panel =====
+  const handleSelectFromExpanded = useCallback((matchId: string) => {
+    if (!expandedUserId) return;
+    setPreviews(prev =>
+      prev.map(p =>
+        p.user.id === expandedUserId ? { ...p, selectedMatchId: matchId, customMatchingReason: null } : p
+      )
+    );
+    setExpandedUserId(null);
+    toast.success('ההתאמה הוחלפה');
+  }, [expandedUserId]);
+
+  // ===== V4.0: Dismiss match from expanded panel =====
+  const handleDismissFromExpanded = useCallback(async (matchId: string, otherParty: PreviewOtherParty) => {
+    if (!expandedUserId) return;
+
+    const expandedUser = previews.find(p => p.user.id === expandedUserId)?.user;
+    if (!expandedUser) return;
+
+    rejectionFeedback.open({
+      partyA: {
+        id: expandedUser.id,
+        profileId: expandedUser.id, // will be resolved by API
+        firstName: expandedUser.firstName,
+        lastName: expandedUser.lastName,
+        gender: (expandedUser.gender as 'MALE' | 'FEMALE') || undefined,
+      },
+      partyB: {
+        id: otherParty.id,
+        profileId: otherParty.id,
+        firstName: otherParty.firstName,
+        lastName: otherParty.lastName,
+        gender: (otherParty.gender as 'MALE' | 'FEMALE') || undefined,
+      },
+      potentialMatchId: matchId,
+    });
+  }, [expandedUserId, previews, rejectionFeedback]);
+
+  // ===== V4.0: After rejection submitted =====
+  const handleRejectionSubmit = useCallback(async (data: any) => {
+    try {
+      await rejectionFeedback.submit(data);
+      // Remove the dismissed match from allMatches
+      setAllMatches(prev => prev.filter(m => m.matchId !== data.potentialMatchId));
+      setAllMatchesTotal(prev => prev - 1);
+      toast.success('ההתאמה נדחתה');
+    } catch {
+      toast.error('שגיאה בדחייה');
+    }
+  }, [rejectionFeedback]);
 
   // ===== Send all approved =====
   const handleSendAll = useCallback(async () => {
@@ -923,11 +1054,189 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
                   onScanUser={handleScanUser}
                   isScanningUser={scanningUserIds.has(item.user.id)}
                   onEditReason={handleEditReason}
+                  onExpandMatches={handleExpandMatches}
                 />
               ))}
             </AnimatePresence>
           </div>
         )}
+
+        {/* V4.0: Expanded Matches Dialog */}
+        <Dialog open={!!expandedUserId} onOpenChange={(open) => !open && setExpandedUserId(null)}>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto" dir="rtl">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                <Users size={18} className="text-violet-600" />
+                כל ההתאמות
+                {expandedUserId && (() => {
+                  const expandedUser = previews.find(p => p.user.id === expandedUserId)?.user;
+                  return expandedUser ? (
+                    <span className="text-gray-500 font-normal text-sm">
+                      עבור {expandedUser.firstName} {expandedUser.lastName}
+                    </span>
+                  ) : null;
+                })()}
+                <Badge variant="outline" className="text-xs mr-auto">{allMatchesTotal} סה&quot;כ</Badge>
+              </DialogTitle>
+            </DialogHeader>
+
+            {isLoadingAllMatches && allMatches.length === 0 ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-violet-500" />
+              </div>
+            ) : allMatches.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                <XCircle className="w-8 h-8 mx-auto mb-2" />
+                <p className="text-sm">אין התאמות זמינות</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {allMatches.map((match) => {
+                    const matchAge = calculateAge(match.otherParty.birthDate);
+                    const isSelected = previews.find(p => p.user.id === expandedUserId)?.selectedMatchId === match.matchId;
+
+                    return (
+                      <div
+                        key={match.matchId}
+                        className={cn(
+                          'border rounded-xl p-3 space-y-2 transition-all',
+                          isSelected ? 'border-violet-400 bg-violet-50 ring-1 ring-violet-200' : 'border-gray-200 hover:border-gray-300 bg-white'
+                        )}
+                      >
+                        {/* Match header: avatar + info + score */}
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => onViewProfile(match.otherParty.id)}
+                            className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 hover:ring-2 ring-violet-300"
+                          >
+                            {match.otherParty.mainImage ? (
+                              <img src={match.otherParty.mainImage} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <Users size={16} />
+                              </div>
+                            )}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-800 truncate">
+                              <span className={cn('ml-1', match.otherParty.gender === 'MALE' ? 'text-blue-500' : 'text-pink-500')}>
+                                {match.otherParty.gender === 'MALE' ? '♂' : '♀'}
+                              </span>
+                              {match.otherParty.firstName} {match.otherParty.lastName}
+                            </p>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                              {matchAge && <span>{matchAge}</span>}
+                              {match.otherParty.city && <><span>•</span><span className="truncate">{match.otherParty.city}</span></>}
+                              {match.otherParty.religiousLevel && <><span>•</span><span className="truncate">{match.otherParty.religiousLevel}</span></>}
+                            </div>
+                          </div>
+                          <Badge className={cn('text-sm font-bold border flex-shrink-0', getScoreColor(match.aiScore))}>
+                            {Math.round(match.aiScore)}
+                          </Badge>
+                        </div>
+
+                        {/* Reasoning */}
+                        {match.shortReasoning && (
+                          <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2 px-1">
+                            {match.shortReasoning}
+                          </p>
+                        )}
+
+                        {/* Direction indicator */}
+                        {match.partyDirection && (
+                          <div className="flex items-center gap-1.5 text-[10px] text-gray-400 px-1">
+                            <span className={cn('font-semibold', match.partyDirection.firstPartyGender === 'MALE' ? 'text-blue-500' : 'text-pink-500')}>
+                              {match.partyDirection.firstPartyGender === 'MALE' ? '♂' : '♀'} {match.partyDirection.firstPartyName.split(' ')[0]}
+                            </span>
+                            <ArrowLeft size={10} className="text-gray-300" />
+                            <span className={cn('font-semibold', match.partyDirection.firstPartyGender === 'MALE' ? 'text-pink-500' : 'text-blue-500')}>
+                              {match.partyDirection.firstPartyGender === 'MALE' ? '♀' : '♂'} {match.partyDirection.secondPartyName.split(' ')[0]}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Badges: selected + previously sent */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {isSelected && (
+                            <Badge className="text-[9px] h-5 bg-violet-100 text-violet-700 border-violet-200">
+                              <CheckCircle size={10} className="ml-1" />
+                              נבחר כרגע
+                            </Badge>
+                          )}
+                          {match.previousSuggestion && (
+                            <Badge variant="outline" className="text-[9px] h-5 border-amber-300 text-amber-600 bg-amber-50">
+                              <History size={10} className="ml-1" />
+                              נשלח בעבר — {match.previousSuggestion.status === 'EXPIRED' ? 'פג תוקף' :
+                                match.previousSuggestion.status === 'FIRST_PARTY_DECLINED' ? 'צד 1 דחה' :
+                                match.previousSuggestion.status === 'SECOND_PARTY_DECLINED' ? 'צד 2 דחה' :
+                                match.previousSuggestion.status === 'CLOSED' ? 'נסגר' : match.previousSuggestion.status}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            className={cn(
+                              'flex-1 h-8 text-xs rounded-lg',
+                              isSelected
+                                ? 'bg-violet-100 text-violet-700 hover:bg-violet-200 border border-violet-200'
+                                : 'bg-violet-600 text-white hover:bg-violet-700'
+                            )}
+                            onClick={() => handleSelectFromExpanded(match.matchId)}
+                            disabled={isSelected}
+                          >
+                            {isSelected ? 'נבחר' : 'בחר התאמה'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 border-red-200"
+                            onClick={() => handleDismissFromExpanded(match.matchId, match.otherParty)}
+                            title="דחה התאמה"
+                          >
+                            <X size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Load more */}
+                {allMatchesHasMore && (
+                  <div className="text-center pt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLoadMoreMatches}
+                      disabled={isLoadingAllMatches}
+                      className="text-xs"
+                    >
+                      {isLoadingAllMatches ? (
+                        <Loader2 className="w-3 h-3 ml-1 animate-spin" />
+                      ) : null}
+                      טען עוד ({allMatchesTotal - allMatches.length} נותרו)
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* V4.0: Rejection Feedback Modal */}
+        <RejectionFeedbackModal
+          isOpen={rejectionFeedback.isOpen}
+          onClose={rejectionFeedback.close}
+          onSubmit={handleRejectionSubmit}
+          partyA={rejectionFeedback.context?.partyA || { id: '', profileId: '', firstName: '', lastName: '' }}
+          partyB={rejectionFeedback.context?.partyB || { id: '', profileId: '', firstName: '', lastName: '' }}
+          defaultRejectingParty={rejectionFeedback.context?.defaultRejectingParty}
+          potentialMatchId={rejectionFeedback.context?.potentialMatchId}
+        />
 
         {/* Confirm Send Dialog */}
         <AlertDialog open={showConfirmSend} onOpenChange={setShowConfirmSend}>

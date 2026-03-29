@@ -42,8 +42,34 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse filter query params
     const { searchParams } = new URL(req.url);
+
+    // V4.0: Get all matches for a specific user (paginated)
+    const allMatches = searchParams.get('allMatches');
+    const userId = searchParams.get('userId');
+
+    if (allMatches === 'true' && userId) {
+      const page = parseInt(searchParams.get('page') || '1', 10);
+      const limit = parseInt(searchParams.get('limit') || '20', 10);
+      const minScore = searchParams.get('minScore') ? parseInt(searchParams.get('minScore')!, 10) : undefined;
+
+      const result = await DailySuggestionOrchestrator.getAllMatchesForUser(userId, {
+        page,
+        limit,
+        minScore,
+      });
+
+      return NextResponse.json({ success: true, ...result });
+    }
+
+    // V4.0: Eligibility check for a specific user
+    const checkEligibility = searchParams.get('checkEligibility');
+    if (checkEligibility === 'true' && userId) {
+      const result = await DailySuggestionOrchestrator.checkEligibility(userId);
+      return NextResponse.json({ success: true, ...result });
+    }
+
+    // Original: Generate preview for all eligible users
     const filters: Record<string, any> = {};
 
     const gender = searchParams.get('gender');

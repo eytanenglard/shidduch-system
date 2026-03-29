@@ -8,9 +8,14 @@
 // - Hard/soft blocking split (FIRST_PARTY_APPROVED+ = hard, PENDING = soft)
 // - Concurrent second party: up to 3 parallel suggestions per person
 // - Contest mechanism: when first party approves, others get "in demand" hint
-// - wantsToBeFirstParty: always swap if false (no "both opted out" scenario)
 // - Batch query optimization in findBestMatch
 // - Skipped match logging for matchmaker visibility
+//
+// V4.0 - Party assignment + matchmaker tools:
+// - Male as first party by default (replaces wantsToBeFirstParty-only logic)
+// - determinePartySwap() helper — centralized party logic
+// - getAllMatchesForUser() — paginated full match list
+// - checkEligibility() — pre-flight eligibility check
 // =============================================================================
 
 import prisma from '@/lib/prisma';
@@ -99,6 +104,57 @@ type EligibleUser = Awaited<ReturnType<typeof DailySuggestionOrchestrator['getEl
 // =============================================================================
 
 export class DailySuggestionOrchestrator {
+
+  // ========== Party Assignment Helper ==========
+  // V4.0: Male as first party by default.
+  // Exceptions:
+  //   - Male explicitly opted out (wantsToBeFirstParty === false) → female becomes first
+  //   - Other party is MANUAL_ENTRY → can't be first party (no notifications)
+  //
+  // Returns true if parties should be swapped (i.e., the "other party" becomes first party)
+
+  private static async determinePartySwap(
+    user: { id: string; profile: { gender: string | null; wantsToBeFirstParty: boolean | null } | null },
+    match: { maleUserId: string; femaleUserId: string }
+  ): Promise<boolean> {
+    const isMale = user.profile?.gender === 'MALE';
+
+    if (isMale) {
+      // User is male → default first party. Only swap if male explicitly opted out.
+      if (user.profile?.wantsToBeFirstParty === false) {
+        const otherPartyId = match.femaleUserId;
+        const otherParty = await prisma.user.findUnique({
+          where: { id: otherPartyId },
+          select: { source: true },
+        });
+        if (otherParty?.source !== 'MANUAL_ENTRY') {
+          console.log(`  🔄 Male opted out of first party → swapping to female`);
+          return true;
+        }
+        console.log(`  ℹ️ Male opted out but female is manual user — keeping male as first`);
+      }
+      return false; // Male stays as first party
+    } else {
+      // User is female → swap so male becomes first party
+      // Unless male opted out or is manual user
+      const malePartyId = match.maleUserId;
+      const maleUser = await prisma.user.findUnique({
+        where: { id: malePartyId },
+        select: { source: true, profile: { select: { wantsToBeFirstParty: true } } },
+      });
+
+      if (maleUser?.source === 'MANUAL_ENTRY') {
+        console.log(`  ℹ️ Male is manual user — keeping female as first party`);
+        return false;
+      }
+      if (maleUser?.profile?.wantsToBeFirstParty === false) {
+        console.log(`  ℹ️ Male opted out of first party — keeping female as first`);
+        return false;
+      }
+      console.log(`  🔄 Default: male as first party → swapping`);
+      return true; // Swap so male becomes first party
+    }
+  }
 
   // ========== Main Entry Point ==========
 
@@ -321,31 +377,9 @@ export class DailySuggestionOrchestrator {
     }
 
     // =========================================================================
-    // V3.0: Check 3 - Determine party assignment based on wantsToBeFirstParty
-    // Users can't opt out of being second party — only first party.
-    // If user doesn't want first party: swap, unless other party is manual user.
+    // V4.0: Check 3 - Determine party assignment (male as first party by default)
     // =========================================================================
-    const otherPartyId = user.id === bestMatch.maleUserId ? bestMatch.femaleUserId : bestMatch.maleUserId;
-    const userWantsFirst = user.profile?.wantsToBeFirstParty ?? true;
-
-    let swapParties = false;
-
-    if (!userWantsFirst) {
-      // Check if other party is a manual user — manual users can't be first party (no app/notifications)
-      const otherParty = await prisma.user.findUnique({
-        where: { id: otherPartyId },
-        select: { source: true },
-      });
-
-      if (otherParty?.source === 'MANUAL_ENTRY') {
-        // Manual users can't be first party — keep original assignment regardless of preference
-        console.log(`  ℹ️ Other party is manual user — keeping original party assignment`);
-      } else {
-        // Swap: other party becomes first party
-        swapParties = true;
-        console.log(`  🔄 Swapping parties: ${user.firstName} opted out of first party → other party (${otherPartyId}) will be first`);
-      }
-    }
+    const swapParties = await this.determinePartySwap(user, bestMatch);
 
     // Check 4: Create the suggestion (with optional party swap)
     const suggestion = await this.createAutoSuggestion(user, bestMatch, matchmakerId, dictionaries, swapParties);
@@ -769,7 +803,8 @@ export class DailySuggestionOrchestrator {
   static async runForSpecificUser(
     userId: string,
     count: number = 1,
-    matchmakerId: string
+    matchmakerId: string,
+    options?: { matchIds?: string[] }
   ): Promise<{
     success: boolean;
     userId: string;
@@ -779,10 +814,16 @@ export class DailySuggestionOrchestrator {
     suggestions: { suggestionId: string; matchId: string; aiScore: number; otherPartyName: string }[];
     skipped: string[];
     errors: string[];
+    steps: { timestamp: string; message: string; type: 'info' | 'success' | 'warning' | 'error' }[];
   }> {
     console.log('\n═══════════════════════════════════════════════════════');
     console.log(`🎯 [Personal Mode] Running for user ${userId} — ${count} suggestions`);
     console.log('═══════════════════════════════════════════════════════\n');
+
+    const steps: { timestamp: string; message: string; type: 'info' | 'success' | 'warning' | 'error' }[] = [];
+    const addStep = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+      steps.push({ timestamp: new Date().toISOString(), message, type });
+    };
 
     const result = {
       success: false,
@@ -793,10 +834,12 @@ export class DailySuggestionOrchestrator {
       suggestions: [] as { suggestionId: string; matchId: string; aiScore: number; otherPartyName: string }[],
       skipped: [] as string[],
       errors: [] as string[],
+      steps,
     };
 
     try {
-      // 1. Fetch the user with profile (🆕 V2.1: includes wantsToBeFirstParty)
+      addStep('טוען פרופיל משתמש...');
+      // 1. Fetch the user with profile
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -819,69 +862,85 @@ export class DailySuggestionOrchestrator {
       });
 
       if (!user) {
+        addStep('המשתמש לא נמצא', 'error');
         result.errors.push(`User not found: ${userId}`);
         return result;
       }
 
       result.userName = `${user.firstName} ${user.lastName}`;
+      addStep(`נמצא: ${user.firstName} ${user.lastName} (${user.profile?.gender || 'N/A'})`, 'success');
 
       if (!user.profile) {
+        addStep('למשתמש אין פרופיל', 'error');
         result.errors.push('User has no profile');
         return result;
       }
 
       console.log(`👤 User: ${user.firstName} ${user.lastName} (${user.profile.gender})`);
       console.log(`📧 Email: ${user.email}`);
-      console.log(`🔄 wantsToBeFirstParty: ${user.profile.wantsToBeFirstParty}`); // 🆕 V2.1
       console.log(`📊 Requesting ${count} suggestions\n`);
 
       // 3. Load dictionaries
+      addStep('טוען תבניות הודעות...');
       const [dictHe, dictEn] = await Promise.all([
         getDictionary('he'),
         getDictionary('en'),
       ]);
       const dictionaries = { he: dictHe.email, en: dictEn.email };
 
-      // 4. Find top N matches (skipping blocking checks for THIS user)
-      const topMatches = await this.findTopMatches(user, count);
+      // V4.0: If specific matchIds provided, use them instead of auto-finding
+      let topMatches: Awaited<ReturnType<typeof this.findTopMatches>>;
+
+      if (options?.matchIds && options.matchIds.length > 0) {
+        addStep(`טוען ${options.matchIds.length} התאמות שנבחרו ידנית...`);
+        const specificMatches = await prisma.potentialMatch.findMany({
+          where: {
+            id: { in: options.matchIds },
+            status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
+          },
+          select: {
+            id: true,
+            maleUserId: true,
+            femaleUserId: true,
+            aiScore: true,
+            shortReasoning: true,
+            detailedReasoning: true,
+          },
+          orderBy: { aiScore: 'desc' },
+        });
+        topMatches = specificMatches;
+        addStep(`נטענו ${specificMatches.length} התאמות ידניות`, specificMatches.length > 0 ? 'success' : 'warning');
+      } else {
+        // 4. Find top N matches (skipping blocking checks for THIS user)
+        addStep(`מחפש ${count} התאמות מובילות...`);
+        topMatches = await this.findTopMatches(user, count);
+      }
 
       if (topMatches.length === 0) {
+        addStep('לא נמצאו התאמות זמינות עם ציון >= 70', 'warning');
         result.skipped.push('No eligible potential matches found with score >= 70');
         console.log('  ⚠️ No eligible matches found');
         return result;
       }
 
+      addStep(`נמצאו ${topMatches.length} התאמות (מתוך ${count} שנדרשו)`, 'success');
       console.log(`  📋 Found ${topMatches.length} eligible matches (requested ${count})\n`);
-
-      // V3.0: Get user's first party preference once (used in the loop)
-      const userWantsFirst = user.profile.wantsToBeFirstParty ?? true;
 
       // 5. Create suggestions for each match
       for (let i = 0; i < topMatches.length; i++) {
         const match = topMatches[i];
         const otherPartyId = user.id === match.maleUserId ? match.femaleUserId : match.maleUserId;
 
+        addStep(`יוצר הצעה ${i + 1}/${topMatches.length} — ציון ${Math.round(match.aiScore)}...`);
         console.log(`  [${i + 1}/${topMatches.length}] Creating suggestion — Score: ${Math.round(match.aiScore)}, Other: ${otherPartyId}`);
 
         try {
-          // V3.0: Determine party assignment — always swap if user doesn't want first party
-          // (unless other party is manual user who can't receive notifications)
-          let swapParties = false;
-
-          if (!userWantsFirst) {
-            const otherParty = await prisma.user.findUnique({
-              where: { id: otherPartyId },
-              select: { source: true },
-            });
-            if (otherParty?.source === 'MANUAL_ENTRY') {
-              console.log(`  ℹ️ Other party is manual user — keeping original party assignment`);
-            } else {
-              swapParties = true;
-              console.log(`  🔄 Swapping parties: user opted out of first party`);
-            }
-          }
+          // V4.0: Male as first party by default
+          const swapParties = await this.determinePartySwap(user, match);
+          if (swapParties) addStep('מחליף צדדים — גבר כצד ראשון');
 
           const suggestion = await this.createAutoSuggestion(user, match, matchmakerId, dictionaries, swapParties);
+          addStep(`הצעה נוצרה בהצלחה (${suggestion.id})`, 'success');
 
           // Get other party name for the result
           const otherParty = await prisma.user.findUnique({
@@ -889,29 +948,35 @@ export class DailySuggestionOrchestrator {
             select: { firstName: true, lastName: true },
           });
 
+          const otherName = otherParty ? `${otherParty.firstName} ${otherParty.lastName}` : otherPartyId;
+          addStep(`נשלחו נוטיפיקציות — אימייל + WhatsApp + Push ל-${otherName}`, 'success');
+
           result.suggestions.push({
             suggestionId: suggestion.id,
             matchId: match.id,
             aiScore: match.aiScore,
-            otherPartyName: otherParty ? `${otherParty.firstName} ${otherParty.lastName}` : otherPartyId,
+            otherPartyName: otherName,
           });
           result.sent++;
 
           console.log(`  ✅ Suggestion created: ${suggestion.id}${swapParties ? ' (parties swapped)' : ''}`);
         } catch (err) {
           const errMsg = err instanceof Error ? err.message : 'Unknown error';
+          addStep(`שגיאה ביצירת הצעה: ${errMsg}`, 'error');
           result.errors.push(`Match ${match.id}: ${errMsg}`);
           console.error(`  ❌ Error creating suggestion for match ${match.id}: ${errMsg}`);
         }
       }
 
       result.success = result.sent > 0;
+      addStep(`סיום — נשלחו ${result.sent} מתוך ${count} הצעות`, result.sent > 0 ? 'success' : 'warning');
 
       console.log(`\n🎯 [Personal Mode] Done: ${result.sent}/${count} sent`);
       return result;
 
     } catch (fatalError) {
       const errMsg = fatalError instanceof Error ? fatalError.message : 'Unknown error';
+      addStep(`שגיאה קריטית: ${errMsg}`, 'error');
       result.errors.push(errMsg);
       console.error('💥 [Personal Mode] Fatal error:', fatalError);
       return result;
@@ -1041,6 +1106,435 @@ export class DailySuggestionOrchestrator {
     }
 
     return validMatches;
+  }
+
+  // ==========================================================================
+  // ===== V4.0: Get ALL matches for a specific user (paginated) =====
+  // ==========================================================================
+
+  /**
+   * Returns all available PotentialMatches for a user with pagination.
+   * Used by the expanded match picker in PreviewSuggestionsPanel.
+   * Includes previousSuggestion info (badge "sent before").
+   */
+  static async getAllMatchesForUser(
+    userId: string,
+    options?: {
+      page?: number;
+      limit?: number;
+      minScore?: number;
+      sortBy?: 'score' | 'age' | 'city';
+    }
+  ): Promise<{
+    matches: PreviewMatch[];
+    total: number;
+    hasMore: boolean;
+  }> {
+    const page = options?.page ?? 1;
+    const limit = options?.limit ?? 20;
+    const minScore = options?.minScore ?? MIN_AI_SCORE;
+    const skip = (page - 1) * limit;
+
+    // Fetch the user to determine gender
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profile: { select: { gender: true, wantsToBeFirstParty: true } },
+      },
+    });
+
+    if (!user?.profile) {
+      return { matches: [], total: 0, hasMore: false };
+    }
+
+    const isMale = user.profile.gender === 'MALE';
+
+    // Count total
+    const total = await prisma.potentialMatch.count({
+      where: {
+        ...(isMale ? { maleUserId: userId } : { femaleUserId: userId }),
+        status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
+        aiScore: { gte: minScore },
+        ...(isMale
+          ? {
+              female: {
+                OR: [
+                  { status: 'ACTIVE' },
+                  { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' },
+                ],
+                profile: { is: { isProfileVisible: true } },
+              },
+            }
+          : {
+              male: {
+                OR: [
+                  { status: 'ACTIVE' },
+                  { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' },
+                ],
+                profile: { is: { isProfileVisible: true } },
+              },
+            }),
+      },
+    });
+
+    // Fetch matches with pagination
+    const rawMatches = await prisma.potentialMatch.findMany({
+      where: {
+        ...(isMale ? { maleUserId: userId } : { femaleUserId: userId }),
+        status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
+        aiScore: { gte: minScore },
+        ...(isMale
+          ? {
+              female: {
+                OR: [
+                  { status: 'ACTIVE' },
+                  { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' },
+                ],
+                profile: { is: { isProfileVisible: true } },
+              },
+            }
+          : {
+              male: {
+                OR: [
+                  { status: 'ACTIVE' },
+                  { status: 'PENDING_EMAIL_VERIFICATION', source: 'MANUAL_ENTRY' },
+                ],
+                profile: { is: { isProfileVisible: true } },
+              },
+            }),
+      },
+      orderBy: { aiScore: 'desc' },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        maleUserId: true,
+        femaleUserId: true,
+        aiScore: true,
+        shortReasoning: true,
+        male: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                gender: true,
+                city: true,
+                birthDate: true,
+                religiousLevel: true,
+                availabilityStatus: true,
+                wantsToBeFirstParty: true,
+              },
+            },
+            images: { where: { isMain: true }, select: { url: true }, take: 1 },
+          },
+        },
+        female: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            profile: {
+              select: {
+                gender: true,
+                city: true,
+                birthDate: true,
+                religiousLevel: true,
+                availabilityStatus: true,
+                wantsToBeFirstParty: true,
+              },
+            },
+            images: { where: { isMain: true }, select: { url: true }, take: 1 },
+          },
+        },
+      },
+    });
+
+    // Check for blocked pairs (existing active suggestions)
+    const blockedPairs = new Set<string>();
+    const previousSuggestionMap = new Map<string, { status: string; createdAt: Date }>();
+
+    if (rawMatches.length > 0) {
+      const pairConditions = rawMatches.flatMap(m => [
+        { firstPartyId: m.maleUserId, secondPartyId: m.femaleUserId },
+        { firstPartyId: m.femaleUserId, secondPartyId: m.maleUserId },
+      ]);
+
+      const existingSuggestions = await prisma.matchSuggestion.findMany({
+        where: { OR: pairConditions, status: { notIn: CLOSED_STATUSES } },
+        select: { firstPartyId: true, secondPartyId: true },
+      });
+
+      for (const s of existingSuggestions) {
+        blockedPairs.add(`${s.firstPartyId}-${s.secondPartyId}`);
+        blockedPairs.add(`${s.secondPartyId}-${s.firstPartyId}`);
+      }
+
+      // Also get previous (closed) suggestions for badge "sent before"
+      const closedSuggestions = await prisma.matchSuggestion.findMany({
+        where: { OR: pairConditions, status: { in: CLOSED_STATUSES } },
+        select: { firstPartyId: true, secondPartyId: true, status: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      for (const s of closedSuggestions) {
+        const key = `${s.firstPartyId}-${s.secondPartyId}`;
+        const reverseKey = `${s.secondPartyId}-${s.firstPartyId}`;
+        if (!previousSuggestionMap.has(key)) previousSuggestionMap.set(key, { status: s.status, createdAt: s.createdAt });
+        if (!previousSuggestionMap.has(reverseKey)) previousSuggestionMap.set(reverseKey, { status: s.status, createdAt: s.createdAt });
+      }
+    }
+
+    // Build the response
+    const matches: PreviewMatch[] = [];
+    for (const match of rawMatches) {
+      const pairKey = `${match.maleUserId}-${match.femaleUserId}`;
+      // Skip blocked pairs (active suggestion exists)
+      if (blockedPairs.has(pairKey)) continue;
+
+      const otherPartyUser = isMale ? match.female : match.male;
+      const otherAvStatus = otherPartyUser?.profile?.availabilityStatus;
+      // Skip unavailable other parties (except manual users who may have null)
+      if (otherAvStatus && otherAvStatus !== 'AVAILABLE') continue;
+
+      // Determine party direction
+      const maleUser = match.male;
+      const femaleUser = match.female;
+      const maleWantsFirst = maleUser?.profile?.wantsToBeFirstParty ?? true;
+      const firstPartyGender: 'MALE' | 'FEMALE' = maleWantsFirst ? 'MALE' : 'FEMALE';
+
+      // Previous suggestion lookup
+      const prevSuggestion = previousSuggestionMap.get(pairKey) || null;
+
+      matches.push({
+        matchId: match.id,
+        aiScore: match.aiScore,
+        shortReasoning: match.shortReasoning,
+        partyDirection: {
+          firstPartyGender,
+          firstPartyName: firstPartyGender === 'MALE'
+            ? `${maleUser?.firstName || ''} ${maleUser?.lastName || ''}`
+            : `${femaleUser?.firstName || ''} ${femaleUser?.lastName || ''}`,
+          secondPartyName: firstPartyGender === 'MALE'
+            ? `${femaleUser?.firstName || ''} ${femaleUser?.lastName || ''}`
+            : `${maleUser?.firstName || ''} ${maleUser?.lastName || ''}`,
+        },
+        previousSuggestion: prevSuggestion
+          ? { status: prevSuggestion.status, createdAt: prevSuggestion.createdAt.toISOString() }
+          : null,
+        otherParty: {
+          id: otherPartyUser?.id || '',
+          firstName: otherPartyUser?.firstName || '',
+          lastName: otherPartyUser?.lastName || '',
+          gender: otherPartyUser?.profile?.gender || null,
+          city: otherPartyUser?.profile?.city || null,
+          birthDate: otherPartyUser?.profile?.birthDate?.toISOString() || null,
+          religiousLevel: otherPartyUser?.profile?.religiousLevel || null,
+          mainImage: otherPartyUser?.images?.[0]?.url || null,
+        },
+      });
+    }
+
+    return {
+      matches,
+      total,
+      hasMore: skip + limit < total,
+    };
+  }
+
+  // ==========================================================================
+  // ===== V4.0: Pre-flight Eligibility Check =====
+  // ==========================================================================
+
+  /**
+   * Checks if a user is eligible for auto-suggestions without creating anything.
+   * Returns detailed checklist for the matchmaker dashboard.
+   */
+  static async checkEligibility(userId: string): Promise<{
+    eligible: boolean;
+    checks: {
+      name: string;
+      label: string;
+      passed: boolean;
+      detail: string;
+    }[];
+    availableMatches: number;
+    bestScore: number | null;
+  }> {
+    const checks: { name: string; label: string; passed: boolean; detail: string }[] = [];
+
+    // 1. User exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        status: true,
+        isPhoneVerified: true,
+        engagementEmailsConsent: true,
+        source: true,
+        role: true,
+        profile: {
+          select: {
+            gender: true,
+            isProfileComplete: true,
+            isProfileVisible: true,
+            availabilityStatus: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      checks.push({ name: 'user_exists', label: 'משתמש קיים', passed: false, detail: 'המשתמש לא נמצא במערכת' });
+      return { eligible: false, checks, availableMatches: 0, bestScore: null };
+    }
+
+    checks.push({ name: 'user_exists', label: 'משתמש קיים', passed: true, detail: `${user.firstName} ${user.lastName}` });
+
+    // 2. Has profile
+    const hasProfile = !!user.profile;
+    checks.push({
+      name: 'has_profile',
+      label: 'פרופיל קיים',
+      passed: hasProfile,
+      detail: hasProfile ? 'פרופיל קיים' : 'חסר פרופיל — צריך להשלים רישום',
+    });
+
+    // 3. Profile complete
+    const profileComplete = user.profile?.isProfileComplete === true;
+    checks.push({
+      name: 'profile_complete',
+      label: 'פרופיל מלא',
+      passed: profileComplete,
+      detail: profileComplete ? 'הפרופיל מלא' : 'הפרופיל לא הושלם',
+    });
+
+    // 4. Phone verified
+    checks.push({
+      name: 'phone_verified',
+      label: 'טלפון מאומת',
+      passed: user.isPhoneVerified,
+      detail: user.isPhoneVerified ? 'טלפון מאומת' : 'חסר אימות טלפון',
+    });
+
+    // 5. Availability
+    const isAvailable = user.profile?.availabilityStatus === 'AVAILABLE';
+    checks.push({
+      name: 'available',
+      label: 'זמין להצעות',
+      passed: isAvailable,
+      detail: isAvailable ? 'זמין' : `סטטוס: ${user.profile?.availabilityStatus || 'לא ידוע'}`,
+    });
+
+    // 6. Consent
+    checks.push({
+      name: 'consent',
+      label: 'הסכמה למיילים',
+      passed: user.engagementEmailsConsent,
+      detail: user.engagementEmailsConsent ? 'מאושר' : 'המשתמש ביטל הסכמה למיילים',
+    });
+
+    // 7. Hard block check
+    const hardBlock = await prisma.matchSuggestion.findFirst({
+      where: {
+        OR: [
+          { firstPartyId: userId, status: { in: HARD_BLOCK_STATUSES } },
+          { secondPartyId: userId, status: { in: HARD_BLOCK_STATUSES } },
+        ],
+      },
+      select: { id: true, status: true },
+    });
+    checks.push({
+      name: 'no_hard_block',
+      label: 'אין חסימה קשה',
+      passed: !hardBlock,
+      detail: hardBlock
+        ? `חסום — הצעה פעילה בסטטוס ${hardBlock.status} (${hardBlock.id})`
+        : 'אין הצעות פעילות חוסמות',
+    });
+
+    // 8. Soft block check
+    const softBlock = await prisma.matchSuggestion.findFirst({
+      where: {
+        OR: [
+          { firstPartyId: userId, status: { in: SOFT_BLOCK_STATUSES } },
+          { secondPartyId: userId, status: { in: SOFT_BLOCK_STATUSES } },
+        ],
+      },
+      select: { id: true, status: true },
+    });
+    checks.push({
+      name: 'no_soft_block',
+      label: 'אין הצעה ממתינה',
+      passed: !softBlock,
+      detail: softBlock
+        ? `הצעה ממתינה בסטטוס ${softBlock.status} (${softBlock.id})`
+        : 'אין הצעות ממתינות',
+    });
+
+    // 9. Idempotency check
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const existingToday = await prisma.matchSuggestion.findFirst({
+      where: {
+        isAutoSuggestion: true,
+        createdAt: { gte: todayStart },
+        OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
+      },
+      select: { id: true },
+    });
+    checks.push({
+      name: 'not_sent_today',
+      label: 'לא נשלח היום',
+      passed: !existingToday,
+      detail: existingToday
+        ? `כבר קיבל הצעה אוטומטית היום (${existingToday.id})`
+        : 'טרם קיבל הצעה היום',
+    });
+
+    // 10. Available matches
+    const isMale = user.profile?.gender === 'MALE';
+    const matchCount = hasProfile ? await prisma.potentialMatch.count({
+      where: {
+        ...(isMale ? { maleUserId: userId } : { femaleUserId: userId }),
+        status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
+        aiScore: { gte: MIN_AI_SCORE },
+      },
+    }) : 0;
+
+    const bestMatch = hasProfile ? await prisma.potentialMatch.findFirst({
+      where: {
+        ...(isMale ? { maleUserId: userId } : { femaleUserId: userId }),
+        status: { in: ['PENDING', 'REVIEWED'] as PotentialMatchStatus[] },
+        aiScore: { gte: MIN_AI_SCORE },
+      },
+      orderBy: { aiScore: 'desc' },
+      select: { aiScore: true },
+    }) : null;
+
+    checks.push({
+      name: 'has_matches',
+      label: 'התאמות זמינות',
+      passed: matchCount > 0,
+      detail: matchCount > 0
+        ? `${matchCount} התאמות זמינות (ציון מקסימלי: ${Math.round(bestMatch?.aiScore || 0)})`
+        : 'אין התאמות עם ציון >= 70',
+    });
+
+    const eligible = checks.every(c => c.passed);
+
+    return {
+      eligible,
+      checks,
+      availableMatches: matchCount,
+      bestScore: bestMatch?.aiScore || null,
+    };
   }
 
   // ==========================================================================
@@ -1688,24 +2182,8 @@ export class DailySuggestionOrchestrator {
           ? { ...match, shortReasoning: customMatchingReason }
           : match;
 
-        // V3.0: Check wantsToBeFirstParty — always swap unless other party is manual user
-        let swapParties = false;
-        const userWantsFirst = user.profile.wantsToBeFirstParty ?? true;
-
-        if (!userWantsFirst) {
-          const otherPartyId = userId === match.maleUserId ? match.femaleUserId : match.maleUserId;
-          const otherParty = await prisma.user.findUnique({
-            where: { id: otherPartyId },
-            select: { source: true },
-          });
-
-          if (otherParty?.source === 'MANUAL_ENTRY') {
-            console.log(`  ℹ️ Other party is manual user — keeping original party assignment`);
-          } else {
-            swapParties = true;
-            console.log(`  🔄 Swapping parties for ${user.firstName}: opted out of first party`);
-          }
-        }
+        // V4.0: Male as first party by default
+        const swapParties = await this.determinePartySwap(user, match);
 
         await this.createAutoSuggestion(user, matchWithReason, matchmakerId, dictionaries, swapParties);
         sent++;
@@ -1741,6 +2219,17 @@ export interface PreviewMatch {
   matchId: string;
   aiScore: number;
   shortReasoning: string | null;
+  // V4.0: Party direction — which gender is first party
+  partyDirection?: {
+    firstPartyGender: 'MALE' | 'FEMALE';
+    firstPartyName: string;
+    secondPartyName: string;
+  };
+  // V4.0: Previous suggestion info (if this pair was suggested before)
+  previousSuggestion?: {
+    status: string;
+    createdAt: string;
+  } | null;
   otherParty: {
     id: string;
     firstName: string;
