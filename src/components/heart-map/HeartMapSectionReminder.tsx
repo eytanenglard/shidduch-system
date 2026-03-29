@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ArrowLeft, UserPlus } from 'lucide-react';
+import { Shield, ArrowLeft, UserPlus, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface Props {
@@ -17,6 +17,8 @@ interface Props {
     questionCount: number;
   };
   t?: (key: string) => string;
+  completedSectionAnswered?: number;
+  completedSectionTotal?: number;
 }
 
 export default function HeartMapSectionReminder({
@@ -28,6 +30,8 @@ export default function HeartMapSectionReminder({
   onContinue,
   nextSectionInfo,
   t,
+  completedSectionAnswered,
+  completedSectionTotal,
 }: Props) {
   const isRTL = locale === 'he';
   const progressPercent = Math.round((currentSection / totalSections) * 100);
@@ -86,6 +90,20 @@ export default function HeartMapSectionReminder({
                   : `About ${estimatedMinutes} ${estimatedMinutes === 1 ? 'minute' : 'minutes'} remaining`}
               </p>
             </div>
+
+            {/* Completed section summary */}
+            {completedSectionAnswered != null && completedSectionTotal != null && completedSectionTotal > 0 && (
+              <div className="bg-green-50 border border-green-100 rounded-xl p-3 mb-4">
+                <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                  <p className="text-sm font-medium text-green-700">
+                    {isRTL
+                      ? `ענית על ${completedSectionAnswered} מתוך ${completedSectionTotal} שאלות — כל הכבוד!`
+                      : `You answered ${completedSectionAnswered} of ${completedSectionTotal} questions — great job!`}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Next section preview */}
             {nextSectionInfo && t && (

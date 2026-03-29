@@ -156,6 +156,22 @@
       "female": "ברוכה שובך! נשארו לך {{count}} שאלות — ממשיכים מאיפה שעצרת"
     }
   },
+  "finishLine": {
+    "bannerTitle": "נשארו רק {{count}} שאלות!",
+    "bannerSubtitle": "הצג הכל במקום אחד וסיים בקלות",
+    "title": "קו הסיום",
+    "subtitle": "{{count}} שאלות אחרונות",
+    "description": "ענה על כולן ומפת הנשמה שלך תהיה מוכנה",
+    "remaining": "נשארו {{count}}",
+    "almostThere": "כמעט שם!",
+    "backToSections": "חזרה לחלקים",
+    "partnerQuestion": "העדפה לבן/בת זוג",
+    "allDone": "סיימת! מפת הנשמה שלך מוכנה",
+    "allDoneSubtitle": "עכשיו נוכל למצוא לך התאמות מדויקות יותר",
+    "lastFew": "עוד מעט קט וסיימת — יאללה!",
+    "keepGoing": "כל שאלה שאתה עונה עליה מקרבת אותך להתאמה מושלמת",
+    "quickAnswer": "מענה מהיר"
+  },
   "completion": {
     "title": "מפת הנשמה שלך מוכנה!",
     "subtitle": {

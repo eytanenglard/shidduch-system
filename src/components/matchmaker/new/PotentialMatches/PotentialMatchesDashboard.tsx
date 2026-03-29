@@ -595,7 +595,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
           </CardErrorBoundary>
         ) : activeTab === 'daily' ? (
           <CardErrorBoundary>
-            <DailySuggestionsDashboard />
+            <DailySuggestionsDashboard onViewUser={handleViewProfile} />
           </CardErrorBoundary>
         ) : (
           <>

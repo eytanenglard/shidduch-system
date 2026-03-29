@@ -634,6 +634,20 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
               </Button>
             )}
 
+            <div className="flex items-center gap-1.5 bg-white/80 border border-violet-200 rounded-xl px-2 py-1">
+              <label className="text-[10px] text-violet-500 whitespace-nowrap">כמות:</label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={filters.limit}
+                onChange={(e) => updateFilter('limit', e.target.value)}
+                placeholder="הכל"
+                className="h-7 w-16 text-xs text-center border-0 bg-transparent p-0 focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                dir="ltr"
+              />
+            </div>
+
             <Button
               size="sm"
               variant={hasGenerated ? 'outline' : 'default'}
@@ -651,7 +665,7 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
               ) : (
                 <Zap className="w-4 h-4 ml-1" />
               )}
-              {isGenerating ? 'מכין...' : hasGenerated ? 'הכן מחדש' : 'הכן הצעות'}
+              {isGenerating ? 'מכין...' : hasGenerated ? `הכן הצעות${filters.limit ? ` (${filters.limit})` : ''}` : `הכן הצעות${filters.limit ? ` (${filters.limit})` : ''}`}
             </Button>
           </div>
         </div>
@@ -874,8 +888,27 @@ export default function PreviewSuggestionsPanel({ onViewProfile }: PreviewSugges
           </div>
         ) : previews.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
-            <CheckCircle className="w-8 h-8 mx-auto mb-2 text-emerald-400" />
-            <p className="text-sm font-medium text-gray-600">כל ההצעות נשלחו!</p>
+            {stats && stats.hasBlockingSuggestion > 0 && stats.withMatches === 0 ? (
+              <>
+                <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-amber-400" />
+                <p className="text-sm font-medium text-gray-600">אין הצעות זמינות כרגע</p>
+                <p className="text-xs mt-1 text-gray-400">
+                  {stats.hasBlockingSuggestion} משתמשים עם הצעה פעילה, {stats.withoutMatches} ללא התאמה מתאימה
+                </p>
+              </>
+            ) : (
+              <>
+                <XCircle className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm font-medium text-gray-600">לא נמצאו התאמות זמינות</p>
+                <p className="text-xs mt-1 text-gray-400">
+                  {stats?.eligibleCount === 0
+                    ? 'אין משתמשים זכאים במערכת'
+                    : stats?.withoutMatches
+                      ? `${stats.withoutMatches} משתמשים ללא התאמה (ציון מינימלי 70)`
+                      : 'נסה לשנות את הסינון או להפעיל סריקה חדשה'}
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">

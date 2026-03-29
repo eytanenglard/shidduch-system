@@ -10,6 +10,7 @@ interface Props {
   answers: SFAnswers;
   onAnswer: (questionId: string, value: string | string[] | number | null) => void;
   t: (key: string) => string;
+  translateTag?: (tag: string) => string;
   isRTL: boolean;
   isActive: boolean;
   isAnswered: boolean;
@@ -26,6 +27,7 @@ export default function AccordionQuestion({
   answers,
   onAnswer,
   t,
+  translateTag,
   isRTL,
   isActive,
   isAnswered,
@@ -89,6 +91,12 @@ export default function AccordionQuestion({
     }
   }, [question.type, question.id, answers, isActive]);
 
+  // Translate a raw value — try t(labelKey) first, then translateTag fallback
+  const translateValue = (v: string): string => {
+    if (translateTag) return translateTag(v);
+    return v;
+  };
+
   // Get answer chips/summary for collapsed state
   const getAnswerChips = (): { type: 'chips'; labels: string[] } | { type: 'text'; text: string } | null => {
     const val = answers[question.id];
@@ -106,13 +114,13 @@ export default function AccordionQuestion({
           }
           return { type: 'chips', labels: [label] };
         }
-        return { type: 'chips', labels: [String(val)] };
+        return { type: 'chips', labels: [translateValue(String(val))] };
       }
       case 'multiSelect': {
         if (!Array.isArray(val) || val.length === 0) return null;
         const labels = val.map(v => {
           const opt = question.options?.find(o => o.value === v);
-          return opt ? t(opt.labelKey) : v;
+          return opt ? t(opt.labelKey) : translateValue(v);
         });
         return { type: 'chips', labels };
       }

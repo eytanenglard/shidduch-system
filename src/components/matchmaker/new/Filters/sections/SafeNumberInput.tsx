@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export interface SafeNumberInputProps {
   value: number;
@@ -18,16 +18,19 @@ const SafeNumberInput: React.FC<SafeNumberInputProps> = ({
   className,
 }) => {
   const [localValue, setLocalValue] = useState<string>(value?.toString() || '');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setLocalValue(value?.toString() || '');
+    // Only sync from parent if input is not focused (avoid overriding user typing)
+    if (document.activeElement !== inputRef.current) {
+      setLocalValue(value?.toString() || '');
+    }
   }, [value]);
 
   const handleCommit = () => {
     let num = parseInt(localValue);
 
-    // Validation
-    if (isNaN(num)) num = min;
+    if (isNaN(num)) num = value;
     if (num < min) num = min;
     if (num > max) num = max;
 
@@ -35,17 +38,43 @@ const SafeNumberInput: React.FC<SafeNumberInputProps> = ({
     onCommit(num);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/[^0-9]/g, '');
+    if (raw.length <= 3) {
+      setLocalValue(raw);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+      return;
+    }
+
+    // Allow: backspace, delete, tab, arrows, home, end
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (allowedKeys.includes(e.key)) return;
+
+    // Allow select all (Ctrl+A / Cmd+A)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') return;
+
+    // Block non-digit keys
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <input
-      type="number"
+      ref={inputRef}
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
       value={localValue}
-      onChange={(e) => setLocalValue(e.target.value)}
+      onChange={handleChange}
       onBlur={handleCommit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          (e.target as HTMLInputElement).blur();
-        }
-      }}
+      onKeyDown={handleKeyDown}
+      onFocus={(e) => e.target.select()}
       className={className}
     />
   );

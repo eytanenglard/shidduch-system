@@ -84,6 +84,22 @@
     "requiredQuestion": "Required question",
     "resumeBanner": "Welcome back! You have {{count}} questions left — let's continue where you stopped"
   },
+  "finishLine": {
+    "bannerTitle": "Only {{count}} questions left!",
+    "bannerSubtitle": "View them all in one place and finish easily",
+    "title": "Finish Line",
+    "subtitle": "{{count}} final questions",
+    "description": "Answer them all and your Soul Map will be ready",
+    "remaining": "{{count}} remaining",
+    "almostThere": "Almost there!",
+    "backToSections": "Back to sections",
+    "partnerQuestion": "Partner preference",
+    "allDone": "Done! Your Soul Map is ready",
+    "allDoneSubtitle": "Now we can find you more accurate matches",
+    "lastFew": "Just a few more — you've got this!",
+    "keepGoing": "Every question you answer brings you closer to your perfect match",
+    "quickAnswer": "Quick one"
+  },
   "completion": {
     "title": "Your Soul Map is ready!",
     "subtitle": "A unique profile that represents who you are",
@@ -971,6 +987,7 @@
       "mechina": "Pre-army mechina + full service",
       "yeshiva_only": "Advanced yeshiva — no military service",
       "kav": "Kav yeshiva — one year yeshiva after army",
+      "national_service": "National service",
       "exempt_medical": "Medical exemption",
       "exempt_other": "Other exemption",
       "currently_serving": "Currently serving"
@@ -1255,7 +1272,8 @@
       "projects_doing": "Doing and projects",
       "helping_others": "Helping others",
       "music": "Music",
-      "nature": "Nature and fresh air"
+      "nature": "Nature and fresh air",
+      "other_energy": "Other"
     },
     "s3_character_primary": {
       "humorous": "Humorous — brings joy to surroundings",
@@ -1267,7 +1285,8 @@
       "creative": "Creative — thinks outside the box",
       "analytical": "Analytical — thinks in order and numbers",
       "empathetic": "Empathetic — picks up on others' emotions",
-      "adventurous": "Adventurous — loves the unexpected"
+      "adventurous": "Adventurous — loves the unexpected",
+      "other_character": "Other"
     },
     "s3_life_tempo": {
       "fast_full": "Fast and full — many things in parallel",
@@ -1287,7 +1306,8 @@
       "self_deprecating": "Self-deprecating",
       "dry": "Dry and subtle",
       "storytelling": "Storytelling — laughing about situations",
-      "not_humorous": "Not really humorous"
+      "not_humorous": "Not really humorous",
+      "other_humor": "Other"
     },
     "s3_conflict": {
       "direct": "Direct — talks immediately",
@@ -1400,7 +1420,8 @@
       "community_yishuv": "Community yishuv",
       "moshav_village": "Moshav / Village",
       "abroad": "Abroad",
-      "flexible": "Flexible — doesn't matter to me"
+      "flexible": "Flexible — doesn't matter to me",
+      "other_location": "Other"
     },
     "s5_rhythm": {
       "very_early": "Up before 6 — very early morning",
@@ -1415,7 +1436,8 @@
       "not_kosher_jewish": "Not kosher — but Jewish",
       "vegetarian": "Vegetarian",
       "vegan": "Vegan",
-      "not_relevant": "Not relevant to me"
+      "not_relevant": "Not relevant to me",
+      "other_kashrut": "Other"
     },
     "s5_hobbies": {
       "reading": "Reading",
@@ -1459,7 +1481,8 @@
       "family_trips": "Family trips",
       "jewish_heritage": "Jewish heritage sites",
       "adventure_extreme": "Adventure and extreme experiences",
-      "beach_relaxation": "Beach and sea — relaxation and sun"
+      "beach_relaxation": "Beach and sea — relaxation and sun",
+      "other_travel": "Other"
     },
     "s5_pets": {
       "loves_has": "Love them — have one / want one",
@@ -1484,7 +1507,8 @@
       "gluten_free": "Gluten-free",
       "dairy_free": "Dairy-free",
       "nut_allergy": "Nut allergy",
-      "no_restrictions": "No restrictions"
+      "no_restrictions": "No restrictions",
+      "other_diet": "Other"
     },
     "s5_screen_time": {
       "very_limited": "Very limited — prefer no screens",
@@ -1535,7 +1559,8 @@
       "religious_structure": "Home with clear religious structure",
       "liberal": "Free and liberal home",
       "quiet_order": "Quiet and orderly home",
-      "lively_noisy": "Lively and noisy home, full of energy"
+      "lively_noisy": "Lively and noisy home, full of energy",
+      "other_atmosphere": "Other"
     },
     "s6_extended_family": {
       "very_involved": "Very involved — family is central",
@@ -1718,7 +1743,8 @@
       "relationships": "Human connections",
       "self_growth": "Personal growth",
       "community": "Community and social involvement",
-      "zionism": "Zionism and contributing to the state"
+      "zionism": "Zionism and contributing to the state",
+      "other_meaning": "Other"
     },
     "s4_financial_expectation": {
       "no_importance": "Not important — as long as we're together",
@@ -1840,7 +1866,8 @@
       "has_children": "Has children from previous marriage",
       "geographic": "Geographic distance",
       "appearance_mismatch": "Lack of physical attraction",
-      "immodest_dress": "Immodest dress"
+      "immodest_dress": "Immodest dress",
+      "other_deal_breaker": "Other"
     },
     "s7_emotional_needs": {
       "feel_seen": "Feeling seen — understood and acknowledged",
@@ -1850,7 +1877,8 @@
       "supported": "Feeling supported — someone by my side",
       "challenged": "Feeling challenged — pushed to grow",
       "included": "Feeling included — part of a team",
-      "freedom": "Freedom — personal space within the relationship"
+      "freedom": "Freedom — personal space within the relationship",
+      "other_emotional": "Other"
     },
     "s7_couple_dynamic": {
       "equal_everything": "Completely equal — everything 50/50",

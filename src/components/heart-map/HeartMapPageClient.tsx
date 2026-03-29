@@ -15,6 +15,12 @@ import heDict from '@/dictionaries/heart-map/he.json';
 import enDict from '@/dictionaries/heart-map/en.json';
 import heSfDict from '@/dictionaries/soul-fingerprint/he.json';
 import enSfDict from '@/dictionaries/soul-fingerprint/en.json';
+import {
+  buildOptionTranslationMap,
+  createTagTranslator,
+  COMPUTED_TAG_TRANSLATIONS_HE,
+  COMPUTED_TAG_TRANSLATIONS_EN,
+} from '@/components/soul-fingerprint/tagTranslation';
 
 type FlowScreen = 'intro' | 'questionnaire' | 'results';
 
@@ -80,6 +86,14 @@ export default function HeartMapPageClient({ locale }: Props) {
     },
     [locale, gender]
   );
+
+  // Tag translator — converts raw tag values (e.g. "national_service") to localized labels
+  const translateTag = useMemo(() => {
+    const sfDict = (locale === 'he' ? heSfDict : enSfDict) as Record<string, unknown>;
+    const optionMap = buildOptionTranslationMap(sfDict, gender);
+    const computedMap = locale === 'he' ? COMPUTED_TAG_TRANSLATIONS_HE : COMPUTED_TAG_TRANSLATIONS_EN;
+    return createTagTranslator(optionMap, computedMap);
+  }, [locale, gender]);
 
   // Redirect authenticated users to the dedicated soul-fingerprint page
   useEffect(() => {
@@ -156,6 +170,7 @@ export default function HeartMapPageClient({ locale }: Props) {
           locale={locale}
           t={t}
           tHm={tHm}
+          translateTag={translateTag}
           saveToLocalStorage={saveAnswers}
           onComplete={handleQuestionnaireComplete}
           onBack={handleBackToIntro}
@@ -170,6 +185,7 @@ export default function HeartMapPageClient({ locale }: Props) {
           locale={locale}
           t={t}
           tHm={tHm}
+          translateTag={translateTag}
           isAuthenticated={false}
         />
       )}

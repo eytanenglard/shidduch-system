@@ -9,6 +9,12 @@ import type { SFQuestion, SFAnswers, SectorValue, LifeStageValue } from '@/compo
 
 import heSfDict from '@/dictionaries/soul-fingerprint/he.json';
 import enSfDict from '@/dictionaries/soul-fingerprint/en.json';
+import {
+  buildOptionTranslationMap,
+  createTagTranslator,
+  COMPUTED_TAG_TRANSLATIONS_HE,
+  COMPUTED_TAG_TRANSLATIONS_EN,
+} from '@/components/soul-fingerprint/tagTranslation';
 
 function getNestedValue(obj: Record<string, unknown>, path: string, gender?: string | null): string {
   const keys = path.split('.');
@@ -117,14 +123,17 @@ function getAnswerDisplayLabel(
   question: SFQuestion,
   answer: unknown,
   t: (key: string) => string,
+  translateTag?: (tag: string) => string,
 ): string {
   if (answer == null || answer === '') return '—';
+
+  const fallback = (v: string) => translateTag ? translateTag(v) : v;
 
   if (question.type === 'slider') return String(answer);
 
   if (question.type === 'singleChoice' && typeof answer === 'string') {
     const opt = question.options?.find((o) => o.value === answer);
-    return opt ? t(opt.labelKey) : answer;
+    return opt ? t(opt.labelKey) : fallback(answer);
   }
 
   if (question.type === 'multiSelect' && Array.isArray(answer)) {
@@ -132,7 +141,7 @@ function getAnswerDisplayLabel(
       .slice(0, 3)
       .map((v) => {
         const opt = question.options?.find((o) => o.value === v);
-        return opt ? t(opt.labelKey) : v;
+        return opt ? t(opt.labelKey) : fallback(v);
       })
       .join(', ') + (answer.length > 3 ? '…' : '');
   }
@@ -165,6 +174,13 @@ const SfPreferenceAlignment: React.FC<SfPreferenceAlignmentProps> = ({
   const t = useMemo(() => {
     const dict = (locale === 'he' ? heSfDict : enSfDict) as Record<string, unknown>;
     return (key: string) => getNestedValue(dict, key, null);
+  }, [locale]);
+
+  const translateTag = useMemo(() => {
+    const dict = (locale === 'he' ? heSfDict : enSfDict) as Record<string, unknown>;
+    const optionMap = buildOptionTranslationMap(dict, null);
+    const computedMap = locale === 'he' ? COMPUTED_TAG_TRANSLATIONS_HE : COMPUTED_TAG_TRANSLATIONS_EN;
+    return createTagTranslator(optionMap, computedMap);
   }, [locale]);
 
   const rows = useMemo(() => {
@@ -211,10 +227,10 @@ const SfPreferenceAlignment: React.FC<SfPreferenceAlignmentProps> = ({
         label: locale === 'he' ? pair.label : (PREFERENCE_PAIRS_EN[pair.label] || pair.label),
         statusAtoB,
         statusBtoA,
-        prefLabelA: hasAtoB ? getAnswerDisplayLabel(prefQ, answersA[pair.partnerId], t) : '—',
-        selfLabelB: hasAtoB ? getAnswerDisplayLabel(selfQ, answersB[pair.selfId], t) : '—',
-        prefLabelB: hasBtoA ? getAnswerDisplayLabel(prefQ, answersB[pair.partnerId], t) : '—',
-        selfLabelA: hasBtoA ? getAnswerDisplayLabel(selfQ, answersA[pair.selfId], t) : '—',
+        prefLabelA: hasAtoB ? getAnswerDisplayLabel(prefQ, answersA[pair.partnerId], t, translateTag) : '—',
+        selfLabelB: hasAtoB ? getAnswerDisplayLabel(selfQ, answersB[pair.selfId], t, translateTag) : '—',
+        prefLabelB: hasBtoA ? getAnswerDisplayLabel(prefQ, answersB[pair.partnerId], t, translateTag) : '—',
+        selfLabelA: hasBtoA ? getAnswerDisplayLabel(selfQ, answersA[pair.selfId], t, translateTag) : '—',
       });
     }
 

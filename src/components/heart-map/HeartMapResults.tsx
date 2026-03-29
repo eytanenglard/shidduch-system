@@ -16,6 +16,7 @@ interface Props {
   locale: string;
   t: (key: string) => string;
   tHm: (key: string) => string;
+  translateTag: (tag: string) => string;
   isAuthenticated?: boolean;
 }
 
@@ -34,7 +35,7 @@ interface TagWithCategory {
   category: keyof typeof TAG_CATEGORIES;
 }
 
-export default function HeartMapResults({ answers, gender, locale, t, tHm, isAuthenticated = false }: Props) {
+export default function HeartMapResults({ answers, gender, locale, t, tHm, translateTag, isAuthenticated = false }: Props) {
   const isRTL = locale === 'he';
   const { result, isLoading, fetchEstimate } = useMatchEstimate();
   const [showReport, setShowReport] = useState(false);
@@ -75,7 +76,7 @@ export default function HeartMapResults({ answers, gender, locale, t, tHm, isAut
           <ArrowLeft className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
           {isRTL ? 'חזרה לתוצאות' : 'Back to results'}
         </button>
-        <HeartMapReport answers={answers} gender={gender} locale={locale} t={t} tHm={tHm} />
+        <HeartMapReport answers={answers} gender={gender} locale={locale} t={t} tHm={tHm} translateTag={translateTag} />
       </div>
     );
   }
@@ -143,7 +144,7 @@ export default function HeartMapResults({ answers, gender, locale, t, tHm, isAut
                     ${isActive ? 'ring-2 ring-offset-1 ring-teal-400 scale-105' : 'hover:scale-105'}
                   `}
                 >
-                  {tag}
+                  {translateTag(tag)}
                   {/* Tooltip */}
                   {isActive && (
                     <motion.span

@@ -12,6 +12,7 @@ interface Props {
   locale: string;
   t: (key: string) => string;
   tHm: (key: string) => string;
+  translateTag?: (tag: string) => string;
 }
 
 const SECTION_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -25,8 +26,10 @@ const SECTION_COLORS: Record<string, { bg: string; text: string; border: string 
   relationship: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
 };
 
-function getAnswerLabel(question: SFQuestion, answer: string | string[] | number | null, t: (key: string) => string): string {
+function getAnswerLabel(question: SFQuestion, answer: string | string[] | number | null, t: (key: string) => string, translateTag?: (tag: string) => string): string {
   if (answer === null || answer === undefined || answer === '') return '';
+
+  const fallback = (v: string) => translateTag ? translateTag(v) : v;
 
   if (question.type === 'slider') {
     return String(answer);
@@ -39,7 +42,7 @@ function getAnswerLabel(question: SFQuestion, answer: string | string[] | number
   if (question.type === 'singleChoice' && typeof answer === 'string') {
     const option = question.options?.find((o) => o.value === answer);
     if (option) return t(option.labelKey);
-    return answer;
+    return fallback(answer);
   }
 
   if (question.type === 'multiSelect' && Array.isArray(answer)) {
@@ -47,7 +50,7 @@ function getAnswerLabel(question: SFQuestion, answer: string | string[] | number
       .map((val) => {
         const option = question.options?.find((o) => o.value === val);
         if (option) return t(option.labelKey);
-        return val;
+        return fallback(val);
       })
       .join(', ');
   }
@@ -55,7 +58,7 @@ function getAnswerLabel(question: SFQuestion, answer: string | string[] | number
   return String(answer);
 }
 
-export default function HeartMapReport({ answers, gender, locale, t, tHm }: Props) {
+export default function HeartMapReport({ answers, gender, locale, t, tHm, translateTag }: Props) {
   const isRTL = locale === 'he';
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -205,7 +208,7 @@ export default function HeartMapReport({ answers, gender, locale, t, tHm }: Prop
                             <div key={q.id}>
                               <p className="text-xs text-gray-500 mb-0.5">{t(q.textKey)}</p>
                               <p className="text-sm font-medium text-gray-800">
-                                {getAnswerLabel(q, answers[q.id], t)}
+                                {getAnswerLabel(q, answers[q.id], t, translateTag)}
                               </p>
                             </div>
                           ))}
@@ -224,7 +227,7 @@ export default function HeartMapReport({ answers, gender, locale, t, tHm }: Prop
                             <div key={q.id}>
                               <p className="text-xs text-gray-500 mb-0.5">{t(q.textKey)}</p>
                               <p className="text-sm font-medium text-gray-800">
-                                {getAnswerLabel(q, answers[q.id], t)}
+                                {getAnswerLabel(q, answers[q.id], t, translateTag)}
                               </p>
                             </div>
                           ))}

@@ -11,6 +11,12 @@ import type { SFQuestion, SFAnswers, SectorValue, LifeStageValue } from '@/compo
 
 import heSfDict from '@/dictionaries/soul-fingerprint/he.json';
 import enSfDict from '@/dictionaries/soul-fingerprint/en.json';
+import {
+  buildOptionTranslationMap,
+  createTagTranslator,
+  COMPUTED_TAG_TRANSLATIONS_HE,
+  COMPUTED_TAG_TRANSLATIONS_EN,
+} from '@/components/soul-fingerprint/tagTranslation';
 
 // --- Translation helper ---
 function getNestedValue(obj: Record<string, unknown>, path: string, gender?: string | null): string {
@@ -34,8 +40,10 @@ function getNestedValue(obj: Record<string, unknown>, path: string, gender?: str
   return path;
 }
 
-function getAnswerLabel(question: SFQuestion, answer: string | string[] | number | null, t: (key: string) => string): string {
+function getAnswerLabel(question: SFQuestion, answer: string | string[] | number | null, t: (key: string) => string, translateTag?: (tag: string) => string): string {
   if (answer === null || answer === undefined || answer === '') return '';
+
+  const fallback = (v: string) => translateTag ? translateTag(v) : v;
 
   if (question.type === 'slider') return String(answer);
   if (question.type === 'openText') return String(answer);
@@ -43,7 +51,7 @@ function getAnswerLabel(question: SFQuestion, answer: string | string[] | number
   if (question.type === 'singleChoice' && typeof answer === 'string') {
     const option = question.options?.find((o) => o.value === answer);
     if (option) return t(option.labelKey);
-    return answer;
+    return fallback(answer);
   }
 
   if (question.type === 'multiSelect' && Array.isArray(answer)) {
@@ -51,7 +59,7 @@ function getAnswerLabel(question: SFQuestion, answer: string | string[] | number
       .map((val) => {
         const option = question.options?.find((o) => o.value === val);
         if (option) return t(option.labelKey);
-        return val;
+        return fallback(val);
       })
       .join(', ');
   }
@@ -259,6 +267,13 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
     return (key: string) => getNestedValue(dict, key, gender);
   }, [locale, gender]);
 
+  const translateTag = useMemo(() => {
+    const dict = (locale === 'he' ? heSfDict : enSfDict) as Record<string, unknown>;
+    const optionMap = buildOptionTranslationMap(dict, gender as 'MALE' | 'FEMALE' | null);
+    const computedMap = locale === 'he' ? COMPUTED_TAG_TRANSLATIONS_HE : COMPUTED_TAG_TRANSLATIONS_EN;
+    return createTagTranslator(optionMap, computedMap);
+  }, [locale, gender]);
+
   const sectionTitles = locale === 'he' ? SECTION_TITLES_HE : SECTION_TITLES_EN;
 
   const sectionData = useMemo(() => {
@@ -283,13 +298,13 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
         const chipLabels = isMulti
           ? (answers[q.id] as string[]).map((val) => {
               const opt = q.options?.find((o) => o.value === val);
-              return opt ? t(opt.labelKey) : val;
+              return opt ? t(opt.labelKey) : translateTag(val);
             })
           : undefined;
 
         return {
           questionText: t(q.textKey),
-          answerText: getAnswerLabel(q, answers[q.id], t),
+          answerText: getAnswerLabel(q, answers[q.id], t, translateTag),
           sectionId: section.id,
           isSlider: q.type === 'slider',
           sliderValue: q.type === 'slider' ? Number(answers[q.id]) : undefined,
@@ -323,7 +338,7 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
     }
 
     return result;
-  }, [answers, sectionIds, sectorGroup, sector, lifeStage, gender, t, sectionTitles, selfOnly, partnerOnly]);
+  }, [answers, sectionIds, sectorGroup, sector, lifeStage, gender, t, translateTag, sectionTitles, selfOnly, partnerOnly]);
 
   // Anchor data labels
   const anchorLabels = useMemo(() => {

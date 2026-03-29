@@ -130,6 +130,14 @@ module.exports = {
           '60%': { transform: 'translateX(-3px)' },
           '80%': { transform: 'translateX(3px)' },
         },
+        'confetti-fall': {
+          '0%': { transform: 'translateY(0) translateX(0)', opacity: '1' },
+          '100%': { transform: 'translateY(100vh) translateX(var(--confetti-drift, 20px))', opacity: '0' },
+        },
+        'confetti-spin': {
+          '0%': { transform: 'rotateX(0) rotateY(0)' },
+          '100%': { transform: 'rotateX(360deg) rotateY(180deg)' },
+        },
         // ==========================================================
       },
       animation: {
@@ -145,6 +153,8 @@ module.exports = {
         'accordion-up': 'accordion-up 300ms ease-in',
         // ================== אנימציית הרקע שהוספנו ==================
         shimmer: 'shimmer 1.5s ease-in-out infinite',
+        'confetti-fall': 'confetti-fall 3s ease-in forwards',
+        'confetti-spin': 'confetti-spin 1s linear infinite',
         // ==========================================================
       },
       // ================== הקטע החדש שהוספנו ==================

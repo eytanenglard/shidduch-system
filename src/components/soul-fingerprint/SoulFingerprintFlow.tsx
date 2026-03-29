@@ -471,6 +471,7 @@ export default function SoulFingerprintFlow({
                   answer={state.answers[question.id] as string | string[] | number | null}
                   onExpand={() => handleExpand(question.id)}
                   t={t}
+                  translateTag={translateTag}
                   isRTL={isRTL}
                 />
               );

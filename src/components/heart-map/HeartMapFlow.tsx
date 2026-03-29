@@ -7,11 +7,12 @@ import SelfPartnerTabs from '@/components/soul-fingerprint/components/SelfPartne
 import NavigationButtons from '@/components/soul-fingerprint/components/NavigationButtons';
 import AccordionQuestion from './AccordionQuestion';
 import HeartMapSectionReminder from './HeartMapSectionReminder';
+import FinishLineMode from './FinishLineMode';
 import type { SFAnswers } from '@/components/soul-fingerprint/types';
 import { deriveTagsFromAnswers, derivePartnerTagsFromAnswers, isQuestionVisible } from '@/components/soul-fingerprint/types';
 import { SF_SECTIONS } from '@/components/soul-fingerprint/questions';
 import type { GuestHeartMapData } from './hooks/useGuestAnswers';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, Trophy } from 'lucide-react';
 
 interface Props {
   gender: 'MALE' | 'FEMALE';
@@ -19,6 +20,7 @@ interface Props {
   locale: string;
   t: (key: string) => string;
   tHm: (key: string) => string;
+  translateTag: (tag: string) => string;
   saveToLocalStorage: (data: GuestHeartMapData) => void;
   onComplete: (answers: SFAnswers) => void;
   onBack: () => void;
@@ -31,6 +33,7 @@ export default function HeartMapFlow({
   locale,
   t,
   tHm,
+  translateTag,
   saveToLocalStorage,
   onComplete,
   onBack,
@@ -42,6 +45,7 @@ export default function HeartMapFlow({
   const [partnerTransition, setPartnerTransition] = useState(false);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [showValidation, setShowValidation] = useState(false);
+  const [finishLineMode, setFinishLineMode] = useState(false);
 
   // Swipe detection refs
   const touchStartX = useRef<number | null>(null);
@@ -105,6 +109,25 @@ export default function HeartMapFlow({
     saveNow,
     totalSections,
   } = useSoulFingerprint(gender, initialData, { customSaveFn });
+
+  // Count ALL unanswered required questions across ALL sections
+  const globalUnansweredCount = useMemo(() => {
+    let count = 0;
+    for (const section of SF_SECTIONS) {
+      for (const q of section.questions) {
+        if (!isQuestionVisible(q, state.answers, state.sectorGroup, state.sector, state.lifeStage, gender)) continue;
+        if (q.isOptional) continue;
+        const ans = state.answers[q.id];
+        if (ans === null || ans === undefined || ans === '' || (Array.isArray(ans) && ans.length === 0)) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }, [state.answers, state.sectorGroup, state.sector, state.lifeStage, gender]);
+
+  const FINISH_LINE_THRESHOLD = 15;
+  const showFinishLineBanner = globalUnansweredCount > 0 && globalUnansweredCount <= FINISH_LINE_THRESHOLD && !finishLineMode;
 
   // Reset active question to first unanswered when section/tab changes
   useEffect(() => {
@@ -319,6 +342,29 @@ export default function HeartMapFlow({
     }
   }, [isRTL, hasUnansweredRequired, handleNext, handleBack]);
 
+  // Finish Line mode — show all remaining unanswered in one view
+  if (finishLineMode) {
+    return (
+      <FinishLineMode
+        answers={state.answers}
+        gender={gender}
+        sectorGroup={state.sectorGroup}
+        sector={state.sector}
+        lifeStage={state.lifeStage}
+        onAnswer={setAnswer}
+        onExit={() => setFinishLineMode(false)}
+        onComplete={() => {
+          saveNow().then(() => {
+            onComplete(state.answers);
+          });
+        }}
+        t={t}
+        translateTag={translateTag}
+        isRTL={isRTL}
+      />
+    );
+  }
+
   // Partner transition overlay
   if (partnerTransition) {
     return (
@@ -434,6 +480,7 @@ export default function HeartMapFlow({
               answers={state.answers}
               onAnswer={setAnswer}
               t={t}
+              translateTag={translateTag}
               isRTL={isRTL}
               isActive={activeQuestionIndex === index}
               isAnswered={isQuestionAnswered(question.id)}
@@ -466,6 +513,39 @@ export default function HeartMapFlow({
           </div>
         )}
 
+        {/* Finish Line banner — appears when < 15 questions remain globally */}
+        {showFinishLineBanner && (
+          <button
+            onClick={() => setFinishLineMode(true)}
+            className="w-full mt-6 mb-2 group"
+            type="button"
+          >
+            <div className="relative overflow-hidden bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-200 rounded-2xl p-4 transition-all duration-300 hover:border-amber-300 hover:shadow-md">
+              <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                  <Trophy className="w-5 h-5 text-white" />
+                </div>
+                <div className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <p className="text-sm font-bold text-amber-800">
+                    {t('finishLine.bannerTitle').replace('{{count}}', String(globalUnansweredCount))}
+                  </p>
+                  <p className="text-xs text-amber-600 mt-0.5">
+                    {t('finishLine.bannerSubtitle')}
+                  </p>
+                </div>
+                <svg
+                  className={`w-5 h-5 text-amber-400 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-200 ${isRTL ? 'rotate-180 group-hover:-translate-x-1' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </button>
+        )}
+
         {/* Navigation */}
         <NavigationButtons
           onNext={handleNext}
@@ -493,6 +573,8 @@ export default function HeartMapFlow({
         onContinue={handleReminderContinue}
         nextSectionInfo={nextSectionInfo}
         t={t}
+        completedSectionAnswered={answeredCount}
+        completedSectionTotal={currentQuestions.length}
       />
     </>
   );

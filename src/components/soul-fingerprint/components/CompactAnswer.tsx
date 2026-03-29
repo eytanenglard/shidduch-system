@@ -8,27 +8,31 @@ interface CompactAnswerProps {
   answer: string | string[] | number | null;
   onExpand: () => void;
   t: (key: string) => string;
+  translateTag?: (tag: string) => string;
   isRTL: boolean;
 }
 
 function getAnswerPreview(
   question: SFQuestion,
   answer: string | string[] | number | null,
-  t: (key: string) => string
+  t: (key: string) => string,
+  translateTag?: (tag: string) => string
 ): string {
   if (answer === null || answer === undefined || answer === '') return '';
+
+  const fallback = (v: string) => translateTag ? translateTag(v) : v;
 
   switch (question.type) {
     case 'singleChoice': {
       const opt = question.options?.find((o) => o.value === answer);
-      return opt ? t(opt.labelKey) : String(answer);
+      return opt ? t(opt.labelKey) : fallback(String(answer));
     }
     case 'multiSelect': {
-      if (!Array.isArray(answer)) return String(answer);
+      if (!Array.isArray(answer)) return fallback(String(answer));
       return answer
         .map((v) => {
           const opt = question.options?.find((o) => o.value === v);
-          return opt ? t(opt.labelKey) : v;
+          return opt ? t(opt.labelKey) : fallback(v);
         })
         .join(', ');
     }
@@ -59,9 +63,10 @@ export default function CompactAnswer({
   answer,
   onExpand,
   t,
+  translateTag,
   isRTL,
 }: CompactAnswerProps) {
-  const preview = getAnswerPreview(question, answer, t);
+  const preview = getAnswerPreview(question, answer, t, translateTag);
 
   return (
     <motion.button

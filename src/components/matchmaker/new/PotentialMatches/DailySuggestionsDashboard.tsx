@@ -460,7 +460,11 @@ const SuggestionRow: React.FC<{
 // MAIN COMPONENT
 // =============================================================================
 
-export default function DailySuggestionsDashboard() {
+interface DailySuggestionsDashboardProps {
+  onViewUser?: (userId: string) => void;
+}
+
+export default function DailySuggestionsDashboard({ onViewUser: onViewUserProp }: DailySuggestionsDashboardProps) {
   const [suggestions, setSuggestions] = useState<DailySuggestionItem[]>([]);
   const [stats, setStats] = useState<DailySuggestionsStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -544,8 +548,10 @@ export default function DailySuggestionsDashboard() {
 
   // Navigate to user profile
   const handleViewUser = useCallback((userId: string) => {
-    window.open(`/matchmaker/candidates/${userId}`, '_blank');
-  }, []);
+    if (onViewUserProp) {
+      onViewUserProp(userId);
+    }
+  }, [onViewUserProp]);
 
   // ===== Personal Mode: Search users =====
   const handlePersonalSearch = useCallback(async (query: string) => {
