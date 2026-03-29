@@ -200,6 +200,12 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 relative">
+                  {/* Candidate counter badge */}
+                  {isGeneralChat && candidateCounter && candidateCounter.total > 0 && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/20 text-white/90 font-medium backdrop-blur-sm border border-emerald-300/30">
+                      {candidateCounter.shown}/{candidateCounter.total} {isHebrew ? 'התאמות' : 'matches'}
+                    </span>
+                  )}
                   {/* Weekly usage badge */}
                   {isGeneralChat && weeklyUsage && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90 font-medium backdrop-blur-sm">

@@ -97,6 +97,31 @@ export interface CandidatesFilter {
   maleFilters?: Partial<CandidatesFilter>;
   femaleFilters?: Partial<CandidatesFilter>;
   userStatus?: UserStatus;
+
+  // Advanced search
+  advancedSearchQuery?: string;
+  searchInAbout?: boolean;
+  searchInPartnerPrefs?: boolean;
+  searchInMatchmakerNotes?: boolean;
+
+  // Profile filters
+  readinessLevel?: string;
+  profileCompletenessMin?: number;
+  smokingStatus?: string;
+  headCovering?: string;
+  kippahType?: string;
+  hasChildrenFromPrevious?: boolean;
+
+  // Engagement filters
+  suggestionsReceivedMin?: number;
+  suggestionsReceivedMax?: number;
+  suggestionsAcceptedMin?: number;
+  lastScannedDays?: number;
+  lastSuggestedDays?: number;
+  impressionScoreMin?: number;
+  impressionScoreMax?: number;
+  difficultyScoreMin?: number;
+  difficultyScoreMax?: number;
 }
 
 // ViewMode and Action Types - אלה נשארים כמו שהם

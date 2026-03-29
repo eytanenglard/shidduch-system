@@ -737,6 +737,8 @@ export const authOptions: NextAuthOptions = {
           typedToken.lastLogin = dbUserForJwt.lastLogin;
           typedToken.neshamaInsightLastGeneratedAt = dbUserForJwt.neshamaInsightLastGeneratedAt;
           typedToken.neshamaInsightGeneratedCount = dbUserForJwt.neshamaInsightGeneratedCount;
+          typedToken.shidduchCardLastGeneratedAt = dbUserForJwt.shidduchCardLastGeneratedAt;
+          typedToken.shidduchCardGeneratedCount = dbUserForJwt.shidduchCardGeneratedCount;
 
           const questionnaireStatus = await prisma.questionnaireResponse.findFirst({
             where: { userId: typedToken.id },
@@ -861,6 +863,12 @@ export const authOptions: NextAuthOptions = {
         typedSession.user.engagementEmailsConsent = typedToken.engagementEmailsConsent;
         typedSession.user.promotionalEmailsConsent = typedToken.promotionalEmailsConsent;
         typedSession.user.language = typedToken.language;
+        typedSession.user.neshamaInsightLastGeneratedAt = typedToken.neshamaInsightLastGeneratedAt as string | null;
+        typedSession.user.neshamaInsightGeneratedCount = typedToken.neshamaInsightGeneratedCount;
+        typedSession.user.neshamaInsightData = typedToken.neshamaInsightData as Record<string, unknown> | null;
+        typedSession.user.shidduchCardLastGeneratedAt = typedToken.shidduchCardLastGeneratedAt as string | null;
+        typedSession.user.shidduchCardGeneratedCount = typedToken.shidduchCardGeneratedCount;
+        typedSession.user.shidduchCardData = typedToken.shidduchCardData as Record<string, unknown> | null;
 
         if (typedToken.profile) {
           typedSession.user.profile = typedToken.profile;

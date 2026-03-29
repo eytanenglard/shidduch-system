@@ -27,6 +27,7 @@ const ConnectionTab: React.FC = () => {
     WORLDS,
     partnerContent,
     sfAnswers,
+    sfUpdatedAt,
     hasAnyPreferences,
     maritalStatusMap,
     religiousLevelMap,
@@ -133,6 +134,7 @@ const ConnectionTab: React.FC = () => {
               locale={locale}
               direction={direction}
               partnerOnly
+              sfUpdatedAt={sfUpdatedAt}
             />
           </>
         )}

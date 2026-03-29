@@ -188,18 +188,24 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
   );
 
   return (
-    <Card className={cn('border-0 shadow-lg overflow-hidden', className)}>
-      <CardContent className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          {/* Header Icon: Teal Gradient */}
-          <div className="p-2 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md">
+    <Card className={cn('border border-gray-100/80 shadow-lg overflow-hidden relative', className)}>
+      {/* Decorative orb */}
+      <div className="absolute -top-10 -end-10 w-40 h-40 rounded-full bg-teal-400/5 blur-3xl pointer-events-none" />
+      <CardContent className="p-6 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-center gap-3 mb-6"
+        >
+          <div className="p-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg shadow-teal-500/25">
             <Clock className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-xl font-bold text-gray-800">{dict.title}</h3>
-            <p className="text-sm text-gray-600">{dict.subtitle}</p>
+            <p className="text-sm text-gray-500">{dict.subtitle}</p>
           </div>
-        </div>
+        </motion.div>
         <div className="space-y-6">
           {sortedHistory.map((item, index) => {
             const statusKey = item.status as MatchSuggestionStatus;
@@ -210,7 +216,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
             const statusVisuals = getStatusVisuals(statusKey);
             const isLatest = index === 0;
             const isLast = index === sortedHistory.length - 1;
-           
+
          const dateFnsLocale = locale === 'he' ? he : enUS;
         const dateFormat = locale === 'he' ? 'dd בMMMM yyyy' : 'MMMM dd, yyyy';
 
@@ -219,23 +225,30 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
           dateFormat,
           { locale: dateFnsLocale }
         );
-        
+
         const formattedTime = format(new Date(item.createdAt), 'HH:mm', {
           locale: dateFnsLocale,
         });
 
             return (
-              <div key={item.id} className="flex gap-4">
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="flex gap-4"
+              >
                 <TimelineNode
                   IconComponent={statusVisuals.icon}
                   isLatest={isLatest}
                   isLast={isLast}
                   category={statusVisuals.category}
+                  index={index}
                 />
                 <div className="flex-1 pb-4">
                   <Card
                     className={cn(
-                      'border-2 transition-all duration-300 hover:shadow-md',
+                      'border-2 transition-all duration-300 hover:shadow-md bg-white/90 backdrop-blur-sm',
                       getCategoryColor(statusVisuals.category),
                       isLatest && 'shadow-md'
                     )}
@@ -271,7 +284,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                         </div>
                       </div>
                       {item.notes && (
-                        <div className="mt-3 p-3 bg-white/60 backdrop-blur-sm rounded-lg border border-white/40">
+                        <div className="mt-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/40">
                           <div className="flex items-start gap-2">
                             <MessageCircle className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
                             <p className="text-sm text-gray-700 leading-relaxed">
@@ -283,14 +296,18 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                     </CardContent>
                   </Card>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
-        <div className="mt-8 pt-6 border-t border-gray-200">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: sortedHistory.length * 0.1 + 0.2 }}
+          className="mt-8 pt-6 border-t border-gray-100"
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            {/* Stats Colors Updated */}
-            <div className="space-y-1">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-teal-50 to-emerald-50/50 border border-teal-100/60">
               <div className="text-2xl font-bold text-teal-600">
                 {sortedHistory.length}
               </div>
@@ -298,7 +315,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                 {dict.summary.totalSteps}
               </div>
             </div>
-            <div className="space-y-1">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50/50 border border-emerald-100/60">
               <div className="text-2xl font-bold text-emerald-600">
                 {differenceInCalendarDays(
                   new Date(),
@@ -309,7 +326,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                 {dict.summary.activeDays}
               </div>
             </div>
-            <div className="space-y-1">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-sky-50/50 border border-blue-100/60">
               <div className="text-2xl font-bold text-blue-600">
                 {
                   sortedHistory.filter((s) => s.status.includes('APPROVED'))
@@ -320,7 +337,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
                 {dict.summary.approvals}
               </div>
             </div>
-            <div className="space-y-1">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50/50 border border-amber-100/60">
               <div className="text-2xl font-bold text-amber-600">
                 {latestStatusVisuals.category === 'completed'
                   ? '🎉'
@@ -335,7 +352,7 @@ const SuggestionTimeline: React.FC<SuggestionTimelineProps> = ({
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </CardContent>
     </Card>
   );

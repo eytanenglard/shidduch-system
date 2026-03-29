@@ -21,6 +21,9 @@ import {
 // --- Custom Hooks ---
 import { useCandidates } from '../hooks/useCandidates';
 import { useFilterLogic } from '../hooks/useFilterLogic';
+import { useSmartSegments } from '../hooks/useSmartSegments';
+import { useSimilarCandidates } from '../hooks/useSimilarCandidates';
+import { useBulkProfileUpdate } from '../hooks/useBulkProfileUpdate';
 
 // --- Zustand Stores ---
 import { useCandidateUIStore, useAiMatchingStore } from '../stores';
@@ -35,6 +38,8 @@ import FilterPanel from '../Filters/FilterPanel';
 import QuickFilterBar from '../Filters/QuickFilterBar';
 import { LoadingContainer } from '../shared/LoadingStates';
 import BulkActionToolbar from '../shared/BulkActionToolbar';
+import KeyboardShortcutsDialog from '../shared/KeyboardShortcutsDialog';
+import CandidateComparisonDialog from '../shared/CandidateComparisonDialog';
 import { BulkSuggestionsProvider } from '@/app/[locale]/contexts/BulkSuggestionsContext';
 
 // --- Types ---
@@ -148,6 +153,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     updateMaleSearchQuery,
     updateFemaleSearchQuery,
     removeFilter,
+    loadSavedFilter,
   } = useFilterLogic({ onFilterChange: setCandidatesFilters });
 
   // --- Derived State ---
@@ -173,9 +179,11 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     const female = candidates.filter((c) => c.profile.gender === 'FEMALE').length;
     const verified = candidates.filter((c) => c.isVerified).length;
     const activeToday = candidates.filter((c) => {
-      const lastActive = new Date(c.createdAt);
-      const today = new Date();
-      return (today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24) <= 7;
+      const lastActive = c.profile.lastActiveAt
+        ? new Date(c.profile.lastActiveAt).getTime()
+        : new Date(c.createdAt).getTime();
+      const now = Date.now();
+      return (now - lastActive) / (1000 * 60 * 60 * 24) <= 1;
     }).length;
     const loadedCount = candidates.length || 1;
     const profilesComplete =
@@ -188,58 +196,19 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     return { total, male, female, verified, activeToday, profilesComplete };
   }, [candidates, pagination.total]);
 
-  // --- Smart Segments (computed from loaded candidates) ---
-  const smartSegments = useMemo(() => {
-    const now = Date.now();
-    const oneWeek = 7 * 24 * 60 * 60 * 1000;
-    const oneDay = 24 * 60 * 60 * 1000;
-
-    return {
-      newThisWeek: candidates.filter(
-        (c) => now - new Date(c.createdAt).getTime() <= oneWeek
-      ).length,
-      waitingForSuggestion: candidates.filter(
-        (c) => !c.suggestionStatus && c.isProfileComplete && c.profile.availabilityStatus === 'AVAILABLE'
-      ).length,
-      incompleteProfile: candidates.filter(
-        (c) => !c.isProfileComplete
-      ).length,
-      activeToday: candidates.filter((c) => {
-        const lastActive = c.profile.lastActiveAt
-          ? new Date(c.profile.lastActiveAt).getTime()
-          : new Date(c.createdAt).getTime();
-        return now - lastActive <= oneDay;
-      }).length,
-    };
-  }, [candidates]);
-
-  const [activeSmartSegment, setActiveSmartSegment] = useState<string | null>(null);
-
-  const handleSmartSegmentClick = useCallback((segment: string) => {
-    if (activeSmartSegment === segment) {
-      setActiveSmartSegment(null);
-      resetFilters();
-      return;
-    }
-    setActiveSmartSegment(segment);
-    switch (segment) {
-      case 'newThisWeek':
-        setFilters({ lastActiveDays: 7 });
-        break;
-      case 'waitingForSuggestion':
-        setFilters({ hasNoSuggestions: true, availabilityStatus: 'AVAILABLE', isProfileComplete: true });
-        break;
-      case 'incompleteProfile':
-        setFilters({ isProfileComplete: false });
-        break;
-      case 'activeToday':
-        setFilters({ lastActiveDays: 1 });
-        break;
-    }
-  }, [activeSmartSegment, resetFilters, setFilters]);
+  // --- Smart Segments ---
+  const { smartSegments, activeSmartSegment, handleSmartSegmentClick } = useSmartSegments({
+    candidates,
+    setFilters,
+    resetFilters,
+  });
 
   // --- Pending AI Target (for confirmation dialog) ---
   const [pendingAiTarget, setPendingAiTarget] = useState<Candidate | null>(null);
+
+  // --- Bulk Update Confirmation ---
+  const [showBulkUpdateConfirm, setShowBulkUpdateConfirm] = useState(false);
+  const [showComparisonDialog, setShowComparisonDialog] = useState(false);
 
   // --- System-wide stats (unfiltered, fetched once on mount) ---
   const [systemStats, setSystemStats] = useState<{
@@ -366,51 +335,15 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     []
   );
 
-  // --- Show Similar Candidates ---
-  const [similarCandidateIds, setSimilarCandidateIds] = useState<Set<string> | null>(null);
-
-  const handleShowSimilar = useCallback(
-    async (candidate: Candidate, e: React.MouseEvent) => {
-      e.stopPropagation();
-      const toastId = toast.loading(`מחפש מועמדים דומים ל${candidate.firstName}...`);
-      try {
-        const res = await fetch(`/api/matchmaker/candidates/similar?userId=${candidate.id}`);
-        const data = await res.json();
-        if (data.success && data.similarIds?.length > 0) {
-          setSimilarCandidateIds(new Set(data.similarIds));
-          toast.success(t.similarFound.replace('{{count}}', String(data.similarIds.length)).replace('{{name}}', candidate.firstName), {
-            id: toastId,
-            duration: 4000,
-            action: {
-              label: 'נקה סינון',
-              onClick: () => setSimilarCandidateIds(null),
-            },
-          });
-        } else {
-          toast.info(t.noSimilarFound, { id: toastId });
-        }
-      } catch {
-        toast.error(t.similarError, { id: toastId });
-      }
-    },
-    [t]
-  );
-
-  // Apply similar filter to candidates
-  const displayCandidates = useMemo(() => {
-    if (!similarCandidateIds) return candidates;
-    return candidates.filter((c) => similarCandidateIds.has(c.id));
-  }, [candidates, similarCandidateIds]);
-
-  const displayMaleCandidates = useMemo(() => {
-    if (!similarCandidateIds) return maleCandidates;
-    return maleCandidates.filter((c) => similarCandidateIds.has(c.id));
-  }, [maleCandidates, similarCandidateIds]);
-
-  const displayFemaleCandidates = useMemo(() => {
-    if (!similarCandidateIds) return femaleCandidates;
-    return femaleCandidates.filter((c) => similarCandidateIds.has(c.id));
-  }, [femaleCandidates, similarCandidateIds]);
+  // --- Similar Candidates ---
+  const {
+    similarCandidateIds,
+    handleShowSimilar,
+    clearSimilar,
+    displayCandidates,
+    displayMaleCandidates,
+    displayFemaleCandidates,
+  } = useSimilarCandidates(candidates, maleCandidates, femaleCandidates, t);
 
   const handleFilterSave = useCallback(
     async (name: string) => {
@@ -511,75 +444,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     [setAiTarget, t]
   );
 
-  const handleUpdateAllProfiles = useCallback(async () => {
-    if (
-      !confirm(
-        'פעולה זו תפעיל את ה-AI על כל המועמדים במערכת. זה עשוי לקחת מספר דקות. האם להמשיך?'
-      )
-    )
-      return;
-
-    setIsBulkUpdating(true);
-    const toastId = toast.loading('מאתחל תהליך עדכון...', {
-      duration: Infinity,
-    });
-
-    try {
-      const resetRes = await fetch('/api/ai/matchmaker/batch-process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'RESET_FLAGS' }),
-      });
-
-      if (!resetRes.ok) throw new Error('Failed to start process');
-      const resetData = await resetRes.json();
-      const totalToProcess = resetData.count;
-      let processedSoFar = 0;
-
-      toast.message(
-        `נמצאו ${totalToProcess} פרופילים לעדכון. מתחיל עיבוד...`,
-        { id: toastId }
-      );
-
-      let completed = false;
-
-      while (!completed) {
-        const batchRes = await fetch('/api/ai/matchmaker/batch-process', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'PROCESS_BATCH', batchSize: 4 }),
-        });
-
-        if (!batchRes.ok) throw new Error('Error during batch processing');
-
-        const batchData = await batchRes.json();
-        processedSoFar += batchData.processed;
-        const percent = Math.round((processedSoFar / totalToProcess) * 100);
-
-        toast.loading(
-          `מעבד פרופילים... ${percent}% (${processedSoFar}/${totalToProcess})`,
-          { id: toastId }
-        );
-
-        if (batchData.completed || batchData.remaining === 0) {
-          completed = true;
-        }
-      }
-
-      toast.success(t.bulkUpdateSuccess, {
-        id: toastId,
-        duration: 4000,
-      });
-      refresh();
-    } catch {
-      toast.error(t.bulkUpdateError, {
-        id: toastId,
-        duration: 4000,
-      });
-    } finally {
-      setIsBulkUpdating(false);
-    }
-  }, [refresh, setIsBulkUpdating]);
+  // --- Bulk Profile Update ---
+  const { handleUpdateAllProfiles } = useBulkProfileUpdate(refresh, setIsBulkUpdating, t);
 
   const direction = locale === 'he' ? 'rtl' : 'ltr';
 
@@ -597,7 +463,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
           onCardImport={() => openDialog('cardImport')}
           onRefresh={refresh}
           isRefreshing={loading}
-          onBulkUpdate={handleUpdateAllProfiles}
+          onBulkUpdate={() => setShowBulkUpdateConfirm(true)}
           isBulkUpdating={isBulkUpdating}
           isAdmin={isAdmin}
           isCompact={isHeaderCompact}
@@ -637,6 +503,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             showFiltersMobile={showFiltersMobile}
             onSetFiltersMobile={setShowFiltersMobile}
             matchmakerTags={matchmakerTags}
+            onLoadPreset={loadSavedFilter}
             locale={locale}
             dict={matchmakerDict}
           />
@@ -707,7 +574,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                 </span>
               </div>
               <button
-                onClick={() => setSimilarCandidateIds(null)}
+                onClick={clearSimilar}
                 className="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-3 py-1 rounded-md hover:bg-indigo-100 transition-colors"
               >
                 נקה סינון
@@ -818,13 +685,29 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             exportCandidates(selectedCandidates, candidatesFilters);
             clearSelection();
           }}
+          onBulkTag={() => {
+            toast.info(`תיוג ${selectedIds.size} מועמדים — פיצ'ר בפיתוח`);
+          }}
+          onBulkStatusChange={() => {
+            toast.info(`שינוי סטטוס ל-${selectedIds.size} מועמדים — פיצ'ר בפיתוח`);
+          }}
+        />
+
+        {/* Keyboard Shortcuts Help */}
+        <KeyboardShortcutsDialog />
+
+        {/* Side-by-side Comparison Dialog */}
+        <CandidateComparisonDialog
+          open={showComparisonDialog}
+          onOpenChange={setShowComparisonDialog}
+          candidates={Object.values(comparisonSelection)}
         />
 
         {/* Comparison Floating Bar */}
         <ComparisonFloatingBar
           aiTargetCandidate={aiTargetCandidate}
           comparisonSelection={comparisonSelection}
-          onOpenAnalysis={() => openDialog('analysis')}
+          onOpenAnalysis={() => setShowComparisonDialog(true)}
           onOpenBulkSuggestions={() => openDialog('bulkSuggestions')}
           onClearComparison={clearComparison}
           compareButtonLabel={
@@ -852,6 +735,27 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             <AlertDialogFooter className="flex-row-reverse gap-2">
               <AlertDialogAction onClick={handleConfirmAiTargetSwitch}>
                 כן, החלף
+              </AlertDialogAction>
+              <AlertDialogCancel>ביטול</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Bulk Update Confirmation */}
+        <AlertDialog
+          open={showBulkUpdateConfirm}
+          onOpenChange={setShowBulkUpdateConfirm}
+        >
+          <AlertDialogContent className="text-right" dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>עדכון כל הפרופילים</AlertDialogTitle>
+              <AlertDialogDescription>
+                פעולה זו תפעיל את ה-AI על כל המועמדים במערכת. זה עשוי לקחת מספר דקות. האם להמשיך?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogAction onClick={() => { setShowBulkUpdateConfirm(false); handleUpdateAllProfiles(); }}>
+                כן, המשך
               </AlertDialogAction>
               <AlertDialogCancel>ביטול</AlertDialogCancel>
             </AlertDialogFooter>

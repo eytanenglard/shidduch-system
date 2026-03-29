@@ -102,6 +102,11 @@ model User {
   neshamaInsightGeneratedCount  Int       @default(0)
   neshamaInsightData            Json?
 
+  // === Shidduch Card ===
+  shidduchCardLastGeneratedAt DateTime?
+  shidduchCardGeneratedCount  Int       @default(0)
+  shidduchCardData            Json?
+
   // === Premium ===
   premiumTier      String?   @default("free") // free | basic | premium
   premiumExpiresAt DateTime?

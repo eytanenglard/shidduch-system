@@ -28,6 +28,7 @@ import type { Dictionary } from '@/types/dictionary';
 import { generateDemoData } from './components/demo-data';
 import NeshmaInsightSectionB from './sections/NeshmaInsightSectionB';
 import HeartMapCTASection from './sections/HeartMapCTASection';
+import ShidduchCardCTASection from './sections/ShidduchCardCTASection';
 import SocialProofBar from './components/SocialProofBar';
 
 type DemoData = Awaited<ReturnType<typeof generateDemoData>>;
@@ -172,6 +173,8 @@ export default function HomePage({ dict, demoData, locale }: HomePageProps) {
       <HeartMapCTASection dict={dict.heartMapCTA} locale={locale} />
 
       <NeshmaInsightSectionB locale={locale} dict={dict.neshmaInsight} session={session} />
+
+      <ShidduchCardCTASection dict={dict.shidduchCardCTA} locale={locale} />
 
       <OurMethodSection dict={dict.ourMethod} />
 

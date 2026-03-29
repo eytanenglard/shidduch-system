@@ -682,7 +682,8 @@
           "setAsAiTarget": "בחר כמטרה לחיפוש AI",
           "clearAiTarget": "בטל בחירת מטרה",
           "aiAnalysis": "הצג ניתוח פרופיל AI",
-          "whatsapp": "שלח וואטסאפ"
+          "whatsapp": "שלח וואטסאפ",
+          "whatsappMessage": "היי {{name}} 👋\n\nזה איתן מנשמהטק.\n\nעברתי על הפרופיל שלך ויש לי רעיון שאולי יתאים לך.\n\nבלי שום לחץ - רוצה לשמוע? 🙂\n\n🌐 https://neshamatech.com\n📘 https://www.facebook.com/profile.php?id=61584869664974"
         },
         "hasTestimonials": "{{count}} המלצות",
         "testimonialsTooltip": "למועמד/ת זה/זו יש המלצות מאושרות",

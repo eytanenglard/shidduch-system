@@ -31,6 +31,18 @@
       },
       "preview": "זה בדיוק מה שהצד השני יראה - כשתישלח אליו ההצעה על ידי השדכן"
     },
+    "shidduchCardButton": {
+      "buttonText": "כרטיס השידוכים שלך מוכן!",
+      "buttonSubtitle": "קבלו כרטיס שידוכים מסודר שתוכלו לשלוח לשדכנים, חברים וכל מי שמציע הצעות.",
+      "dialogTitle": "כרטיס השידוכים שלי",
+      "generating": "יוצר את כרטיס השידוכים...",
+      "close": "סגור",
+      "lockedTitle": "כרטיס שידוכים - נעול",
+      "lockedDescription": "יש למלא את מפת הלב כדי ליצור כרטיס שידוכים",
+      "minimizedButtonText": "כרטיס השידוכים שלי",
+      "nextCardIn": "כרטיס חדש בעוד {{days}} ימים",
+      "nextCardTomorrow": "כרטיס חדש מחר"
+    },
     "neshmaInsightButton": {
       "buttonText": "✨ התמונה המלאה שלך מוכנה!",
       "buttonSubtitle": "קבלו ניתוח מעמיק של מי שאתם, יחד עם טיפים מותאמים אישית לשיפור הפרופיל.",
@@ -54,6 +66,26 @@
         "statusPartial": "חלקי",
         "statusMissing": "חסר"
       }
+    },
+    "shidduchCardButton": {
+      "buttonText": "כרטיס השידוכים שלך",
+      "buttonSubtitle": "קבל כרטיס מסודר עם כל מה שצריך לדעת עליך — מוכן לשליחה לשדכנים וחברים",
+      "dialogTitle": "כרטיס השידוכים שלך",
+      "generating": "יוצרים את הכרטיס שלך...",
+      "close": "סגור",
+      "copyAll": "העתק כרטיס",
+      "copied": "הועתק!",
+      "lockedTitle": "כרטיס שידוכים — נעול",
+      "lockedDescription": "השלם את הפרופיל ל-50% כדי ליצור כרטיס (כרגע: {{percentage}}%)",
+      "minimizedButtonText": "כרטיס השידוכים שלי",
+      "nextCardIn": "כרטיס חדש בעוד {{days}} ימים",
+      "nextCardTomorrow": "כרטיס חדש מחר",
+      "alreadyGenerated": "ניתן ליצור כרטיס חדש פעם בשלושה ימים",
+      "aboutMeTitle": "קצת עליי",
+      "lookingForTitle": "מה אני מחפש/ת",
+      "lifestyleTitle": "סגנון חיים",
+      "strengthsTitle": "חוזקות",
+      "coreValuesTitle": "ערכים מרכזיים"
     },
     "checklist": {
       "welcome": "היי {{firstName}}, ברוך הבא!",

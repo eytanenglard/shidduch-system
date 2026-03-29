@@ -683,7 +683,8 @@
           "setAsAiTarget": "Set as AI Search Target",
           "clearAiTarget": "Clear AI Target",
           "aiAnalysis": "Show AI Profile Analysis",
-          "whatsapp": "Send WhatsApp"
+          "whatsapp": "Send WhatsApp",
+          "whatsappMessage": "Hey {{name}} 👋\n\nThis is Eytan from NeshamaTech.\n\nI reviewed your profile and I have an idea that might be a good match for you.\n\nNo pressure — want to hear about it? 🙂\n\n🌐 https://neshamatech.com\n📘 https://www.facebook.com/profile.php?id=61584869664974"
         },
         "hasTestimonials": "{{count}} Testimonials",
         "testimonialsTooltip": "This candidate has approved testimonials",

@@ -877,6 +877,8 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
   const [showStatusChange, setShowStatusChange] = useState(false);
   const [firstPartySfAnswers, setFirstPartySfAnswers] = useState<Record<string, unknown> | null>(null);
   const [secondPartySfAnswers, setSecondPartySfAnswers] = useState<Record<string, unknown> | null>(null);
+  const [firstPartySfUpdatedAt, setFirstPartySfUpdatedAt] = useState<string | null>(null);
+  const [secondPartySfUpdatedAt, setSecondPartySfUpdatedAt] = useState<string | null>(null);
   const { refreshNotifications } = useNotifications();
 
   // Fetch SF answers for both parties
@@ -886,11 +888,11 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
       try {
         const res = await fetch(`/api/profile?userId=${userId}`);
         const data = await res.json();
-        return data.success ? data.sfAnswers || null : null;
-      } catch { return null; }
+        return data.success ? { sfAnswers: data.sfAnswers || null, sfUpdatedAt: data.sfUpdatedAt || null } : { sfAnswers: null, sfUpdatedAt: null };
+      } catch { return { sfAnswers: null, sfUpdatedAt: null }; }
     };
-    fetchSf(suggestion.firstPartyId).then(setFirstPartySfAnswers);
-    fetchSf(suggestion.secondPartyId).then(setSecondPartySfAnswers);
+    fetchSf(suggestion.firstPartyId).then(r => { setFirstPartySfAnswers(r.sfAnswers); setFirstPartySfUpdatedAt(r.sfUpdatedAt); });
+    fetchSf(suggestion.secondPartyId).then(r => { setSecondPartySfAnswers(r.sfAnswers); setSecondPartySfUpdatedAt(r.sfUpdatedAt); });
   }, [isOpen, suggestion?.firstPartyId, suggestion?.secondPartyId]);
 
   useEffect(() => {
@@ -1151,6 +1153,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   images={suggestion.firstParty.images}
                   questionnaire={firstPartyQuestionnaire}
                   sfAnswers={firstPartySfAnswers}
+                  sfUpdatedAt={firstPartySfUpdatedAt}
                   viewMode="matchmaker"
                   isProfileComplete={suggestion.firstParty.isProfileComplete}
                   dict={profileDict.profileCard}
@@ -1167,6 +1170,7 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                   images={suggestion.secondParty.images}
                   questionnaire={secondPartyQuestionnaire}
                   sfAnswers={secondPartySfAnswers}
+                  sfUpdatedAt={secondPartySfUpdatedAt}
                   viewMode="matchmaker"
                   isProfileComplete={suggestion.secondParty.isProfileComplete}
                   dict={profileDict.profileCard}

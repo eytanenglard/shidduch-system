@@ -72,15 +72,17 @@ const FirstPartyPreferenceToggle: React.FC<FirstPartyPreferenceToggleProps> = ({
   return (
     <div
       className={cn(
-        'flex items-center gap-3 px-4 py-3 bg-white border border-gray-100 rounded-xl',
+        'flex items-center gap-3 px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-100/80 rounded-xl shadow-sm hover:shadow-md transition-all duration-200',
         className
       )}
       dir={isHe ? 'rtl' : 'ltr'}
     >
       {/* Icon */}
       <div className={cn(
-        'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-200',
-        wantsToBeFirst ? 'bg-teal-50 text-teal-600' : 'bg-gray-100 text-gray-400'
+        'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300',
+        wantsToBeFirst
+          ? 'bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-md shadow-teal-400/25'
+          : 'bg-gray-100 text-gray-400'
       )}>
         {wantsToBeFirst ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
       </div>
@@ -102,9 +104,9 @@ const FirstPartyPreferenceToggle: React.FC<FirstPartyPreferenceToggleProps> = ({
         onClick={() => handleToggle(!wantsToBeFirst)}
         disabled={isSaving}
         className={cn(
-          'relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2',
+          'relative w-11 h-6 rounded-full transition-all duration-300 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2',
           wantsToBeFirst
-            ? 'bg-teal-500 focus:ring-teal-400'
+            ? 'bg-gradient-to-r from-teal-400 to-emerald-500 focus:ring-teal-400 shadow-inner'
             : 'bg-gray-300 focus:ring-gray-300',
           isSaving && 'opacity-60'
         )}
@@ -112,7 +114,7 @@ const FirstPartyPreferenceToggle: React.FC<FirstPartyPreferenceToggleProps> = ({
       >
         <span
           className={cn(
-            'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 flex items-center justify-center',
+            'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center',
             wantsToBeFirst && 'translate-x-5',
           )}
         >

@@ -151,6 +151,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
   const [sfAnswers, setSfAnswers] = useState<Record<string, unknown> | null>(null);
+  const [sfUpdatedAt, setSfUpdatedAt] = useState<string | null>(null);
   const [isSfLoading, setIsSfLoading] = useState(false);
   const [isMatchmaker, setIsMatchmaker] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -263,6 +264,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
         const profileData = await profileRes.json();
         setSfAnswers(profileData.success ? profileData.sfAnswers || null : null);
+        setSfUpdatedAt(profileData.success ? profileData.sfUpdatedAt || null : null);
       } catch {
         toast.error('שגיאה בטעינת השאלון');
       } finally {
@@ -758,6 +760,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
                 images={selectedCandidate.images}
                 questionnaire={questionnaireResponse}
                 sfAnswers={sfAnswers}
+                sfUpdatedAt={sfUpdatedAt}
                 viewMode={isMatchmaker ? 'matchmaker' : 'candidate'}
                 isProfileComplete={selectedCandidate.isProfileComplete}
                 dict={profileDict.profileCard}

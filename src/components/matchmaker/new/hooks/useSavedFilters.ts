@@ -1,7 +1,7 @@
 // src/components/matchmaker/new/hooks/useSavedFilters.ts
-// Sub-hook: localStorage load/save of saved filter presets
+// Sub-hook: localStorage + server sync of saved filter presets
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FilterState, SavedFilter, FilterChangeHandler } from '../types/filters';
 
 type SavedFilterFromStorage = Omit<SavedFilter, 'createdAt'> & {
@@ -11,6 +11,19 @@ type SavedFilterFromStorage = Omit<SavedFilter, 'createdAt'> & {
 interface UseSavedFiltersProps {
   localStorageKey: string;
   onFilterChange?: FilterChangeHandler;
+}
+
+// Sync presets to server (fire-and-forget)
+async function syncPresetsToServer(presets: SavedFilter[]) {
+  try {
+    await fetch('/api/matchmaker/filter-presets', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presets }),
+    });
+  } catch {
+    // Silent fail — localStorage is always the source of truth
+  }
 }
 
 export interface UseSavedFiltersReturn {
@@ -30,20 +43,46 @@ export const useSavedFilters = ({
 }: UseSavedFiltersProps): UseSavedFiltersReturn => {
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
   const [lastAppliedFilter, setLastAppliedFilter] = useState<string | null>(null);
+  const serverSyncedRef = useRef(false);
 
-  // Load saved filters from localStorage
+  // Load saved filters from localStorage, then try to merge from server
   useEffect(() => {
+    // Load from localStorage first (instant)
+    let localPresets: SavedFilter[] = [];
     try {
       const savedPrefs = localStorage.getItem(localStorageKey);
       if (savedPrefs) {
         const parsed = JSON.parse(savedPrefs);
-        setSavedFilters(parsed.map((filter: SavedFilterFromStorage) => ({
+        localPresets = parsed.map((filter: SavedFilterFromStorage) => ({
           ...filter,
           createdAt: new Date(filter.createdAt)
-        })));
+        }));
+        setSavedFilters(localPresets);
       }
-    } catch (error) {
-      // Error handled silently - localStorage may be unavailable
+    } catch {
+      // localStorage may be unavailable
+    }
+
+    // Then try to load from server (for cross-device sync)
+    if (!serverSyncedRef.current) {
+      serverSyncedRef.current = true;
+      fetch('/api/matchmaker/filter-presets')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.presets?.length > 0 && localPresets.length === 0) {
+            // Server has presets but local doesn't — use server data
+            const serverPresets = data.presets.map((f: SavedFilterFromStorage) => ({
+              ...f,
+              createdAt: new Date(f.createdAt),
+            }));
+            setSavedFilters(serverPresets);
+            localStorage.setItem(localStorageKey, JSON.stringify(data.presets));
+          } else if (localPresets.length > 0) {
+            // Local has presets — sync them to server
+            syncPresetsToServer(localPresets);
+          }
+        })
+        .catch(() => { /* silent */ });
     }
   }, [localStorageKey]);
 
@@ -60,6 +99,7 @@ export const useSavedFilters = ({
     setSavedFilters(prev => {
       const updated = [...prev, newFilter];
       localStorage.setItem(localStorageKey, JSON.stringify(updated));
+      syncPresetsToServer(updated);
       return updated;
     });
 
@@ -73,6 +113,7 @@ export const useSavedFilters = ({
         filter.id === id ? { ...filter, ...updates } : filter
       );
       localStorage.setItem(localStorageKey, JSON.stringify(updated));
+      syncPresetsToServer(updated);
       return updated;
     });
   }, [localStorageKey]);
@@ -82,6 +123,7 @@ export const useSavedFilters = ({
     setSavedFilters(prev => {
       const updated = prev.filter(f => f.id !== id);
       localStorage.setItem(localStorageKey, JSON.stringify(updated));
+      syncPresetsToServer(updated);
 
       if (lastAppliedFilter === id) {
         setLastAppliedFilter(null);
@@ -99,6 +141,7 @@ export const useSavedFilters = ({
         isDefault: f.id === id
       }));
       localStorage.setItem(localStorageKey, JSON.stringify(updated));
+      syncPresetsToServer(updated);
       return updated;
     });
   }, [localStorageKey]);

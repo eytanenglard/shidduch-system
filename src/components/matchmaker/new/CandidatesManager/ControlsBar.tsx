@@ -13,6 +13,7 @@ import {
   UserX,
   Tag,
   X,
+  Bookmark,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -83,6 +84,9 @@ interface ControlsBarProps {
   // Tags
   matchmakerTags?: Array<{ id: string; name: string; color: string; candidateCount: number }>;
 
+  // Presets
+  onLoadPreset?: (id: string) => void;
+
   // Locale & dict
   locale: string;
   dict: MatchmakerPageDictionary;
@@ -119,6 +123,7 @@ const ControlsBar: React.FC<ControlsBarProps> = ({
   showFiltersMobile,
   onSetFiltersMobile,
   matchmakerTags = [],
+  onLoadPreset,
   locale,
   dict,
 }) => {
@@ -182,6 +187,62 @@ const ControlsBar: React.FC<ControlsBarProps> = ({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Quick Preset Switcher */}
+            {savedFilters.length > 0 && onLoadPreset && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      'shadow-sm border',
+                      filters.savedFilterId
+                        ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+                        : 'bg-white/90 border-gray-200'
+                    )}
+                  >
+                    <Bookmark className={cn('w-4 h-4', locale === 'he' ? 'ml-1' : 'mr-1')} />
+                    {filters.savedFilterId
+                      ? savedFilters.find((f) => f.id === filters.savedFilterId)?.name || 'פריסט'
+                      : 'פריסטים'}
+                    {savedFilters.length > 0 && (
+                      <Badge variant="secondary" className="mr-1 h-4 min-w-[16px] px-1 text-[10px]">
+                        {savedFilters.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[180px]">
+                  <DropdownMenuLabel>פריסטים שמורים</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {savedFilters.map((preset) => (
+                    <DropdownMenuItem
+                      key={preset.id}
+                      onClick={() => onLoadPreset(preset.id)}
+                      className={cn(
+                        'flex items-center justify-between',
+                        filters.savedFilterId === preset.id && 'bg-amber-50 font-medium'
+                      )}
+                    >
+                      <span>{preset.name}</span>
+                      {preset.isDefault && (
+                        <Badge variant="outline" className="text-[9px] h-4 px-1">ברירת מחדל</Badge>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                  {filters.savedFilterId && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={onResetFilters} className="text-gray-500">
+                        <X className="w-3.5 h-3.5 ml-1" />
+                        נקה פריסט
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {/* Quick filter: No suggestions */}
             <Button

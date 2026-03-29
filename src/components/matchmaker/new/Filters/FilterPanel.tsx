@@ -1205,23 +1205,25 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   {/* Suggestions Received Range */}
                   <FilterSection
                     icon={<Heart className="w-4 h-4" />}
-                    title={dict.sections.suggestionsReceived || 'הצעות שנשלחו'}
+                    title={dict.sections.suggestionsReceived}
                     badge={filters.suggestionsReceivedMin != null || filters.suggestionsReceivedMax != null ? 1 : undefined}
                   >
                     <div className="flex items-center gap-2">
-                      <SafeNumberInput
+                      <Input
+                        type="number"
                         value={filters.suggestionsReceivedMin ?? ''}
-                        onValueChange={(val) =>
-                          onFiltersChange({ ...filters, suggestionsReceivedMin: val || undefined })
+                        onChange={(e) =>
+                          onFiltersChange({ ...filters, suggestionsReceivedMin: e.target.value ? Number(e.target.value) : undefined })
                         }
                         placeholder="מינימום"
                         className="flex-1 rounded-xl border-gray-200 bg-white/80 text-sm h-9"
                       />
                       <span className="text-gray-400 text-xs">–</span>
-                      <SafeNumberInput
+                      <Input
+                        type="number"
                         value={filters.suggestionsReceivedMax ?? ''}
-                        onValueChange={(val) =>
-                          onFiltersChange({ ...filters, suggestionsReceivedMax: val || undefined })
+                        onChange={(e) =>
+                          onFiltersChange({ ...filters, suggestionsReceivedMax: e.target.value ? Number(e.target.value) : undefined })
                         }
                         placeholder="מקסימום"
                         className="flex-1 rounded-xl border-gray-200 bg-white/80 text-sm h-9"
@@ -1232,23 +1234,25 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   {/* Impression Score */}
                   <FilterSection
                     icon={<Star className="w-4 h-4" />}
-                    title={dict.sections.impressionScore || 'ציון רושם שדכן'}
+                    title={dict.sections.impressionScore}
                     badge={filters.impressionScoreMin != null || filters.impressionScoreMax != null ? 1 : undefined}
                   >
                     <div className="flex items-center gap-2">
-                      <SafeNumberInput
+                      <Input
+                        type="number"
                         value={filters.impressionScoreMin ?? ''}
-                        onValueChange={(val) =>
-                          onFiltersChange({ ...filters, impressionScoreMin: val || undefined })
+                        onChange={(e) =>
+                          onFiltersChange({ ...filters, impressionScoreMin: e.target.value ? Number(e.target.value) : undefined })
                         }
                         placeholder="מינימום"
                         className="flex-1 rounded-xl border-gray-200 bg-white/80 text-sm h-9"
                       />
                       <span className="text-gray-400 text-xs">–</span>
-                      <SafeNumberInput
+                      <Input
+                        type="number"
                         value={filters.impressionScoreMax ?? ''}
-                        onValueChange={(val) =>
-                          onFiltersChange({ ...filters, impressionScoreMax: val || undefined })
+                        onChange={(e) =>
+                          onFiltersChange({ ...filters, impressionScoreMax: e.target.value ? Number(e.target.value) : undefined })
                         }
                         placeholder="מקסימום"
                         className="flex-1 rounded-xl border-gray-200 bg-white/80 text-sm h-9"
@@ -1291,22 +1295,24 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   >
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-[10px] text-gray-500 mb-1">{dict.sections.lastScannedLabel || 'נסרק'}</Label>
-                        <SafeNumberInput
+                        <Label className="text-[10px] text-gray-500 mb-1">{dict.sections.lastScannedLabel}</Label>
+                        <Input
+                          type="number"
                           value={filters.lastScannedDays ?? ''}
-                          onValueChange={(val) =>
-                            onFiltersChange({ ...filters, lastScannedDays: val || undefined })
+                          onChange={(e) =>
+                            onFiltersChange({ ...filters, lastScannedDays: e.target.value ? Number(e.target.value) : undefined })
                           }
                           placeholder="ימים"
                           className="rounded-xl border-gray-200 bg-white/80 text-sm h-9"
                         />
                       </div>
                       <div>
-                        <Label className="text-[10px] text-gray-500 mb-1">{dict.sections.lastSuggestedLabel || 'הוצע'}</Label>
-                        <SafeNumberInput
+                        <Label className="text-[10px] text-gray-500 mb-1">{dict.sections.lastSuggestedLabel}</Label>
+                        <Input
+                          type="number"
                           value={filters.lastSuggestedDays ?? ''}
-                          onValueChange={(val) =>
-                            onFiltersChange({ ...filters, lastSuggestedDays: val || undefined })
+                          onChange={(e) =>
+                            onFiltersChange({ ...filters, lastSuggestedDays: e.target.value ? Number(e.target.value) : undefined })
                           }
                           placeholder="ימים"
                           className="rounded-xl border-gray-200 bg-white/80 text-sm h-9"

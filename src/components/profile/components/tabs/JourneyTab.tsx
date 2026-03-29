@@ -37,6 +37,7 @@ const JourneyTab: React.FC = () => {
     valuesContent,
     religionContent,
     sfAnswers,
+    sfUpdatedAt,
     hasEducationAndCareerDetails,
     hasFamilyBackgroundDetails,
     hasJudaismConnectionDetails,
@@ -363,6 +364,7 @@ const JourneyTab: React.FC = () => {
               locale={locale}
               direction={direction}
               selfOnly
+              sfUpdatedAt={sfUpdatedAt}
             />
           </>
         )}

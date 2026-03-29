@@ -99,12 +99,13 @@ const SuggestionDetailPanel: React.FC<SuggestionDetailPanelProps> = ({
   }, [targetParty]);
 
   const [sfAnswers, setSfAnswers] = useState<Record<string, unknown> | null>(null);
+  const [sfUpdatedAt, setSfUpdatedAt] = useState<string | null>(null);
   useEffect(() => {
-    if (!targetParty?.id) { setSfAnswers(null); return; }
+    if (!targetParty?.id) { setSfAnswers(null); setSfUpdatedAt(null); return; }
     fetch(`/api/profile?userId=${targetParty.id}`)
       .then(r => r.ok ? r.json() : null)
-      .then(data => setSfAnswers(data?.sfAnswers || null))
-      .catch(() => setSfAnswers(null));
+      .then(data => { setSfAnswers(data?.sfAnswers || null); setSfUpdatedAt(data?.sfUpdatedAt || null); })
+      .catch(() => { setSfAnswers(null); setSfUpdatedAt(null); });
   }, [targetParty?.id]);
 
   if (!suggestion || !targetParty) return null;
@@ -218,6 +219,7 @@ const SuggestionDetailPanel: React.FC<SuggestionDetailPanelProps> = ({
                   images={allImages}
                   questionnaire={questionnaire}
                   sfAnswers={sfAnswers}
+                  sfUpdatedAt={sfUpdatedAt}
                   viewMode="candidate"
                   dict={dict.profileCard}
                   locale={locale}

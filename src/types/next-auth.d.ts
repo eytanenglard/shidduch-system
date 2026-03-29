@@ -279,6 +279,7 @@ export interface User extends DefaultUser {
   images: UserImage[];
   questionnaireResponses: QuestionnaireResponse[];
       questionnaireCompleted?: boolean;
+  hasSoulFingerprint?: boolean;
 
   accounts?: PrismaAccount[];
   redirectUrl?: string;
@@ -294,6 +295,9 @@ export interface User extends DefaultUser {
      neshamaInsightLastGeneratedAt?: string | null;
     neshamaInsightGeneratedCount?: number;
     neshamaInsightData?: Record<string, unknown> | null;
+    shidduchCardLastGeneratedAt?: string | null;
+    shidduchCardGeneratedCount?: number;
+    shidduchCardData?: Record<string, unknown> | null;
 }
 
 export interface Verification {
@@ -337,6 +341,12 @@ declare module 'next-auth' {
               engagementEmailsConsent?: boolean;
       promotionalEmailsConsent?: boolean;
   language: Language; // <-- 2. הוסף את השדה לממשק הראשי
+    neshamaInsightLastGeneratedAt?: string | null;
+    neshamaInsightGeneratedCount?: number;
+    neshamaInsightData?: Record<string, unknown> | null;
+    shidduchCardLastGeneratedAt?: string | null;
+    shidduchCardGeneratedCount?: number;
+    shidduchCardData?: Record<string, unknown> | null;
 
     }; // Omit to avoid type conflicts if DefaultSession changes
 
@@ -376,6 +386,9 @@ declare module 'next-auth' {
         neshamaInsightLastGeneratedAt?: Date | string | null;
     neshamaInsightGeneratedCount?: number;
     neshamaInsightData?: Record<string, unknown> | null;
+    shidduchCardLastGeneratedAt?: Date | string | null;
+    shidduchCardGeneratedCount?: number;
+    shidduchCardData?: Record<string, unknown> | null;
 
   }
 }
@@ -413,7 +426,12 @@ declare module 'next-auth/jwt' {
       engagementEmailsConsent?: boolean;
     promotionalEmailsConsent?: boolean;
   language: Language; // <-- 2. הוסף את השדה לממשק הראשי
-
+    neshamaInsightLastGeneratedAt?: Date | string | null;
+    neshamaInsightGeneratedCount?: number;
+    neshamaInsightData?: Record<string, unknown> | null;
+    shidduchCardLastGeneratedAt?: Date | string | null;
+    shidduchCardGeneratedCount?: number;
+    shidduchCardData?: Record<string, unknown> | null;
 
   }
 }

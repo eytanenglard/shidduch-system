@@ -3,9 +3,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { MatchSuggestionStatus } from '@prisma/client';
 import type { SuggestionTimelineDict } from '@/types/dictionary';
@@ -90,8 +91,8 @@ export default function MiniTimeline({
         onClick={() => setIsExpanded((prev) => !prev)}
         className={cn(
           'w-full flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3',
-          'bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl border border-gray-100',
-          'hover:bg-gray-50 transition-colors group cursor-pointer',
+          'bg-white/80 backdrop-blur-sm rounded-xl border border-gray-100/80',
+          'hover:bg-gray-50/80 hover:shadow-md transition-all duration-200 group cursor-pointer',
           'shadow-sm'
         )}
       >
@@ -125,24 +126,35 @@ export default function MiniTimeline({
 
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <span className="text-[10px] sm:text-xs text-gray-400">{formattedDate}</span>
-          {isExpanded ? (
-            <ChevronUp className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          ) : (
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
             <ChevronDown className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          )}
+          </motion.div>
         </div>
       </button>
 
       {/* Expanded full timeline */}
-      {isExpanded && (
-        <div className="mt-3 animate-in slide-in-from-top-2 fade-in-50 duration-300">
-          <SuggestionTimeline
-            statusHistory={statusHistory}
-            dict={dict}
-            locale={locale}
-          />
-        </div>
-      )}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="mt-3">
+              <SuggestionTimeline
+                statusHistory={statusHistory}
+                dict={dict}
+                locale={locale}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

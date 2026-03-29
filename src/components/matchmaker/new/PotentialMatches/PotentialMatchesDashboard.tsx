@@ -156,6 +156,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
   const [fullProfileData, setFullProfileData] = useState<any | null>(null);
   const [questionnaireData, setQuestionnaireData] = useState<any | null>(null);
   const [sfAnswersData, setSfAnswersData] = useState<Record<string, unknown> | null>(null);
+  const [sfUpdatedAtData, setSfUpdatedAtData] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isMatchmakerView, setIsMatchmakerView] = useState(true);
 
@@ -309,6 +310,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
 
         const sfProfileJson = await sfProfileResponse.json();
         setSfAnswersData(sfProfileJson.success ? sfProfileJson.sfAnswers || null : null);
+        setSfUpdatedAtData(sfProfileJson.success ? sfProfileJson.sfUpdatedAt || null : null);
       } catch (err) {
         toast.error('שגיאה בטעינת פרופיל המועמד');
       } finally {
@@ -761,6 +763,7 @@ const PotentialMatchesDashboard: React.FC<PotentialMatchesDashboardProps> = ({
                 images={fullProfileData.images}
                 questionnaire={questionnaireData}
                 sfAnswers={sfAnswersData}
+                sfUpdatedAt={sfUpdatedAtData}
                 viewMode={isMatchmakerView ? 'matchmaker' : 'candidate'}
                 isProfileComplete={
                   fullProfileData.profile?.isProfileComplete || false

@@ -31,6 +31,18 @@
       },
       "preview": "This is exactly what the other side will see when a suggestion is sent by the matchmaker"
     },
+    "shidduchCardButton": {
+      "buttonText": "Your Shidduch Card is Ready!",
+      "buttonSubtitle": "Get a polished shidduch card you can share with matchmakers, friends, and anyone suggesting matches.",
+      "dialogTitle": "My Shidduch Card",
+      "generating": "Creating your shidduch card...",
+      "close": "Close",
+      "lockedTitle": "Shidduch Card - Locked",
+      "lockedDescription": "Complete the Heart Map to generate your shidduch card",
+      "minimizedButtonText": "My Shidduch Card",
+      "nextCardIn": "New card in {{days}} days",
+      "nextCardTomorrow": "New card tomorrow"
+    },
     "neshmaInsightButton": {
       "buttonText": "✨ Your Full Picture is Ready!",
       "buttonSubtitle": "Get a deep analysis of who you are, along with personalized tips to improve your profile.",
@@ -54,6 +66,26 @@
         "statusPartial": "Partial",
         "statusMissing": "Missing"
       }
+    },
+    "shidduchCardButton": {
+      "buttonText": "Your Shidduch Card",
+      "buttonSubtitle": "Get a polished card with everything about you — ready to share with matchmakers and friends",
+      "dialogTitle": "Your Shidduch Card",
+      "generating": "Creating your card...",
+      "close": "Close",
+      "copyAll": "Copy Card",
+      "copied": "Copied!",
+      "lockedTitle": "Shidduch Card — Locked",
+      "lockedDescription": "Complete your profile to 50% to create a card (Currently: {{percentage}}%)",
+      "minimizedButtonText": "My Shidduch Card",
+      "nextCardIn": "New card in {{days}} days",
+      "nextCardTomorrow": "New card tomorrow",
+      "alreadyGenerated": "You can generate a new card every 3 days",
+      "aboutMeTitle": "About Me",
+      "lookingForTitle": "Looking For",
+      "lifestyleTitle": "Lifestyle",
+      "strengthsTitle": "Strengths",
+      "coreValuesTitle": "Core Values"
     },
     "checklist": {
       "welcome": "Hi {{firstName}}, Welcome!",

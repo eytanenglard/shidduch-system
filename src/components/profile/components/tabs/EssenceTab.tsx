@@ -31,6 +31,7 @@ const EssenceTab: React.FC = () => {
     WORLDS,
     personalityContent,
     sfAnswers,
+    sfUpdatedAt,
     isOwnProfile,
     characterTraitMap,
     hobbiesMap,
@@ -216,6 +217,7 @@ const EssenceTab: React.FC = () => {
               locale={locale}
               direction={direction}
               selfOnly
+              sfUpdatedAt={sfUpdatedAt}
             />
           </>
         ) : isOwnProfile ? (

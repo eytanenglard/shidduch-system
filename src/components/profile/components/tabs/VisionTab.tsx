@@ -18,6 +18,7 @@ const VisionTab: React.FC = () => {
     WORLDS,
     relationshipContent,
     sfAnswers,
+    sfUpdatedAt,
     renderMobileNav,
     SectionDivider,
   } = useProfileTab();
@@ -101,6 +102,7 @@ const VisionTab: React.FC = () => {
               locale={locale}
               direction={direction}
               selfOnly
+              sfUpdatedAt={sfUpdatedAt}
             />
           </>
         )}

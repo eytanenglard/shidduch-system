@@ -47,24 +47,31 @@ const EmptyState: React.FC<{
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[300px] text-center p-8">
-      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+      <div className={cn(
+        'w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg',
+        isFiltered
+          ? 'bg-gradient-to-br from-gray-200 to-gray-300 shadow-gray-300/25'
+          : isHistory
+            ? 'bg-gradient-to-br from-slate-200 to-gray-300 shadow-gray-300/25'
+            : 'bg-gradient-to-br from-teal-400 to-emerald-500 shadow-teal-400/25'
+      )}>
         {isFiltered ? (
-          <Search className="w-8 h-8 text-gray-400" />
+          <Search className="w-8 h-8 text-white" />
         ) : isHistory ? (
-          <Clock className="w-8 h-8 text-gray-400" />
+          <Clock className="w-8 h-8 text-white" />
         ) : (
-          <Heart className="w-8 h-8 text-gray-400" />
+          <Heart className="w-8 h-8 text-white" />
         )}
       </div>
 
-      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+      <h3 className="text-lg font-bold text-gray-800 mb-2">
         {isFiltered
           ? dict.noResultsTitle
           : isHistory
             ? dict.noHistoryTitle
             : dict.noActiveTitle}
       </h3>
-      <p className="text-sm text-gray-500 max-w-sm mb-4">
+      <p className="text-sm text-gray-500 max-w-sm mb-4 leading-relaxed">
         {isFiltered
           ? dict.noResultsDescription
           : isHistory
@@ -75,12 +82,12 @@ const EmptyState: React.FC<{
       {/* Working indicator + CTAs for non-history empty state */}
       {!isFiltered && !isHistory && (
         <div className="space-y-3 w-full max-w-xs">
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-teal-50 rounded-lg border border-teal-100">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-teal-50 to-emerald-50/50 rounded-xl border border-teal-100/60">
             <div className="flex gap-1">
               {[0, 0.3, 0.6].map((delay, i) => (
                 <div
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce"
+                  className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce motion-reduce:animate-none"
                   style={{ animationDelay: `${delay}s` }}
                 />
               ))}
@@ -99,7 +106,7 @@ const EmptyState: React.FC<{
               variant="outline"
               size="sm"
               onClick={onOpenChat}
-              className="w-full rounded-lg border-violet-200 text-violet-700 hover:bg-violet-50"
+              className="w-full rounded-xl border-violet-200/60 text-violet-700 hover:bg-violet-50 hover:shadow-sm hover:scale-[1.02] transition-all duration-200"
             >
               <Sparkles className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
               {dict.askAssistant}
@@ -110,7 +117,7 @@ const EmptyState: React.FC<{
 
       {/* History empty state with guidance */}
       {!isFiltered && isHistory && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-lg border border-gray-100">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50/80 rounded-xl border border-gray-100/60">
           <MessageCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
           <span className="text-xs text-gray-500">
             {dict.historyGuidance}
@@ -123,7 +130,7 @@ const EmptyState: React.FC<{
           variant="outline"
           size="sm"
           onClick={onClearFilters}
-          className="rounded-lg border-gray-200"
+          className="rounded-xl border-gray-200/60 hover:shadow-sm hover:scale-[1.02] transition-all duration-200"
         >
           <XCircle className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
           {dict.clearFilters}

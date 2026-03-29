@@ -231,6 +231,27 @@ type FilterPanelDict = {
     demographics: string;
     religionValues: string;
     appearance: string;
+    profileReadiness: string;
+    readinessLevel: string;
+    profileCompleteness: string;
+    hasChildren: string;
+    smoking: string;
+    headCovering: string;
+    kippahType: string;
+    engagement: string;
+    suggestionsReceived: string;
+    impressionScore: string;
+    difficultyScore: string;
+    lastScanned: string;
+    lastScannedLabel: string;
+    lastSuggestedLabel: string;
+    advancedSearch: string;
+    textSearch: string;
+    textSearchPlaceholder: string;
+    textSearchHint: string;
+    searchInAbout: string;
+    searchInPartnerPrefs: string;
+    searchInNotes: string;
   };
   buttons: {
     male: string;
@@ -295,6 +316,7 @@ type CandidatesListDict = {
       clearAiTarget: string;
       aiAnalysis: string;
       whatsapp?: string;
+      whatsappMessage?: string;
     };
     hasTestimonials: string;
     testimonialsTooltip: string;

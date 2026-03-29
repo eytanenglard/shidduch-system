@@ -13,6 +13,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   targetParty,
   questionnaire,
   sfAnswers,
+  sfUpdatedAt,
   locale,
   onNavigateToDetails,
   onRequestAiSummary,
@@ -74,6 +75,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         images={targetParty.images}
         questionnaire={questionnaire}
         sfAnswers={sfAnswers}
+        sfUpdatedAt={sfUpdatedAt}
         viewMode="candidate"
         dict={dict.profileCard}
         locale={locale}

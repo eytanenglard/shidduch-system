@@ -137,31 +137,36 @@ export async function POST(req: NextRequest) {
         data.candidateUserId,
       );
 
-      // Save structured rejection feedback (for preference learning)
-      if (data.rejectionCategory || data.missingTraits?.length) {
-        try {
-          const { AutoSuggestionFeedbackService } = await import('@/lib/services/autoSuggestionFeedbackService');
-          // Save feedback for learning (non-blocking)
-          void AutoSuggestionFeedbackService.recalculatePreferences(userId).catch(() => {});
-        } catch { /* ignore */ }
+      // Save rejection feedback to chat conversation for preference learning
+      const feedbackParts: string[] = [];
+      if (data.rejectionCategory) feedbackParts.push(`סיבה: ${data.rejectionCategory}`);
+      if (data.missingTraits?.length) feedbackParts.push(`חסר: ${data.missingTraits.join(', ')}`);
+      if (data.feedback) feedbackParts.push(data.feedback);
+
+      if (feedbackParts.length > 0) {
+        await AiChatService.saveMessage(
+          data.conversationId,
+          'user',
+          feedbackParts.join('\n'),
+          {
+            type: 'decline_feedback',
+            rejectionCategory: data.rejectionCategory || undefined,
+            missingTraits: data.missingTraits || undefined,
+            candidateUserId: data.candidateUserId,
+          },
+        );
       }
 
-      // Save feedback message if provided
-      if (data.feedback) {
-        await AiChatService.saveMessage(
+      // Save rejection to conversation metadata for AI preference learning
+      try {
+        await AiChatService.saveRejectionFeedback(
           data.conversationId,
-          'user',
-          data.feedback,
-          { type: 'decline_feedback', rejectionCategory: data.rejectionCategory },
+          data.candidateUserId,
+          data.rejectionCategory || null,
+          data.missingTraits || [],
+          data.feedback || null,
         );
-      } else if (data.rejectionCategory) {
-        await AiChatService.saveMessage(
-          data.conversationId,
-          'user',
-          `סיבה: ${data.rejectionCategory}`,
-          { type: 'decline_feedback', rejectionCategory: data.rejectionCategory },
-        );
-      }
+      } catch { /* non-blocking */ }
 
       return await handleGetNextCandidate(userId, data.conversationId, 'הנה מישהו/י אחר/ת שיכול/ה להתאים:');
     }

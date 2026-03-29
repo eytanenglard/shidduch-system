@@ -124,6 +124,7 @@ export interface ProfileTabProps {
   targetParty: ExtendedMatchSuggestion['secondParty'] | null;
   questionnaire: QuestionnaireResponse | null;
   sfAnswers?: Record<string, unknown> | null;
+  sfUpdatedAt?: string | null;
   locale: 'he' | 'en';
   onNavigateToDetails: () => void;
   onRequestAiSummary: () => void;

@@ -7,6 +7,7 @@ import type { User as SessionUserType } from '@/types/next-auth';
 // Child Components
 import { ProfileChecklist } from './ProfileChecklist';
 import { NeshmaInsightButton } from './NeshmaInsightButton';
+import { ShidduchCardButton } from './shidduch-card';
 import HeartMapNudgeBanner from '@/components/profile/HeartMapNudgeBanner';
 import { Lock, Eye } from 'lucide-react';
 
@@ -157,6 +158,19 @@ const UnifiedProfileDashboard: React.FC<UnifiedProfileDashboardProps> = ({
                     generatedCount={user.neshamaInsightGeneratedCount || 0}
                     dict={dict.dashboard.neshmaInsightButton}
                     userRole={user.role}
+                  />
+                </CardErrorBoundary>
+              </div>
+              <div id="shidduch-card-btn">
+                <CardErrorBoundary>
+                  <ShidduchCardButton
+                    userId={user.id}
+                    locale={locale}
+                    lastGeneratedAt={user.shidduchCardLastGeneratedAt}
+                    generatedCount={user.shidduchCardGeneratedCount || 0}
+                    userRole={user.role}
+                    hasSoulFingerprint={sfCompleted}
+                    dict={dict.dashboard.shidduchCardButton}
                   />
                 </CardErrorBoundary>
               </div>

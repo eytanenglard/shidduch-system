@@ -7,7 +7,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import prisma from '@/lib/prisma';
 import { AutoSuggestionFeedbackService } from './autoSuggestionFeedbackService';
-import type { PotentialMatchStatus, MatchSuggestionStatus, Gender } from '@prisma/client';
+import type { PotentialMatchStatus, MatchSuggestionStatus, Gender, Prisma } from '@prisma/client';
 import questionsHe from '@/../dictionaries/questionnaire/questions.he.json';
 import questionsEn from '@/../dictionaries/questionnaire/questions.en.json';
 
@@ -2522,6 +2522,46 @@ ${userProfile?.about ? `על עצמם: ${userProfile.about.slice(0, 200)}` : ''}
       console.error('[AiChat] Deep dive generation error:', err);
       return null;
     }
+  }
+
+  // ========== Smart Assistant: Save Rejection Feedback ==========
+
+  /**
+   * Save rejection feedback to conversation metadata so the AI can learn
+   * user preferences from their rejections across the conversation.
+   */
+  static async saveRejectionFeedback(
+    conversationId: string,
+    candidateUserId: string,
+    rejectionCategory: string | null,
+    missingTraits: string[],
+    feedback: string | null,
+  ) {
+    const conversation = await prisma.aiChatConversation.findUnique({
+      where: { id: conversationId },
+      select: { extractedPreferences: true },
+    });
+
+    const prefs = (conversation?.extractedPreferences as Record<string, unknown>) || {};
+    const rejections = (prefs.rejections as Array<Record<string, unknown>>) || [];
+
+    rejections.push({
+      candidateUserId,
+      rejectionCategory,
+      missingTraits,
+      feedback,
+      timestamp: new Date().toISOString(),
+    });
+
+    await prisma.aiChatConversation.update({
+      where: { id: conversationId },
+      data: {
+        extractedPreferences: {
+          ...prefs,
+          rejections,
+        } as unknown as Prisma.InputJsonValue,
+      },
+    });
   }
 
   // ========== Smart Assistant: Build Candidate Context for AI ==========

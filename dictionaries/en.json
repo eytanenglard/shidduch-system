@@ -425,6 +425,24 @@
     "cta": "Discover Your Heart Map",
     "mobileNote": "Discover who's waiting for you →"
   },
+  "shidduchCardCTA": {
+    "badge": "New Tool — Shidduch Card",
+    "title": "The Card That Organizes Everything",
+    "subtitle": "A polished shidduch card you can send to anyone suggesting matches",
+    "description": "Completed the Heart Map? Our system creates a professional shidduch card summarizing who you are and what you're looking for — ready to copy and share.",
+    "features": {
+      "organized": "Clear & Organized",
+      "shareable": "Easy to Share",
+      "aiPowered": "AI-Powered"
+    },
+    "cta": "Create Your Card",
+    "cardPreview": {
+      "headline": "A warm, thoughtful person with a rich inner world",
+      "aboutMe": "A friendly and optimistic person with a great sense of humor and listening skills. Loves family gatherings, nature, and deep conversations.",
+      "lookingFor": "Looking for someone with similar values, warm, honest, with shared dreams and aspirations.",
+      "tags": ["Family-oriented", "Social", "Ambitious", "Faith", "Growth"]
+    }
+  },
   "cta": {
     "title_part1": "Your Journey to a Relationship",
     "title_highlight": "Starts Here",

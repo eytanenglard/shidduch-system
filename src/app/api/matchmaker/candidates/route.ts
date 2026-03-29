@@ -417,7 +417,7 @@ export async function GET(request: NextRequest) {
 
     // ─── New Profile Filters ──────────────────────────────────────────────
     if (readinessLevel) {
-      profileWhere.readinessLevel = readinessLevel as Prisma.EnumReadinessLevelFilter;
+      profileWhere.readinessLevel = readinessLevel as Prisma.EnumReadinessLevelNullableFilter;
     }
     if (profileCompletenessMin !== null) {
       profileWhere.profileCompletenessScore = { gte: profileCompletenessMin };

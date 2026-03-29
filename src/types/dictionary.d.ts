@@ -276,6 +276,25 @@ export type HeartMapCTADict = {
   mobileNote: string;
 };
 
+export type ShidduchCardCTADict = {
+  badge: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  features: {
+    organized: string;
+    shareable: string;
+    aiPowered: string;
+  };
+  cta: string;
+  cardPreview: {
+    headline: string;
+    aboutMe: string;
+    lookingFor: string;
+    tags: string[];
+  };
+};
+
 export type CtaDict = {
   title_part1: string;
   title_highlight: string;
@@ -2088,6 +2107,27 @@ export type AnalysisResultDisplayDict = {
   };
 };
 
+export type ShidduchCardButtonDict = {
+  buttonText: string;
+  buttonSubtitle: string;
+  dialogTitle: string;
+  generating: string;
+  close: string;
+  copyAll: string;
+  copied: string;
+  lockedTitle: string;
+  lockedDescription: string;
+  minimizedButtonText: string;
+  nextCardIn: string;
+  nextCardTomorrow: string;
+  alreadyGenerated: string;
+  aboutMeTitle: string;
+  lookingForTitle: string;
+  lifestyleTitle: string;
+  strengthsTitle: string;
+  coreValuesTitle: string;
+};
+
 export type NeshamaInsightButtonDict = {
   buttonText: string;
   buttonSubtitle: string;
@@ -2144,6 +2184,7 @@ export type UnifiedProfileDashboardDict = {
   };
   checklist: ProfileChecklistDict;
   neshmaInsightButton: NeshamaInsightButtonDict;
+  shidduchCardButton: ShidduchCardButtonDict;
 };
 
 export type PreferencesSectionDict = {
@@ -3772,6 +3813,7 @@ export type Dictionary = {
   faq: FaqDict;
   privacyAssurance: PrivacyAssuranceDict;
   heartMapCTA: HeartMapCTADict;
+  shidduchCardCTA: ShidduchCardCTADict;
   cta: CtaDict;
   footer: FooterDict;
   chatWidget: ChatWidgetDict;

@@ -147,7 +147,8 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
                 let cleanPhone = candidate.phone?.replace(/\D/g, '') || '';
                 if (cleanPhone.startsWith('0')) cleanPhone = '972' + cleanPhone.substring(1);
                 if (cleanPhone) {
-                  const message = `היי ${candidate.firstName} 👋\n\nזה איתן מנשמהטק.\n\nעברתי על הפרופיל שלך ויש לי רעיון שאולי יתאים לך.\n\nבלי שום לחץ - רוצה לשמוע? 🙂\n\n🌐 https://neshamatech.com\n📘 https://www.facebook.com/profile.php?id=61584869664974`;
+                  const template = dict.tooltips.whatsappMessage ?? `היי {{name}} 👋\n\nזה איתן מנשמהטק.\n\nעברתי על הפרופיל שלך ויש לי רעיון שאולי יתאים לך.\n\nבלי שום לחץ - רוצה לשמוע? 🙂\n\n🌐 https://neshamatech.com`;
+                  const message = template.replace('{{name}}', candidate.firstName);
                   window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
                 }
               }}

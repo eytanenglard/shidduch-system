@@ -1053,6 +1053,7 @@ export default function CandidateHub({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [candidateSfAnswers, setCandidateSfAnswers] = useState<Record<string, unknown> | null>(null);
+  const [candidateSfUpdatedAt, setCandidateSfUpdatedAt] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('profile');
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set());
   const searchRef = useRef<HTMLDivElement>(null);
@@ -1066,11 +1067,11 @@ export default function CandidateHub({
 
   // Fetch SF answers for selected candidate
   useEffect(() => {
-    if (!selectedCandidate?.id) { setCandidateSfAnswers(null); return; }
+    if (!selectedCandidate?.id) { setCandidateSfAnswers(null); setCandidateSfUpdatedAt(null); return; }
     fetch(`/api/profile?userId=${selectedCandidate.id}`)
       .then(r => r.ok ? r.json() : null)
-      .then(data => setCandidateSfAnswers(data?.sfAnswers || null))
-      .catch(() => setCandidateSfAnswers(null));
+      .then(data => { setCandidateSfAnswers(data?.sfAnswers || null); setCandidateSfUpdatedAt(data?.sfUpdatedAt || null); })
+      .catch(() => { setCandidateSfAnswers(null); setCandidateSfUpdatedAt(null); });
   }, [selectedCandidate?.id]);
 
   // --- Search filter ---
@@ -1331,6 +1332,7 @@ export default function CandidateHub({
                       isProfileComplete={selectedCandidate.isProfileComplete}
                       images={selectedCandidate.images}
                       sfAnswers={candidateSfAnswers}
+                      sfUpdatedAt={candidateSfUpdatedAt}
                       viewMode="matchmaker"
                       candidate={selectedCandidate}
                       allCandidates={candidates}
