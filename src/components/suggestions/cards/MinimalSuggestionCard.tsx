@@ -60,6 +60,8 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
   dict,
   locale,
 }) => {
+  const [isReasonExpanded, setIsReasonExpanded] = useState(false);
+
   const targetParty =
     suggestion.firstPartyId === userId
       ? suggestion.secondParty
@@ -94,7 +96,6 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
 
   // Build matching reasons list from matchingReason field
   const matchingReasons = buildMatchingReasons(suggestion, targetParty, locale);
-  const [isReasonExpanded, setIsReasonExpanded] = useState(false);
 
   const handleCardClick = () => {
     onClick(suggestion);
