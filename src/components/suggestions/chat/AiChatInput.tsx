@@ -21,7 +21,8 @@ const getSpeechRecognition = () => {
   if (typeof window === 'undefined') return null;
   const SR = (window as unknown as Record<string, unknown>).SpeechRecognition
     || (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
-  return SR as (new () => SpeechRecognition) | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return SR as (new () => any) | undefined;
 };
 
 export default function AiChatInput({
@@ -33,7 +34,8 @@ export default function AiChatInput({
   const [value, setValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
   const isHebrew = locale === 'he';
   const hasVoiceSupport = typeof window !== 'undefined' && !!getSpeechRecognition();
 
@@ -78,7 +80,8 @@ export default function AiChatInput({
     recognition.interimResults = true;
     recognition.continuous = false;
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognition.onresult = (event: any) => {
       let transcript = '';
       for (let i = 0; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;

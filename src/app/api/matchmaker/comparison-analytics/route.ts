@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function GET(req: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
     const suggestionsWithComparisons = await prisma.matchSuggestion.findMany({
       where: {
         matchmakerId: session.user.id,
-        NOT: { structuredRationale: { equals: null } },
+        NOT: { structuredRationale: { equals: Prisma.DbNull } },
       },
       select: {
         id: true,
