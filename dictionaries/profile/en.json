@@ -540,6 +540,13 @@
         "annulled": "Annulled Marriage"
       },
       "religiousLevel": {
+        "charedi": "Charedi (Ultra-Orthodox)",
+        "charedi_modern": "Modern Charedi",
+        "charedi_litvak": "Charedi Litvak (Lithuanian)",
+        "charedi_sephardic": "Charedi Sephardic",
+        "charedi_hasidic": "Charedi Hasidic",
+        "chabad": "Chabad (Lubavitch)",
+        "breslov": "Breslov",
         "dati_leumi_standard": "Religious Zionist (Standard)",
         "dati_leumi_liberal": "Religious Zionist (Liberal)",
         "dati_leumi_torani": "Religious Zionist (Torani)",
@@ -548,12 +555,6 @@
         "secular_traditional_connection": "Secular with connection to tradition",
         "secular": "Secular",
         "spiritual_not_religious": "Spiritual (not necessarily religious)",
-        "charedi_modern": "Modern Charedi",
-        "charedi_litvak": "Charedi Litvak (Lithuanian)",
-        "charedi_sephardic": "Charedi Sephardic",
-        "charedi_hasidic": "Charedi Hasidic",
-        "chabad": "Chabad (Lubavitch)",
-        "breslov": "Breslov",
         "other": "Other"
       },
       "religiousJourney": {
@@ -1572,6 +1573,13 @@
         "annulled": "Annulled Marriage"
       },
       "religiousLevel": {
+        "charedi": "Charedi (Ultra-Orthodox)",
+        "charedi_modern": "Modern Charedi",
+        "charedi_litvak": "Charedi Litvak (Lithuanian)",
+        "charedi_sephardic": "Charedi Sephardic",
+        "charedi_hasidic": "Charedi Hasidic",
+        "chabad": "Chabad (Lubavitch)",
+        "breslov": "Breslov",
         "dati_leumi_torani": "Religious Zionist (Torani)",
         "dati_leumi_liberal": "Religious Zionist (Liberal)",
         "dati_leumi_standard": "Religious Zionist (Standard)",
@@ -1580,12 +1588,6 @@
         "secular_traditional_connection": "Secular with connection to tradition",
         "secular": "Secular",
         "spiritual_not_religious": "Spiritual (not necessarily religious)",
-        "charedi_modern": "Modern Charedi",
-        "charedi_litvak": "Charedi Litvak (Lithuanian)",
-        "charedi_sephardic": "Charedi Sephardic",
-        "charedi_hasidic": "Charedi Hasidic",
-        "chabad": "Chabad (Lubavitch)",
-        "breslov": "Breslov",
         "other": "Other (please specify in 'About Me')"
       },
       "religiousJourney": {

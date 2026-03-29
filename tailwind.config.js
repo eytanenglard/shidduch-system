@@ -123,6 +123,13 @@ module.exports = {
           '0%, 100%': { backgroundPosition: 'calc(50% - 1rem) 0' },
           '50%': { backgroundPosition: 'calc(50% + 1rem) 0' },
         },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '20%': { transform: 'translateX(-4px)' },
+          '40%': { transform: 'translateX(4px)' },
+          '60%': { transform: 'translateX(-3px)' },
+          '80%': { transform: 'translateX(3px)' },
+        },
         // ==========================================================
       },
       animation: {

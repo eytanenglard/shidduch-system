@@ -1,49 +1,50 @@
 {
-"metadata": {
-  "title": "NeshamaTech | Where Soul Meets Technology",
-  "description": "Relationships that start from the soul. At NeshamaTech, we use advanced technology and personal guidance to uncover true compatibility beyond the profile. Join a discreet and respectful journey to find a serious and meaningful connection.",
-  "keywords": [
-    "Matchmaking",
-    "Soul and Technology",
-    "Relationships from the soul",
-    "NeshamaTech",
-    "Serious relationship",
-    "Deep dating",
-    "Modern matchmaking",
-    "Personality matching",
-    "Jewish Matchmaking"
-  ],
-  "openGraph": {
+  "metadata": {
     "title": "NeshamaTech | Where Soul Meets Technology",
-    "description": "Relationships that start from the soul. A platform combining technology and personal guidance to create genuine connections.",
-    "url": "https://www.neshamatech.com",
-    "siteName": "NeshamaTech",
-    "images": [
-      {
-        "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png",
-        "width": 1200,
-        "height": 630,
-        "alt": "NeshamaTech Logo - Technology and Soul"
-      }
+    "description": "Relationships that start from the soul. At NeshamaTech, we use advanced technology and personal guidance to uncover true compatibility beyond the profile. Join a discreet and respectful journey to find a serious and meaningful connection.",
+    "keywords": [
+      "Matchmaking",
+      "Soul and Technology",
+      "Relationships from the soul",
+      "NeshamaTech",
+      "Serious relationship",
+      "Deep dating",
+      "Modern matchmaking",
+      "Personality matching",
+      "Jewish Matchmaking"
     ],
-    "locale": "en_US",
-    "type": "website"
+    "openGraph": {
+      "title": "NeshamaTech | Where Soul Meets Technology",
+      "description": "Relationships that start from the soul. A platform combining technology and personal guidance to create genuine connections.",
+      "url": "https://www.neshamatech.com",
+      "siteName": "NeshamaTech",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png",
+          "width": 1200,
+          "height": 630,
+          "alt": "NeshamaTech Logo - Technology and Soul"
+        }
+      ],
+      "locale": "en_US",
+      "type": "website"
+    },
+    "twitter": {
+      "card": "summary_large_image",
+      "title": "NeshamaTech | Where Soul Meets Technology",
+      "description": "Relationships that start from the soul. Genuine connections based on technology and personal guidance.",
+      "images": [
+        "https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png"
+      ]
+    }
   },
-  "twitter": {
-    "card": "summary_large_image",
-    "title": "NeshamaTech | Where Soul Meets Technology",
-    "description": "Relationships that start from the soul. Genuine connections based on technology and personal guidance.",
-    "images": ["https://res.cloudinary.com/dmfxoi6g0/image/upload/v1764757309/ChatGPT_Image_Dec_3_2025_12_21_36_PM_qk8mjz.png"]
-  }
-},
-
   "navbar": {
     "analyticsDashboard": "Analytics",
     "myMatches": "My Matches",
-     "referralsAdmin": "Referrals Admin",
+    "referralsAdmin": "Referrals Admin",
     "matchmakingQuestionnaire": "Questionnaire",
     "soulFingerprint": "Soul Map",
-      "engagementDashboard": "Engagement Managment",
+    "engagementDashboard": "Engagement Managment",
     "messages": "Messages",
     "login": "Sign In",
     "register": "Sign Up",
@@ -53,7 +54,7 @@
     "potentialMatches": "PotentialMatches",
     "candidateFile": "Candidate File"
   },
-    "unsavedChangesModal": {
+  "unsavedChangesModal": {
     "title": "Unsaved Changes",
     "description": "It looks like you have changes that haven't been saved. If you leave now, you will lose them. What would you like to do?",
     "cancelButton": "Cancel",
@@ -61,8 +62,7 @@
     "saveAndContinueButton": "Save and Continue",
     "savingButton": "Saving..."
   },
-
-    "userDropdown": {
+  "userDropdown": {
     "openMenuAriaLabel": "Open user menu",
     "profileImageAlt": "Profile picture",
     "myProfile": "My Profile",
@@ -71,28 +71,27 @@
     "accountSettings": "Account Settings",
     "signOut": "Sign Out"
   },
-
- "stickyNav": {
-  "homepageAriaLabel": "NeshamaTech Homepage",
-  "signUpButton": "Sign Up",
-  "toQuestionnaireButton": "Questionnaire",
-  "signInLink": "Sign In",
-  "closeNavAriaLabel": "Close navigation",
-  "openNavAriaLabel": "Open navigation",
-  "mobileTitle": "On this page",
-  "navLinks": {
-    "howItWorks": "The Journey",
-    "suggestionDemo": "Suggestion Demo",
-    "successStories": "Success Stories",
-    "ourTeam": "Our Team",
-    "faq": "FAQ"
-  }
-},
+  "stickyNav": {
+    "homepageAriaLabel": "NeshamaTech Homepage",
+    "signUpButton": "Sign Up",
+    "toQuestionnaireButton": "Questionnaire",
+    "signInLink": "Sign In",
+    "closeNavAriaLabel": "Close navigation",
+    "openNavAriaLabel": "Open navigation",
+    "mobileTitle": "On this page",
+    "navLinks": {
+      "howItWorks": "The Journey",
+      "suggestionDemo": "Suggestion Demo",
+      "successStories": "Success Stories",
+      "ourTeam": "Our Team",
+      "faq": "FAQ"
+    }
+  },
   "heroSection": {
     "titleLine1": "A relationship that starts",
     "highlightedWord": "from the soul",
     "typewriterText": "In a world of endless swipes and superficial profiles, we believe in a different path. Our journey begins with a unique questionnaire designed to understand you deeply. This allows us to present matches that are more than just a picture and a bio—they are a complete story, empowering you to make a decision from a place of true connection.",
-   "ctaButton": "Sign Up",
+    "ctaButton": "Sign Up",
     "ctaButtonShort": "Sign Up",
     "ctaButtonLoggedIn": "Continue Your Journey",
     "ctaButtonLoggedInShort": "Continue",
@@ -118,7 +117,11 @@
         "shortTitle": "Full Story",
         "description": "Our in-depth questionnaire translates who you are into a rich narrative, allowing for a genuine connection from the very first moment."
       },
-     { "title": "A Discreet & Managed Process", "shortTitle": "Discretion", "description": "Your profile is visible only to our team of matchmakers, who act on your behalf. They present you in a controlled manner only to potential matches, after a high probability of success has been identified." },
+      {
+        "title": "A Discreet & Managed Process",
+        "shortTitle": "Discretion",
+        "description": "Your profile is visible only to our team of matchmakers, who act on your behalf. They present you in a controlled manner only to potential matches, after a high probability of success has been identified."
+      },
       {
         "title": "Smart Technology, Human Heart",
         "shortTitle": "Human Heart",
@@ -128,10 +131,22 @@
   },
   "socialProof": {
     "stats": [
-      { "value": "200+", "label": "Questions in Soul Fingerprint" },
-      { "value": "5", "label": "Content Worlds" },
-      { "value": "100%", "label": "Full Privacy" },
-      { "value": "AI+", "label": "Smart Matching + Personal Guidance" }
+      {
+        "value": "200+",
+        "label": "Questions in Soul Fingerprint"
+      },
+      {
+        "value": "5",
+        "label": "Content Worlds"
+      },
+      {
+        "value": "100%",
+        "label": "Full Privacy"
+      },
+      {
+        "value": "AI+",
+        "label": "Smart Matching + Personal Guidance"
+      }
     ]
   },
   "valueProposition": {
@@ -169,8 +184,9 @@
           }
         },
         {
-     "bold": "Absolute Discretion:",
-"text": "Your profile is completely confidential and accessible only to our matchmaking team, who act as your ambassadors. As part of the service, they present it in a focused and respectful manner to relevant potential matches to create high-quality opportunities for you."},
+          "bold": "Absolute Discretion:",
+          "text": "Your profile is completely confidential and accessible only to our matchmaking team, who act as your ambassadors. As part of the service, they present it in a focused and respectful manner to relevant potential matches to create high-quality opportunities for you."
+        },
         {
           "bold": "Respect for Tradition, Tools of Tomorrow:",
           "text": "A platform that understands and respects your world of values, using technology to make the search more efficient and respectful."
@@ -383,7 +399,8 @@
       },
       {
         "question": "How is my privacy maintained?",
-        "answer":"Privacy is a core value and our absolute commitment. Your profile is visible only to your matchmaking team. As part of the professional process, your matchmaker presents your profile to potential matches identified as having a high likelihood of success. This process is handled discreetly and with focus. Your information will never be exposed in a public database or shared with external parties." },
+        "answer": "Privacy is a core value and our absolute commitment. Your profile is visible only to your matchmaking team. As part of the professional process, your matchmaker presents your profile to potential matches identified as having a high likelihood of success. This process is handled discreetly and with focus. Your information will never be exposed in a public database or shared with external parties."
+      },
       {
         "question": "Your questionnaire seems in-depth. Is it really necessary?",
         "answer": "Absolutely, and it's your biggest advantage. The questionnaire is not a \"form,\" but a guided \"discovery journey\" that examines five key worlds in your life. This brief initial investment is what allows us and our technology to truly get to know you, saving you valuable time on irrelevant suggestions, and presenting you with matches based on depth and shared values, not just superficial details."
@@ -404,7 +421,8 @@
       "Your profile is visible only to your personal matchmaking team, ensuring complete discretion.",
       "Every conversation and detail you share with us is kept confidential, using advanced security technologies.",
       "Your information is sacred. It will never be sold or shared with any party outside the system. That's a promise.",
-"Your matchmakers act on your behalf. As part of the matchmaking process, they present your profile in a controlled manner to the other party, only when they identify a high potential for a match."    ]
+      "Your matchmakers act on your behalf. As part of the matchmaking process, they present your profile in a controlled manner to the other party, only when they identify a high potential for a match."
+    ]
   },
   "heartMapCTA": {
     "badge": "New — Try for free",
@@ -437,10 +455,20 @@
     },
     "cta": "Create Your Card",
     "cardPreview": {
-      "headline": "A warm, thoughtful person with a rich inner world",
-      "aboutMe": "A friendly and optimistic person with a great sense of humor and listening skills. Loves family gatherings, nature, and deep conversations.",
-      "lookingFor": "Looking for someone with similar values, warm, honest, with shared dreams and aspirations.",
-      "tags": ["Family-oriented", "Social", "Ambitious", "Faith", "Growth"]
+      "name": "Daniel K.",
+      "age": "31",
+      "city": "Jerusalem",
+      "headline": "Engineer by day, Torah learner by night. Looking for a partner to build a world together.",
+      "aboutMe": "A people person and a doer. Graduate of Yeshivat Har Etzion and B.Sc. in Software Engineering from the Technion, currently pursuing an M.Sc. Served as a Combat Engineering officer. Bridges the dynamism of tech with the depth of the Beit Midrash, plays guitar and connects deeply with Chassidic thought.",
+      "lookingFor": "Looking for a true life partner — with integrity, warmth, spontaneity, and a desire to grow together. A home with Yirat Shamayim, open-mindedness, and lots of joy.",
+      "tags": [
+        "Jerusalem",
+        "Dati Leumi Torani",
+        "Tech",
+        "Music",
+        "Growth",
+        "Combat Officer"
+      ]
     }
   },
   "cta": {
@@ -463,30 +491,72 @@
       "navigation": {
         "title": "Quick Navigation",
         "links": [
-          { "text": "Home", "href": "/" },
-          { "text": "Our Method", "href": "#our-method" },
-          { "text": "How It Works", "href": "#how-it-works" },
-          { "text": "Success Stories", "href": "#success-stories" },
-          { "text": "FAQ", "href": "#faq" }
+          {
+            "text": "Home",
+            "href": "/"
+          },
+          {
+            "text": "Our Method",
+            "href": "#our-method"
+          },
+          {
+            "text": "How It Works",
+            "href": "#how-it-works"
+          },
+          {
+            "text": "Success Stories",
+            "href": "#success-stories"
+          },
+          {
+            "text": "FAQ",
+            "href": "#faq"
+          }
         ]
       },
       "information": {
         "title": "Useful Information",
         "links": [
-          { "text": "Privacy Policy", "href": "/legal/privacy-policy" },
-          { "text": "Terms of Service", "href": "/legal/terms-of-service" },
-          { "text": "Accessibility Statement", "href": "/legal/accessibility-statement" },
-          { "text": "Pricing (in FAQ)", "href": "#faq" },
-          { "text": "Contact & Support", "href": "/contact" }
+          {
+            "text": "Privacy Policy",
+            "href": "/legal/privacy-policy"
+          },
+          {
+            "text": "Terms of Service",
+            "href": "/legal/terms-of-service"
+          },
+          {
+            "text": "Accessibility Statement",
+            "href": "/legal/accessibility-statement"
+          },
+          {
+            "text": "Pricing (in FAQ)",
+            "href": "#faq"
+          },
+          {
+            "text": "Contact & Support",
+            "href": "/contact"
+          }
         ]
       },
       "contact": {
         "title": "Contact Us",
         "items": [
-          { "icon": "📱", "text": "+972-54-321-0040" },
-          { "icon": "✉️", "text": "neshamatech.jsmatch@gmail.com" },
-          { "icon": "📍", "text": "Raanana, Israel" },
-          { "icon": "🕒", "text": "Sun-Thu 9:00-18:00" }
+          {
+            "icon": "📱",
+            "text": "+972-54-321-0040"
+          },
+          {
+            "icon": "✉️",
+            "text": "neshamatech.jsmatch@gmail.com"
+          },
+          {
+            "icon": "📍",
+            "text": "Raanana, Israel"
+          },
+          {
+            "icon": "🕒",
+            "text": "Sun-Thu 9:00-18:00"
+          }
         ]
       }
     }
@@ -548,9 +618,8 @@
       "showImage": "Show image number {{number}}"
     },
     "tablistLabel": "Demo profile navigation"
-  }
-,
-"contactPage": {
+  },
+  "contactPage": {
     "backToHome": "Homepage",
     "hero": {
       "header": "Your Journey Starts with a Conversation",
@@ -581,10 +650,22 @@
         "unexpectedError": "An unexpected error occurred. Please try again."
       },
       "categories": [
-        { "value": "process", "label": "Understanding the NeshamaTech Process" },
-        { "value": "consultation", "label": "Requesting a Personal Consultation" },
-        { "value": "general", "label": "General Questions" },
-        { "value": "technical", "label": "Technical Support" }
+        {
+          "value": "process",
+          "label": "Understanding the NeshamaTech Process"
+        },
+        {
+          "value": "consultation",
+          "label": "Requesting a Personal Consultation"
+        },
+        {
+          "value": "general",
+          "label": "General Questions"
+        },
+        {
+          "value": "technical",
+          "label": "Technical Support"
+        }
       ]
     },
     "successMessage": {
@@ -597,16 +678,33 @@
       "team": {
         "title": "The People Guiding Your Journey",
         "members": [
-          { "name": "Dina Englard", "role": "Head Matchmaker", "description": "Expert in personal and warm guidance, believes listening is the key to a true connection." },
-          { "name": "Eitan Englard", "role": "Founder & CEO", "description": "Entrepreneur and founder, combining smart technology with a human heart to build the secure path to a relationship." }
+          {
+            "name": "Dina Englard",
+            "role": "Head Matchmaker",
+            "description": "Expert in personal and warm guidance, believes listening is the key to a true connection."
+          },
+          {
+            "name": "Eitan Englard",
+            "role": "Founder & CEO",
+            "description": "Entrepreneur and founder, combining smart technology with a human heart to build the secure path to a relationship."
+          }
         ]
       },
       "faq": {
         "title": "Clarity for Your Journey",
         "items": [
-          { "question": "How quickly will I get a response?", "answer": "We respect your time and are committed to responding to every inquiry personally and professionally within one business day." },
-          { "question": "Is the initial consultation free?", "answer": "Absolutely. Our first conversation is designed to build trust and mutual understanding. It is provided at no cost and with no obligation." },
-          { "question": "What's the best way to start?", "answer": "The ideal starting point is our in-depth questionnaire. Once completed, a personal matchmaker will contact you to begin the conversation." }
+          {
+            "question": "How quickly will I get a response?",
+            "answer": "We respect your time and are committed to responding to every inquiry personally and professionally within one business day."
+          },
+          {
+            "question": "Is the initial consultation free?",
+            "answer": "Absolutely. Our first conversation is designed to build trust and mutual understanding. It is provided at no cost and with no obligation."
+          },
+          {
+            "question": "What's the best way to start?",
+            "answer": "The ideal starting point is our in-depth questionnaire. Once completed, a personal matchmaker will contact you to begin the conversation."
+          }
         ]
       },
       "otherWays": {
@@ -674,7 +772,7 @@
       "submitError": "Oops, there seems to be a slight issue. Please try again, we truly want to hear from you."
     }
   },
-    "messagesPage": {
+  "messagesPage": {
     "header": {
       "title": "My Activity Center",
       "subtitle": "All your updates, messages, and actions in one place."
@@ -700,12 +798,90 @@
       "matchmakerPrefix": "Suggestion from matchmaker",
       "suggestionWith": "with {{name}}",
       "viewDetails": "View Details",
-        "imAvailableNow": "I'm available now"
-
+      "imAvailableNow": "I'm available now",
+      "feedTitles": {
+        "actionRequired": "New suggestion waiting for you!",
+        "contactShared": "Congratulations, it's a match!",
+        "dateFeedback": "How was the date?",
+        "statusUpdate": "Update on suggestion with {{name}}",
+        "sentQuestion": "You sent a question to {{name}}",
+        "receivedAnswer": "Response received from {{name}}",
+        "newMessage": "New message from {{name}}",
+        "availabilityRequest": "Availability request from {{name}}",
+        "reOffered": "The suggestion is back!",
+        "engaged": "Congratulations! 💍",
+        "married": "Congratulations! 🎉"
+      },
+      "feedDescriptions": {
+        "actionRequired": "{{matchmaker}} thinks there's great potential here.",
+        "contactShared": "Contact details have been shared. Time to reach out.",
+        "dateFeedback": "We'd love to hear your thoughts to keep helping.",
+        "statusUpdate": "The status has been updated. Click for details.",
+        "sentQuestion": "\"{{preview}}\"",
+        "receivedAnswer": "About your question on {{name}}: \"{{preview}}\"",
+        "newMessage": "About the suggestion with {{name}}",
+        "availabilityRequest": "The matchmaker wants to check if you're available for a new suggestion.",
+        "reOffered": "The matchmaker believes it's worth giving this another chance.",
+        "engaged": "Engagement! Wishing you all the best!",
+        "married": "Wedding! Wishing you a wonderful life together!"
+      },
+      "cta": {
+        "respondNow": "Respond Now",
+        "viewContact": "View Contact",
+        "giveFeedback": "Give Feedback",
+        "viewDetails": "View Details",
+        "viewChat": "Open Chat",
+        "respondToInquiry": "Respond"
+      },
+      "quickActions": {
+        "approve": "Interested",
+        "decline": "Not for me",
+        "interested": "Maybe",
+        "approving": "Approving...",
+        "declining": "Declining..."
+      },
+      "unread": "New"
+    },
+    "emptyStates": {
+      "all": {
+        "title": "All Quiet Here",
+        "description": "No new updates right now. As soon as there's a development, it will appear here."
+      },
+      "actionRequired": {
+        "title": "No pending actions",
+        "description": "Great! No suggestions need your response right now. We'll let you know when a new one arrives."
+      },
+      "updates": {
+        "title": "No new updates",
+        "description": "When there's a status change or new message, it will appear here."
+      }
+    },
+    "statusBadges": {
+      "PENDING_FIRST_PARTY": "Awaiting your response",
+      "PENDING_SECOND_PARTY": "Awaiting other party",
+      "FIRST_PARTY_APPROVED": "You approved",
+      "FIRST_PARTY_INTERESTED": "Interested",
+      "SECOND_PARTY_APPROVED": "Approved!",
+      "CONTACT_DETAILS_SHARED": "Details shared",
+      "DATING": "Dating",
+      "FIRST_PARTY_DECLINED": "Declined",
+      "SECOND_PARTY_DECLINED": "Declined",
+      "CLOSED": "Closed",
+      "AWAITING_FIRST_DATE_FEEDBACK": "Awaiting feedback",
+      "RE_OFFERED_TO_FIRST_PARTY": "Re-offered",
+      "ENGAGED": "Engaged! 💍",
+      "MARRIED": "Married! 🎉",
+      "MEETING_SCHEDULED": "Meeting scheduled",
+      "THINKING_AFTER_DATE": "Thinking it over",
+      "PROCEEDING_TO_SECOND_DATE": "Moving to 2nd date",
+      "ENDED_AFTER_FIRST_DATE": "Ended"
     },
     "badges": {
       "match": "It's a Match!"
     },
+    "retryButton": "Try Again",
+    "loadingMore": "Loading more...",
+    "noMoreItems": "That's all!",
     "messageList": {
       "header": "Activity Center",
       "subtitle": "{{count}} suggestions and updates"
@@ -830,12 +1006,4 @@
       "line2": "We've built a journey of self-discovery just for you."
     }
   }
-
-
-
-
-
-
-
-
 }

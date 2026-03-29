@@ -288,6 +288,9 @@ export type ShidduchCardCTADict = {
   };
   cta: string;
   cardPreview: {
+    name: string;
+    age: string;
+    city: string;
     headline: string;
     aboutMe: string;
     lookingFor: string;
@@ -520,6 +523,31 @@ export type SuggestionsModalDict = {
     reOfferInfo: string;
     gracePeriodExpired: string;
     withdrawError: string;
+    datingPhase: {
+      dateScheduled: string;
+      dateHappened: string;
+      dateWentWell: string;
+      thinking: string;
+      notContinuing: string;
+      proceedSecond: string;
+      inProcess: string;
+      contactSharedTitle: string;
+      contactSharedSubtitle: string;
+      meetingScheduledTitle: string;
+      meetingScheduledSubtitle: string;
+      feedbackTitle: string;
+      feedbackSubtitle: string;
+      thinkingTitle: string;
+      thinkingSubtitle: string;
+      proceedingTitle: string;
+      proceedingSubtitle: string;
+      confirmEndTitle: string;
+      confirmEndMessage: string;
+      confirmEndButton: string;
+      goBack: string;
+      updateSuccess: string;
+      updateError: string;
+    };
   };
   detailsTab: {
     timelineTitle: string;
@@ -600,6 +628,41 @@ export type AiAnalysisDict = {
   noteText: string;
   backButton: string;
   triggerButton: string;
+};
+
+export type AiInsightDict = {
+  idle: {
+    title: string;
+    description: string;
+    button: string;
+  };
+  loading: {
+    title: string;
+    description: string;
+    step1: string;
+    step2: string;
+    step3: string;
+    step4: string;
+    step5: string;
+  };
+  error: {
+    description: string;
+    retry: string;
+    toastTitle: string;
+  };
+  deepDive: string;
+  drawer: {
+    title: string;
+    strengths: string;
+    considerations: string;
+    conversationStarters: string;
+    noStrengths: string;
+    noConsiderations: string;
+    copy: string;
+    noteTitle: string;
+    noteText: string;
+    contactMatchmaker: string;
+  };
 };
 
 export type SuggestionsListDict = {
@@ -779,6 +842,19 @@ export type SuggestionsContainerDict = {
     };
   };
     autoSuggestions: {
+    toggle: {
+      label: string;
+      enabledDesc: string;
+      disabledDesc: string;
+      encourageEnable: string;
+      enabledToast: string;
+      disabledToast: string;
+      errorToast: string;
+      infoTitle: string;
+      infoItems: string[];
+      infoFooter: string;
+      infoAriaLabel: string;
+    };
     title: string;
     subtitle: string;
     scheduleInfo: string;
@@ -1115,6 +1191,7 @@ export type SuggestionsDictionary = {
   card: SuggestionsCardDict;
   modal: SuggestionsModalDict;
   aiAnalysis: AiAnalysisDict;
+  aiInsight: AiInsightDict;
   list: SuggestionsListDict;
   presentation: SuggestionsPresentationDict;
   quickView: SuggestionsQuickViewDict;
@@ -2576,12 +2653,13 @@ export type ProfileSectionDict = {
       annulled: string;
     };
     religiousLevel: {
+      charedi: string;
+      charedi_modern: string;
       charedi_litvak: string;
       charedi_sephardic: string;
       charedi_hasidic: string;
       chabad: string;
       breslov: string;
-      charedi_modern: string;
       dati_leumi_torani: string;
       dati_leumi_liberal: string;
       dati_leumi_standard: string;
@@ -3780,11 +3858,78 @@ export type MessagesPageDict = {
     matchmakerPrefix: string;
     suggestionWith: string;
     viewDetails: string;
-    imAvailableNow: string;            // ← NEW
+    imAvailableNow: string;
+    // Feed item titles & descriptions (i18n)
+    feedTitles: {
+      actionRequired: string;
+      contactShared: string;
+      dateFeedback: string;
+      statusUpdate: string;
+      sentQuestion: string;
+      receivedAnswer: string;
+      newMessage: string;
+      availabilityRequest: string;
+      reOffered: string;
+      engaged: string;
+      married: string;
+    };
+    feedDescriptions: {
+      actionRequired: string;
+      contactShared: string;
+      dateFeedback: string;
+      statusUpdate: string;
+      sentQuestion: string;
+      receivedAnswer: string;
+      newMessage: string;
+      availabilityRequest: string;
+      reOffered: string;
+      engaged: string;
+      married: string;
+    };
+    // Contextual CTA buttons
+    cta: {
+      respondNow: string;
+      viewContact: string;
+      giveFeedback: string;
+      viewDetails: string;
+      viewChat: string;
+      respondToInquiry: string;
+    };
+    // Quick actions
+    quickActions: {
+      approve: string;
+      decline: string;
+      interested: string;
+      approving: string;
+      declining: string;
+    };
+    // Unread indicator
+    unread: string;
   };
+  // Contextual empty states per filter
+  emptyStates: {
+    all: {
+      title: string;
+      description: string;
+    };
+    actionRequired: {
+      title: string;
+      description: string;
+    };
+    updates: {
+      title: string;
+      description: string;
+    };
+  };
+  // Status badges
+  statusBadges: Record<string, string>;
   badges: {
     match: string;
   };
+  // Skeleton / loading
+  retryButton: string;
+  loadingMore: string;
+  noMoreItems: string;
   messageList: MessageListDict;
   messageListItem: MessageListItemDict;
   availabilityRequestCard: AvailabilityRequestCardDict;

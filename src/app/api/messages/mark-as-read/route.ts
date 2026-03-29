@@ -14,6 +14,7 @@ const markAsReadSchema = z.object({
     'ACTION_REQUIRED',
     'MATCHMAKER_MESSAGE',
     'INQUIRY_RESPONSE',
+    'AVAILABILITY_INQUIRY',
   ], { errorMap: () => ({ message: 'Invalid notification type' }) }),
 });
 
@@ -34,12 +35,20 @@ export async function POST(req: Request) {
     const { id, type } = validation.data;
     const userId = session.user.id;
 
-    // טיפול בהצעה (MatchSuggestion)
-    // ה-ID שמגיע מהפיד הוא בפורמט "suggestionId-status", אנחנו צריכים רק את ה-UUID
-    if (type === 'NEW_SUGGESTION' || type === 'STATUS_UPDATE' || type === 'ACTION_REQUIRED') {
-      // חילוץ ה-ID הנקי (למקרה שהגיע ID מורכב מהפיד)
-      const cleanId = id.includes('-') ? id.split('-')[0] : id;
+    // Clean ID — strip prefixes from new format (suggestion-xxx, inquiry-xxx, availability-xxx)
+    // Also handle old format where ID contained status suffix (xxx-STATUS)
+    let cleanId = id
+      .replace(/^suggestion-/, '')
+      .replace(/^inquiry-/, '')
+      .replace(/^availability-/, '');
 
+    // Handle old format: "cuid-SOME_STATUS" — extract just the cuid part
+    // CUIDs are 25 chars, so if there's a dash after position 20+, it's likely a status suffix
+    if (cleanId.includes('-') && cleanId.length > 30) {
+      cleanId = cleanId.split('-')[0];
+    }
+
+    if (type === 'NEW_SUGGESTION' || type === 'STATUS_UPDATE' || type === 'ACTION_REQUIRED') {
       const suggestion = await prisma.matchSuggestion.findUnique({
         where: { id: cleanId },
         select: { firstPartyId: true, secondPartyId: true }
@@ -58,14 +67,26 @@ export async function POST(req: Request) {
           });
         }
       }
-    } 
-    
-    // טיפול בהודעת צ'אט (SuggestionInquiry)
-    else if (type === 'MATCHMAKER_MESSAGE' || type === 'INQUIRY_RESPONSE') {
+    } else if (type === 'MATCHMAKER_MESSAGE' || type === 'INQUIRY_RESPONSE') {
       await prisma.suggestionInquiry.update({
-        where: { id: id }, // כאן ה-ID הוא ישיר
+        where: { id: cleanId },
         data: { recipientReadAt: new Date() }
       });
+    } else if (type === 'AVAILABILITY_INQUIRY') {
+      // For availability inquiries, mark the user's response field
+      const inquiry = await prisma.availabilityInquiry.findUnique({
+        where: { id: cleanId },
+        select: { firstPartyId: true, secondPartyId: true }
+      });
+
+      if (inquiry) {
+        // We just mark it as "seen" — actual response is handled by the availability endpoint
+        // No specific field to update for "seen", so we use updatedAt as a signal
+        await prisma.availabilityInquiry.update({
+          where: { id: cleanId },
+          data: { updatedAt: new Date() }
+        });
+      }
     }
 
     return NextResponse.json({ success: true });

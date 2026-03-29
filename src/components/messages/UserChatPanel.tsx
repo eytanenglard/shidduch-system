@@ -28,6 +28,9 @@ import {
   Mic,
   Info,
   Sparkles,
+  Check,
+  CheckCheck,
+  Eye,
 } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -106,6 +109,62 @@ function getMessagePreview(
     };
   }
   return { text: chat.lastMessage ? truncate(chat.lastMessage, 60) : '' };
+}
+
+/** Suggestion status → user-friendly short label */
+function getStatusLabel(status: string | undefined, isHe: boolean): { label: string; color: string } | null {
+  if (!status) return null;
+  const map: Record<string, { he: string; en: string; color: string }> = {
+    PENDING_FIRST_PARTY: { he: 'ממתין לתגובתך', en: 'Awaiting your response', color: 'bg-orange-100 text-orange-700' },
+    FIRST_PARTY_APPROVED: { he: 'אישרת', en: 'You approved', color: 'bg-green-100 text-green-700' },
+    FIRST_PARTY_INTERESTED: { he: 'הבעת עניין', en: 'Interested', color: 'bg-emerald-100 text-emerald-700' },
+    PENDING_SECOND_PARTY: { he: 'ממתין לצד שני', en: 'Awaiting other party', color: 'bg-blue-100 text-blue-700' },
+    SECOND_PARTY_APPROVED: { he: 'שני הצדדים אישרו', en: 'Both approved', color: 'bg-green-100 text-green-700' },
+    CONTACT_DETAILS_SHARED: { he: 'פרטים שותפו!', en: 'Details shared!', color: 'bg-emerald-100 text-emerald-700' },
+    DATING: { he: 'בתהליך היכרות', en: 'Dating', color: 'bg-pink-100 text-pink-700' },
+    FIRST_PARTY_DECLINED: { he: 'סירבת', en: 'Declined', color: 'bg-red-100 text-red-600' },
+    SECOND_PARTY_DECLINED: { he: 'הצד השני סירב', en: 'Other party declined', color: 'bg-red-100 text-red-600' },
+  };
+  const entry = map[status];
+  if (!entry) return null;
+  return { label: isHe ? entry.he : entry.en, color: entry.color };
+}
+
+/** Group chats by date of last message */
+function groupChatsByDate(
+  chats: ChatSummary[],
+  locale: Locale
+): { label: string; chats: ChatSummary[] }[] {
+  const isHe = locale === 'he';
+  const loc = isHe ? he : enUS;
+  const groups: { label: string; chats: ChatSummary[] }[] = [];
+
+  for (const chat of chats) {
+    const dateStr = chat.lastMessageTime;
+    let label: string;
+
+    if (!dateStr) {
+      label = isHe ? 'ללא הודעות' : 'No messages';
+    } else {
+      const date = new Date(dateStr);
+      if (isToday(date)) {
+        label = isHe ? 'היום' : 'Today';
+      } else if (isYesterday(date)) {
+        label = isHe ? 'אתמול' : 'Yesterday';
+      } else {
+        label = format(date, isHe ? 'EEEE, d בMMMM' : 'EEEE, MMMM d', { locale: loc });
+      }
+    }
+
+    const lastGroup = groups[groups.length - 1];
+    if (lastGroup && lastGroup.label === label) {
+      lastGroup.chats.push(chat);
+    } else {
+      groups.push({ label, chats: [chat] });
+    }
+  }
+
+  return groups;
 }
 
 // ==========================================
@@ -195,131 +254,206 @@ function ChatRow({
   isHe,
   locale,
   onClick,
+  onMarkRead,
   isSelected,
 }: {
   chat: ChatSummary;
   isHe: boolean;
   locale: Locale;
   onClick: () => void;
+  onMarkRead?: () => void;
   isSelected?: boolean;
 }) {
   const isUnread = chat.unreadCount > 0;
   const preview = getMessagePreview(chat, isHe);
+  const isSuggestion = chat.type === 'suggestion';
+  const statusInfo = isSuggestion ? getStatusLabel(chat.status, isHe) : null;
+
+  // Swipe state for mobile mark-as-read
+  const touchStartX = useRef(0);
+  const touchDeltaX = useRef(0);
+  const rowRef = useRef<HTMLButtonElement>(null);
+  const [isSwiped, setIsSwiped] = useState(false);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchDeltaX.current = 0;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const delta = e.touches[0].clientX - touchStartX.current;
+    // Only allow swipe in the correct direction (start-to-end in RTL = right, LTR = left)
+    const swipeDelta = isHe ? delta : -delta;
+    if (swipeDelta > 0 && swipeDelta < 100) {
+      touchDeltaX.current = swipeDelta;
+      if (rowRef.current) {
+        const translate = isHe ? swipeDelta : -swipeDelta;
+        rowRef.current.style.transform = `translateX(${translate}px)`;
+      }
+    }
+  }, [isHe]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchDeltaX.current > 60 && isUnread && onMarkRead) {
+      setIsSwiped(true);
+      onMarkRead();
+      setTimeout(() => setIsSwiped(false), 600);
+    }
+    if (rowRef.current) {
+      rowRef.current.style.transform = '';
+    }
+    touchDeltaX.current = 0;
+  }, [isUnread, onMarkRead]);
+
+  // For suggestion chats: the conversation is WITH the matchmaker,
+  // and the TOPIC is the suggestion (the other party)
+  const chatWithName = chat.matchmakerName;
+  const topicName = chat.title; // other party name
 
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'w-full px-5 py-4 flex items-center gap-3.5 transition-colors text-start',
-        isUnread
-          ? 'bg-teal-50/50 hover:bg-teal-50/80'
-          : 'hover:bg-gray-50/80',
-        isSelected && 'bg-teal-50 ring-1 ring-inset ring-teal-200'
+    <div className="relative overflow-hidden">
+      {/* Swipe-to-read background */}
+      {isUnread && (
+        <div className={cn(
+          'absolute inset-y-0 flex items-center px-4',
+          isHe ? 'left-0' : 'right-0',
+          'bg-teal-500 text-white'
+        )}>
+          <Eye className="w-5 h-5" />
+        </div>
       )}
-    >
-      {/* Avatar */}
-      <div className="relative flex-shrink-0">
-        <Avatar className="w-12 h-12 shadow-sm ring-2 ring-white">
-          <AvatarFallback
-            className={cn(
-              'text-white font-bold bg-gradient-to-br',
-              chat.type === 'direct'
-                ? 'from-purple-400 to-pink-500'
-                : 'from-teal-400 to-cyan-500'
-            )}
-          >
-            {chat.type === 'direct' ? (
-              <User className="w-5 h-5" />
-            ) : (
-              getInitials(chat.title)
-            )}
-          </AvatarFallback>
-        </Avatar>
-        {chat.type === 'suggestion' && (
-          <div className="absolute -bottom-0.5 -end-1 p-0.5 bg-white rounded-full shadow">
-            <Heart className="w-3 h-3 text-pink-500 fill-pink-500" />
-          </div>
+      <button
+        ref={rowRef}
+        onClick={onClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={cn(
+          'relative w-full px-4 py-3.5 flex items-center gap-3 transition-colors text-start bg-white',
+          isUnread
+            ? 'bg-teal-50/50 hover:bg-teal-50/80'
+            : 'hover:bg-gray-50/80',
+          isSelected && 'bg-teal-50 ring-1 ring-inset ring-teal-200',
+          isSwiped && 'transition-transform duration-300'
         )}
-      </div>
+      >
+        {/* Avatar */}
+        <div className="relative flex-shrink-0">
+          <Avatar className="w-11 h-11 shadow-sm ring-2 ring-white">
+            <AvatarFallback
+              className={cn(
+                'text-white font-bold bg-gradient-to-br text-sm',
+                isSuggestion
+                  ? 'from-teal-400 to-cyan-500'
+                  : 'from-purple-400 to-pink-500'
+              )}
+            >
+              {isSuggestion ? (
+                getInitials(chatWithName)
+              ) : (
+                <User className="w-5 h-5" />
+              )}
+            </AvatarFallback>
+          </Avatar>
+          {isSuggestion && (
+            <div className="absolute -bottom-0.5 -end-0.5 p-0.5 bg-white rounded-full shadow">
+              <Heart className="w-2.5 h-2.5 text-pink-500 fill-pink-500" />
+            </div>
+          )}
+        </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-0.5">
-          <p
-            className={cn(
-              'text-sm truncate',
-              isUnread
-                ? 'font-bold text-gray-900'
-                : 'font-semibold text-gray-800'
-            )}
-          >
-            {chat.type === 'direct'
-              ? isHe
-                ? `שיחה עם ${chat.matchmakerName}`
-                : `Chat with ${chat.matchmakerName}`
-              : chat.title}
-          </p>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+        {/* Content */}
+        <div className="flex-1 min-w-0 overflow-hidden">
+          {/* Row 1: Name + Time */}
+          <div className="flex items-baseline justify-between gap-2 mb-0.5">
+            <p
+              className={cn(
+                'text-sm truncate flex-1 min-w-0',
+                isUnread
+                  ? 'font-bold text-gray-900'
+                  : 'font-semibold text-gray-800'
+              )}
+            >
+              {chatWithName}
+            </p>
             {chat.lastMessageTime && (
               <span
                 className={cn(
-                  'text-[10px] flex items-center gap-0.5',
+                  'text-[10px] whitespace-nowrap flex-shrink-0',
                   isUnread ? 'text-teal-600 font-semibold' : 'text-gray-400'
                 )}
               >
-                <Clock className="w-3 h-3" />
                 {formatTime(chat.lastMessageTime, locale)}
               </span>
             )}
           </div>
-        </div>
 
-        {/* Subtitle */}
-        <p className="text-xs text-gray-400 mb-0.5">
-          {chat.type === 'direct'
-            ? isHe
-              ? 'שיחה כללית'
-              : 'General chat'
-            : `${isHe ? 'שדכן/ית:' : 'Matchmaker:'} ${chat.matchmakerName}`}
-        </p>
-
-        {/* Last message preview — rich */}
-        {preview.text ? (
-          <p
-            className={cn(
-              'text-xs truncate',
-              isUnread ? 'text-gray-700 font-medium' : 'text-gray-500'
-            )}
-          >
-            {chat.lastMessageIsMine && chat.lastMessageType !== 'SYSTEM' && (
-              <span className="text-teal-600 font-medium">
-                {isHe ? 'אני: ' : 'Me: '}
+          {/* Row 2: Topic / Subtitle + Status badge */}
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <p className="text-xs text-gray-400 truncate">
+              {isSuggestion
+                ? `${isHe ? 'הצעה עם' : 'Suggestion with'} ${topicName}`
+                : isHe
+                  ? 'שיחה כללית'
+                  : 'General chat'}
+            </p>
+            {statusInfo && (
+              <span className={cn(
+                'text-[9px] font-medium px-1.5 py-0.5 rounded-full whitespace-nowrap flex-shrink-0',
+                statusInfo.color
+              )}>
+                {statusInfo.label}
               </span>
             )}
-            {preview.icon}
-            {preview.text}
-          </p>
-        ) : (
-          <p className="text-xs text-gray-400 italic">
-            {isHe ? 'לחץ/י לפתיחת שיחה' : 'Tap to open chat'}
-          </p>
-        )}
-      </div>
+          </div>
 
-      {/* Unread badge + Arrow */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {isUnread && (
-          <Badge className="bg-teal-500 text-white text-xs px-2 py-0.5 border-0 shadow-sm animate-zoom-in">
-            {chat.unreadCount}
-          </Badge>
-        )}
-        {isHe ? (
-          <ChevronLeft className="w-4 h-4 text-gray-300" />
-        ) : (
-          <ChevronRight className="w-4 h-4 text-gray-300" />
-        )}
-      </div>
-    </button>
+          {/* Row 3: Last message preview with read receipts */}
+          {preview.text ? (
+            <p
+              className={cn(
+                'text-xs truncate flex items-center gap-0.5',
+                isUnread ? 'text-gray-700 font-medium' : 'text-gray-500'
+              )}
+            >
+              {chat.lastMessageIsMine && chat.lastMessageType !== 'SYSTEM' && (
+                <>
+                  {chat.unreadCount === 0 ? (
+                    <CheckCheck className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                  )}
+                </>
+              )}
+              {chat.lastMessageIsMine && chat.lastMessageType !== 'SYSTEM' && (
+                <span className="text-teal-600 font-medium flex-shrink-0">
+                  {isHe ? 'אני: ' : 'Me: '}
+                </span>
+              )}
+              {preview.icon}
+              <span className="truncate">{preview.text}</span>
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400 italic">
+              {isHe ? 'לחץ/י לפתיחת שיחה' : 'Tap to open chat'}
+            </p>
+          )}
+        </div>
+
+        {/* Unread badge + Arrow */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {isUnread && (
+            <Badge className="bg-teal-500 text-white text-[10px] min-w-[20px] h-5 px-1.5 py-0 border-0 shadow-sm animate-zoom-in">
+              {chat.unreadCount}
+            </Badge>
+          )}
+          {isHe ? (
+            <ChevronLeft className="w-4 h-4 text-gray-300" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-gray-300" />
+          )}
+        </div>
+      </button>
+    </div>
   );
 }
 
@@ -555,6 +689,32 @@ export default function UserChatPanel({
     }
   };
 
+  // Mark chat as read without opening it (swipe action)
+  const handleMarkRead = useCallback(async (chatId: string, chatType: 'direct' | 'suggestion') => {
+    try {
+      const url = chatType === 'direct'
+        ? '/api/messages/direct/read'
+        : `/api/suggestions/${chatId}/chat/read`;
+      await fetch(url, { method: 'POST' });
+      // Optimistic update
+      setChats(prev => prev.map(c =>
+        c.id === chatId ? { ...c, unreadCount: 0 } : c
+      ));
+      const newTotal = chats.reduce((sum, c) =>
+        sum + (c.id === chatId ? 0 : c.unreadCount), 0
+      );
+      onUnreadUpdateRef.current?.(newTotal);
+    } catch {
+      // Silently fail — next poll will correct
+    }
+  }, [chats]);
+
+  // Date-grouped chats for the list
+  const groupedChats = useMemo(
+    () => groupChatsByDate(filteredChats, locale),
+    [filteredChats, locale]
+  );
+
   // ==========================================
   // Chat View Component (reused in both mobile & split)
   // ==========================================
@@ -580,13 +740,14 @@ export default function UserChatPanel({
               <div className="flex items-center gap-2.5">
                 <Avatar className="w-9 h-9 shadow-sm ring-2 ring-white">
                   <AvatarFallback className="text-white text-xs font-bold bg-gradient-to-br from-teal-400 to-cyan-500">
-                    {getInitials(selectedChat.title)}
+                    {getInitials(selectedChat.matchmakerName)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold text-gray-800 text-sm">{selectedChat.title}</p>
-                  <p className="text-xs text-gray-500">
-                    {isHe ? 'שדכן/ית:' : 'Matchmaker:'} {selectedChat.matchmakerName}
+                  <p className="font-semibold text-gray-800 text-sm">{selectedChat.matchmakerName}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <Heart className="w-3 h-3 text-pink-400 fill-pink-400" />
+                    {isHe ? 'הצעה עם' : 'Suggestion with'} {selectedChat.title}
                   </p>
                 </div>
               </div>
@@ -685,6 +846,23 @@ export default function UserChatPanel({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {/* Connection status dot */}
+            <div className="flex items-center gap-1 px-1.5" title={
+              isConnected
+                ? (isHe ? 'מחובר בזמן אמת' : 'Connected in real-time')
+                : isPolling
+                  ? (isHe ? 'מתעדכן מדי כמה שניות' : 'Polling for updates')
+                  : (isHe ? 'לא מחובר' : 'Disconnected')
+            }>
+              <div className={cn(
+                'w-2 h-2 rounded-full',
+                isConnected
+                  ? 'bg-green-500 shadow-[0_0_4px_rgba(34,197,94,0.5)]'
+                  : isPolling
+                    ? 'bg-amber-400 animate-pulse'
+                    : 'bg-gray-300'
+              )} />
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -747,16 +925,33 @@ export default function UserChatPanel({
           </div>
         ) : (
           <ScrollArea className={cn(isSplitMode ? 'h-[calc(100%-1px)]' : 'max-h-[600px]')}>
-            <div className="divide-y divide-gray-100" dir={isHe ? 'rtl' : 'ltr'}>
-              {filteredChats.map((chat) => (
-                <ChatRow
-                  key={chat.id}
-                  chat={chat}
-                  isHe={isHe}
-                  locale={locale}
-                  onClick={() => openChat(chat.id)}
-                  isSelected={isSplitMode && chat.id === selectedChatId}
-                />
+            <div dir={isHe ? 'rtl' : 'ltr'}>
+              {groupedChats.map((group) => (
+                <div key={group.label}>
+                  {/* Date separator */}
+                  {groupedChats.length > 1 && (
+                    <div className="flex items-center gap-2 px-4 py-1.5 bg-gray-50/80">
+                      <div className="h-px flex-1 bg-gray-200" />
+                      <span className="text-[10px] font-medium text-gray-400 whitespace-nowrap">
+                        {group.label}
+                      </span>
+                      <div className="h-px flex-1 bg-gray-200" />
+                    </div>
+                  )}
+                  <div className="divide-y divide-gray-100">
+                    {group.chats.map((chat) => (
+                      <ChatRow
+                        key={chat.id}
+                        chat={chat}
+                        isHe={isHe}
+                        locale={locale}
+                        onClick={() => openChat(chat.id)}
+                        onMarkRead={() => handleMarkRead(chat.id, chat.type)}
+                        isSelected={isSplitMode && chat.id === selectedChatId}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </ScrollArea>

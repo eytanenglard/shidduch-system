@@ -14,6 +14,7 @@ import {
   Users,
   MessageSquare,
   CheckCircle2,
+  MapPin,
 } from 'lucide-react';
 
 interface ShidduchCardCTADict {
@@ -28,6 +29,9 @@ interface ShidduchCardCTADict {
     aiPowered: string;
   };
   cardPreview: {
+    name: string;
+    age: string;
+    city: string;
     headline: string;
     aboutMe: string;
     lookingFor: string;
@@ -164,15 +168,31 @@ export default function ShidduchCardCTASection({ dict, locale }: Props) {
               <div className="h-2 bg-gradient-to-r from-rose-500 via-amber-500 to-orange-500" />
 
               <div className="p-6 space-y-4">
-                {/* Mock headline */}
+                {/* Name & details header */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={isInView ? { opacity: 1 } : {}}
+                  transition={{ delay: 0.55 }}
+                  className="text-center space-y-1.5"
+                >
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {dict.cardPreview.name}, {dict.cardPreview.age}
+                  </h3>
+                  <div className="flex items-center justify-center gap-1 text-gray-500">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">{dict.cardPreview.city}</span>
+                  </div>
+                </motion.div>
+
+                {/* Headline */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={isInView ? { opacity: 1 } : {}}
                   transition={{ delay: 0.6 }}
                   className="text-center"
                 >
-                  <p className="text-base font-bold text-gray-800">
-                    {dict.cardPreview.headline}
+                  <p className="text-sm font-medium text-gray-600 italic leading-relaxed">
+                    &ldquo;{dict.cardPreview.headline}&rdquo;
                   </p>
                 </motion.div>
 

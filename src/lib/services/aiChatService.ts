@@ -22,6 +22,19 @@ const MAX_SEARCH_RESULTS = 10;
 const PREFERENCE_EXTRACTION_INTERVAL = 5; // Extract every N user messages
 const SUMMARY_MESSAGE_THRESHOLD = 3; // Generate summary after N user messages
 
+// A/B testing: prompt variants
+type PromptVariant = 'A' | 'B';
+
+function getPromptVariant(userId: string): PromptVariant {
+  // Deterministic assignment based on userId hash (consistent per user)
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = ((hash << 5) - hash) + userId.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % 2 === 0 ? 'A' : 'B';
+}
+
 const SEARCH_INTENT_KEYWORDS_HE = ['חפש', 'מצא', 'הצעות', 'תחפשי', 'תמצאי', 'תחפש', 'תמצא', 'חיפוש', 'סריקה'];
 const SEARCH_INTENT_KEYWORDS_EN = ['search', 'find', 'match', 'suggest', 'look for', 'scan'];
 const ESCALATION_KEYWORDS_HE = ['שדכנית', 'שדכן', 'אנושי', 'אדם אמיתי', 'תעביר', 'תעבירי', 'לדבר עם'];
@@ -31,6 +44,9 @@ const APPROVE_INTENT_KEYWORDS_HE = ['מאשר', 'מאשרת', 'מעוניין', 
 const APPROVE_INTENT_KEYWORDS_EN = ['approve', 'accept', 'interested', 'i agree', 'go ahead', 'move forward', 'yes please', "let's proceed"];
 const DECLINE_INTENT_KEYWORDS_HE = ['דוחה', 'לא מתאים', 'לא מעוניין', 'לא מעוניינת', 'לא בשבילי', 'לוותר', 'לסרב', 'דחייה', 'לא רוצה'];
 const DECLINE_INTENT_KEYWORDS_EN = ['decline', 'reject', 'not interested', 'pass', 'no thanks', 'not for me', "don't want"];
+
+const SHOW_PROFILE_KEYWORDS_HE = ['תראה לי', 'הראה לי', 'תציג לי', 'הצג לי', 'כרטיס פרופיל', 'תשלח לי', 'שלח לי', 'את הפרופיל', 'הפרופיל שלה', 'הפרופיל שלו', 'לראות את הפרופיל', 'לראות פרופיל', 'תראי לי'];
+const SHOW_PROFILE_KEYWORDS_EN = ['show me', 'show profile', 'see profile', 'send me', 'profile card', 'their profile', 'her profile', 'his profile', 'view profile'];
 
 const CLOSED_STATUSES: MatchSuggestionStatus[] = [
   'MARRIED', 'CLOSED', 'EXPIRED', 'CANCELLED',
@@ -225,6 +241,7 @@ export class AiChatService {
         matchingReason: true,
         structuredRationale: true,
         isAutoSuggestion: true,
+        internalNotes: true,
         firstPartyId: true,
         secondPartyId: true,
         matchmakerId: true,
@@ -288,6 +305,25 @@ export class AiChatService {
     parts.push(isHebrew ? `השדכן/ית: ${matchmakerName}` : `Matchmaker: ${matchmakerName}`);
     parts.push(isHebrew ? `סטטוס: ${suggestion.status}` : `Status: ${suggestion.status}`);
     parts.push(isHebrew ? `סוג: ${suggestion.isAutoSuggestion ? 'הצעה אוטומטית' : 'הצעה של שדכנית'}` : `Type: ${suggestion.isAutoSuggestion ? 'Auto suggestion' : 'Matchmaker suggestion'}`);
+
+    // Check if this suggestion was created from a discovery chat — include discovery context
+    if (suggestion.internalNotes?.includes('ConversationId:')) {
+      const convIdMatch = suggestion.internalNotes.match(/ConversationId:\s*(\S+)/);
+      if (convIdMatch?.[1]) {
+        try {
+          const discoveryConv = await prisma.aiChatConversation.findUnique({
+            where: { id: convIdMatch[1] },
+            select: { extractedPreferences: true },
+          });
+          const prefs = discoveryConv?.extractedPreferences as Record<string, unknown> | null;
+          if (prefs?.freeformInsights) {
+            parts.push(isHebrew
+              ? `\nהקשר מצ'אט גילוי: המשתמש/ת גילה/תה את המועמד/ת הזה/זו דרך שיחה עם נשמה. תובנות: ${prefs.freeformInsights}`
+              : `\nDiscovery context: User discovered this candidate through a Neshama chat. Insights: ${prefs.freeformInsights}`);
+          }
+        } catch { /* non-blocking */ }
+      }
+    }
 
     parts.push('');
     parts.push(isHebrew
@@ -871,8 +907,42 @@ Generate a **comprehensive, honest, and deep profile summary** of ${targetUser.f
 
   // ========== System Prompt ==========
 
+  // In-memory cache for system prompt user context (30-min TTL)
+  private static userContextCache = new Map<string, { data: string[]; expiry: number }>();
+  private static readonly USER_CONTEXT_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+  private static getCachedUserContext(userId: string): string[] | null {
+    const cached = this.userContextCache.get(userId);
+    if (cached && Date.now() < cached.expiry) return cached.data;
+    if (cached) this.userContextCache.delete(userId);
+    return null;
+  }
+
+  private static setCachedUserContext(userId: string, data: string[]) {
+    this.userContextCache.set(userId, { data, expiry: Date.now() + this.USER_CONTEXT_CACHE_TTL });
+    // Prevent memory leak: prune cache when it grows beyond 200 users
+    if (this.userContextCache.size > 200) {
+      const now = Date.now();
+      for (const [key, val] of this.userContextCache) {
+        if (now >= val.expiry) this.userContextCache.delete(key);
+      }
+    }
+  }
+
   static async buildSystemPrompt(userId: string, locale: 'he' | 'en', suggestionContext?: string, phase?: string): Promise<string> {
     const isHebrew = locale === 'he';
+    const promptVariant = getPromptVariant(userId);
+
+    // Check cache for user context
+    const cacheKey = `${userId}:${locale}`;
+    const cachedContext = this.getCachedUserContext(cacheKey);
+    if (cachedContext) {
+      let systemPrompt = isHebrew
+        ? this.buildHebrewSystemPrompt(cachedContext, phase, promptVariant)
+        : this.buildEnglishSystemPrompt(cachedContext, phase, promptVariant);
+      if (suggestionContext) systemPrompt += '\n' + suggestionContext;
+      return systemPrompt;
+    }
 
     // Load user data in parallel
     const [profile, metrics, tags, preferences, recentFeedbacks] = await Promise.all([
@@ -1024,10 +1094,28 @@ Generate a **comprehensive, honest, and deep profile summary** of ${targetUser.f
       }
     }
 
+    // Chat rejection pattern analysis (from avoid trait scores)
+    if (preferences?.avoidTraitScores) {
+      const avoidScores = preferences.avoidTraitScores as Record<string, number>;
+      const topAvoids = Object.entries(avoidScores)
+        .filter(([, count]) => count >= 2)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      if (topAvoids.length > 0) {
+        const patternText = topAvoids.map(([trait, count]) => `${trait} (×${count})`).join(', ');
+        userContext.push(isHebrew
+          ? `דפוסי דחייה בצ'אט: ${patternText}. אם רלוונטי — הזכירי למשתמש/ת שאפשר לדייק את ההעדפות.`
+          : `Chat rejection patterns: ${patternText}. If relevant, suggest refining preferences.`);
+      }
+    }
+
+    // Cache user context for 30 minutes
+    this.setCachedUserContext(cacheKey, userContext);
+
     // Build the full system prompt
     let systemPrompt = isHebrew
-      ? this.buildHebrewSystemPrompt(userContext, phase)
-      : this.buildEnglishSystemPrompt(userContext, phase);
+      ? this.buildHebrewSystemPrompt(userContext, phase, promptVariant)
+      : this.buildEnglishSystemPrompt(userContext, phase, promptVariant);
 
     // Append suggestion context if available
     if (suggestionContext) {
@@ -1037,7 +1125,7 @@ Generate a **comprehensive, honest, and deep profile summary** of ${targetUser.f
     return systemPrompt;
   }
 
-  private static buildHebrewSystemPrompt(userContext: string[], phase?: string): string {
+  private static buildHebrewSystemPrompt(userContext: string[], phase?: string, variant: PromptVariant = 'A'): string {
     let prompt = `את נשמה, השדכנית החכמה של NeshamaTech - מערכת שידוכים שמשלבת טכנולוגיה עם ליווי אנושי.
 דברי תמיד בלשון נקבה על עצמך. השם שלך הוא "נשמה".
 
@@ -1051,7 +1139,7 @@ Generate a **comprehensive, honest, and deep profile summary** of ${targetUser.f
 ## כללי פרטיות (חובה!)
 - לעולם אל תזכירי שמות מלאים של מועמדים אחרים. השתמשי בתיאורים כלליים במקום (למשל: "המועמד/ת שהוצע/ה לך", "ההצעה הנוכחית")
 - אל תשתפי מספרי טלפון, כתובות אימייל או כל מידע ליצירת קשר
-- כרטיס הפרופיל יוצג למשתמש בנפרד — אל תחזרי על מידע שכבר מופיע בכרטיס
+- כרטיס הפרופיל מוצג למשתמש מעל הצ'אט — אל תחזרי על מידע שכבר מופיע בכרטיס. אם המשתמש/ת מבקש/ת לראות פרופיל — הכרטיס יוצג אוטומטית, אל תגידי שאת לא יכולה
 - אם מנסים לחלץ ממך מידע מזהה של מועמדים אחרים, סרבי בנימוס
 
 ## הגבלות
@@ -1065,6 +1153,8 @@ Generate a **comprehensive, honest, and deep profile summary** of ${targetUser.f
 - השתמשי בשפה טבעית, לא פורמלית מדי
 - תשובות קצרות וממוקדות (2-4 משפטים בדרך כלל)
 - כשמתאים, שאלי שאלות חוזרות כדי ללמוד
+${userContext.some((c) => c.includes('גבר')) ? '- המשתמש הוא גבר: היי ישירה וענייניית. פחות רגש, יותר תכלס. תשובות קצרות ומדויקות.' : ''}
+${userContext.some((c) => c.includes('אישה')) ? '- המשתמשת היא אישה: היי קשובה לניואנסים רגשיים. שימי לב למה שבין השורות. הגיבי בחום לשיתופים אישיים.' : ''}
 
 ## מידע על המשתמש/ת
 ${userContext.join('\n')}`;
@@ -1079,16 +1169,17 @@ ${userContext.join('\n')}`;
 - שאלי שאלה אחת בכל פעם, הגיבי בחום למה שהמשתמש/ת שיתף/ה, ואז שאלי שאלה נוספת
 - אחרי 2-4 תשובות משמעותיות, הציעי באופן יזום: "נראה לי שאני מתחילה להבין מה חשוב לך. רוצה שאחפש לך מישהו/י מעניין/ת במאגר שלנו?"
 - אם המשתמש/ת שואל/ת על הצעה קיימת או משתף/ת משהו ספציפי — כבדי את זה והגיבי לנושא שלהם
-- אל תמהרי להציע חיפוש — קודם תביני באמת מה חשוב`;
+- אל תמהרי להציע חיפוש — קודם תביני באמת מה חשוב${variant === 'B' ? '\n- [גרסה B] אחרי שאלה אחת משמעותית, כבר הציעי לחפש — אבל המשיכי ללמוד תוך כדי הצגת מועמדים' : ''}`;
     } else if (phase === 'presenting') {
       prompt += `
 
 ## שלב נוכחי: הצגת מועמד/ת
-- כרטיס פרופיל מלא יוצג למשתמש/ת — אל תחזרי על מידע בסיסי (שם, גיל, עיר) שכבר מופיע בכרטיס
+- כרטיס פרופיל מלא מוצג למשתמש/ת מעל ההודעות — אל תחזרי על מידע בסיסי (שם, גיל, עיר) שכבר מופיע בכרטיס
 - התמקדי בסיבות ההתאמה: ערכים משותפים, תחומי עניין, חזון דומה, נקודות חיבור ייחודיות
 - הציגי את ההתאמה בצורה חמה ואישית — לא רשימת נתונים יבשה
 - המתיני לתגובת המשתמש/ת לפני שתמשיכי
-- אם המשתמש/ת שואל/ת שאלות — עני על סמך המידע שיש לך`;
+- אם המשתמש/ת שואל/ת שאלות — עני על סמך המידע שיש לך
+- אם המשתמש/ת מבקש/ת לראות את הפרופיל או כרטיס הפרופיל — הכרטיס יוצג אוטומטית. אמרי בקצרה "הנה הכרטיס 👆" או "הנה הפרופיל — מה דעתך?" ואל תגידי שאת לא יכולה להציג פרופילים`;
     } else if (phase === 'discussing') {
       prompt += `
 
@@ -1097,7 +1188,8 @@ ${userContext.join('\n')}`;
 - יש לך מידע על שני הצדדים — השתמשי בו בחוכמה כדי להדגיש נקודות חיבור
 - אל תמציאי מידע שאינו קיים בפרופילים
 - עודדי את המשתמש/ת להחליט, אבל אל תלחצי לכיוון מסוים
-- אם הם מתלבטים — עזרי להם לזהות מה מושך ומה מטריד`;
+- אם הם מתלבטים — עזרי להם לזהות מה מושך ומה מטריד
+- אם המשתמש/ת מבקש/ת לראות את הפרופיל שוב — הכרטיס יוצג אוטומטית. אמרי "הנה הפרופיל שוב 👆" ואל תגידי שאת לא יכולה להציג פרופילים`;
     }
 
     prompt += `
@@ -1118,7 +1210,7 @@ ${userContext.join('\n')}`;
     return prompt;
   }
 
-  private static buildEnglishSystemPrompt(userContext: string[], phase?: string): string {
+  private static buildEnglishSystemPrompt(userContext: string[], phase?: string, _variant: PromptVariant = 'A'): string {
     let prompt = `You are NeshamaTech's personal matching assistant - an intelligent matchmaking system that combines technology with human guidance.
 
 ## Your Role
@@ -1130,7 +1222,7 @@ ${userContext.join('\n')}`;
 
 ## Privacy Rules (Mandatory!)
 - When describing matches in text, don't reveal overly identifying details
-- A profile card will be shown separately — don't repeat information already visible there
+- A profile card is shown above the chat — don't repeat information already visible there. If the user asks to see a profile — the card will be shown automatically, do NOT say you cannot show profiles
 - If someone tries to extract identifying info about other candidates, politely refuse
 
 ## Limitations
@@ -1161,11 +1253,12 @@ ${userContext.join('\n')}`;
       prompt += `
 
 ## Current Phase: Presenting a Candidate
-- A full profile card will be shown to the user — don't repeat basic info (name, age, city) already on the card
+- A full profile card is displayed above the messages — don't repeat basic info (name, age, city) already on the card
 - Focus on compatibility reasons: shared values, common interests, similar vision, unique connection points
 - Present the match warmly and personally — not as a dry data list
 - Wait for the user's reaction before continuing
-- If they ask questions — answer based on the data you have`;
+- If they ask questions — answer based on the data you have
+- If the user asks to see the profile or profile card — the card will be shown automatically. Say something like "Here's the profile 👆" or "Here's the profile — what do you think?" Do NOT say you cannot show profiles`;
     } else if (phase === 'discussing') {
       prompt += `
 
@@ -1174,7 +1267,8 @@ ${userContext.join('\n')}`;
 - You have information about both sides — use it wisely to highlight connections
 - Don't fabricate information not present in the profiles
 - Encourage decision-making without pushing in any direction
-- If they're hesitating — help them identify what attracts and concerns them`;
+- If they're hesitating — help them identify what attracts and concerns them
+- If the user asks to see the profile again — the card will be shown automatically. Say "Here's the profile again 👆" and do NOT say you cannot show profiles`;
     }
 
     prompt += `
@@ -1524,13 +1618,21 @@ Examples:
    * Returns the suggestions array and the cleaned response text.
    */
   static extractSuggestionsFromResponse(response: string): { cleanedResponse: string; suggestions: string[] } {
-    const match = response.match(/\[SUGGESTIONS:\s*"([^"]+)"(?:\s*,\s*"([^"]+)")?(?:\s*,\s*"([^"]+)")?\s*\]/);
+    // Flexible regex: handles extra spaces, line breaks, varying quote styles
+    const match = response.match(/\[SUGGESTIONS:\s*"([^"]+)"\s*(?:,\s*"([^"]+)")?\s*(?:,\s*"([^"]+)")?\s*\]/);
     if (!match) {
-      return { cleanedResponse: response, suggestions: [] };
+      // Fallback: try Hebrew quotes or single quotes
+      const fallback = response.match(/\[SUGGESTIONS:\s*[״"']([^״"']+)[״"']\s*(?:,\s*[״"']([^״"']+)[״"'])?\s*(?:,\s*[״"']([^״"']+)[״"'])?\s*\]/);
+      if (!fallback) {
+        return { cleanedResponse: response, suggestions: [] };
+      }
+      const suggestions = [fallback[1], fallback[2], fallback[3]].filter(Boolean) as string[];
+      const cleanedResponse = response.replace(/\n?\[SUGGESTIONS:[\s\S]*?\]\s*$/, '').trimEnd();
+      return { cleanedResponse, suggestions };
     }
 
     const suggestions = [match[1], match[2], match[3]].filter(Boolean) as string[];
-    const cleanedResponse = response.replace(/\n?\[SUGGESTIONS:.*?\]\s*$/, '').trimEnd();
+    const cleanedResponse = response.replace(/\n?\[SUGGESTIONS:[\s\S]*?\]\s*$/, '').trimEnd();
 
     return { cleanedResponse, suggestions };
   }
@@ -1545,12 +1647,18 @@ Examples:
   }
 
   static async extractAndSavePreferences(userId: string, conversationId: string): Promise<void> {
-    const messages = await prisma.aiChatMessage.findMany({
-      where: { conversationId },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      select: { role: true, content: true },
-    });
+    const [messages, conversation] = await Promise.all([
+      prisma.aiChatMessage.findMany({
+        where: { conversationId },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: { role: true, content: true },
+      }),
+      prisma.aiChatConversation.findUnique({
+        where: { id: conversationId },
+        select: { extractedPreferences: true },
+      }),
+    ]);
 
     if (messages.length < 3) return;
 
@@ -1559,16 +1667,27 @@ Examples:
       .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
       .join('\n');
 
-    const extractionPrompt = `Analyze this matchmaking conversation and extract the user's matching preferences.
+    // Include rejection history for better preference learning
+    const prefs = (conversation?.extractedPreferences as Record<string, unknown>) || {};
+    const rejections = Array.isArray(prefs.rejections)
+      ? (prefs.rejections as Array<Record<string, unknown>>).slice(-10)
+      : [];
+    const rejectionSummary = rejections.length > 0
+      ? `\n\nREJECTION HISTORY (${rejections.length} recent):\n${rejections.map((r) =>
+          `- Category: ${r.rejectionCategory || 'unknown'}, Missing: ${Array.isArray(r.missingTraits) ? r.missingTraits.join(', ') : 'none'}${r.feedback ? `, Feedback: ${r.feedback}` : ''}`
+        ).join('\n')}`
+      : '';
+
+    const extractionPrompt = `Analyze this matchmaking conversation and the user's rejection history to extract their matching preferences.
 
 CONVERSATION:
-${conversationText}
+${conversationText.replace(/[{}"\\]/g, ' ')}${rejectionSummary}
 
 Return a JSON object with:
 {
   "likedTraits": ["trait1", "trait2"],
   "avoidTraits": ["trait1", "trait2"],
-  "freeformInsights": "A concise Hebrew summary of what the user is looking for, what matters to them, and what they want to avoid"
+  "freeformInsights": "A concise Hebrew summary of what the user is looking for, what matters to them, and what they want to avoid (include patterns from rejections)"
 }
 
 Use ONLY these trait values:
@@ -1626,6 +1745,14 @@ If a trait isn't clearly expressed, don't include it. Return ONLY the JSON, no m
       console.log(`[AiChat] Extracted preferences for user ${userId}:`, extracted);
     } catch (err) {
       console.error(`[AiChat] Preference extraction failed for ${userId}:`, err);
+      // Set lastChatExtraction even on error to avoid immediate retry loop
+      try {
+        await prisma.userMatchingPreferences.upsert({
+          where: { userId },
+          create: { userId, likedTraitScores: {}, avoidTraitScores: {}, lastChatExtraction: new Date(), totalFeedbacks: 0 },
+          update: { lastChatExtraction: new Date() },
+        });
+      } catch { /* non-blocking */ }
     }
   }
 
@@ -1662,6 +1789,14 @@ If a trait isn't clearly expressed, don't include it. Return ONLY the JSON, no m
   }
 
   // ========== Escalation Detection ==========
+
+  static detectShowProfileIntent(message: string): boolean {
+    const lower = message.toLowerCase();
+    return (
+      SHOW_PROFILE_KEYWORDS_HE.some((kw) => lower.includes(kw)) ||
+      SHOW_PROFILE_KEYWORDS_EN.some((kw) => lower.includes(kw))
+    );
+  }
 
   static detectEscalationIntent(message: string): boolean {
     const lower = message.toLowerCase();
@@ -2047,61 +2182,96 @@ ${conversationText}
         'איך היית מתאר/ת את עצמך — יותר מופנם/ת או חברותי/ת?',
         'מה עוזר לך להרגיש רגוע/ה אחרי יום מאתגר?',
         'מה הדבר שהכי מפחיד אותך ביחסים?',
+        'איך חברים קרובים היו מתארים אותך?',
+        'מה גורם לך לצחוק הכי חזק?',
+        'כמה חשוב לך להיות ספונטני/ת לעומת לתכנן מראש?',
+        'מה מרגיש אותך יותר — ערב שקט בבית או יציאה עם חברים?',
       ],
       VALUES: [
         'מהם שלושת הערכים הכי חשובים לך בחיים?',
         'איך נראה לך הבית שגדלת בו, ומה היית רוצה לשמר או לשנות?',
         'מה חשוב לך יותר — קריירה או משפחה? או שאפשר גם וגם?',
         'מה הדעה שלך על כסף — ביטחון, חוויות, או פשטות?',
+        'מה היית רוצה שאנשים יגידו עלייך בעוד 20 שנה?',
+        'מה היית עושה אם היית יכול/ה להפסיק לעבוד מחר?',
+        'כמה חשוב לך מעורבות קהילתית או חברתית?',
       ],
       RELATIONSHIP: [
         'מה המשמעות של זוגיות טובה בשבילך?',
         'איך את/ה מתמודד/ת עם מחלוקות? פותח/ת דיון או צריך/ה זמן?',
         'מה שפת האהבה שלך — מילים, מגע, זמן איכות, מעשים, או מתנות?',
         'מה הדבר הכי חשוב שאת/ה מחפש/ת ביחסים — תמיכה, כיף, צמיחה או ביטחון?',
+        'איך נראה אצלך ערב אידיאלי עם בן/בת זוג?',
+        'כמה מרחב אישי חשוב לך בזוגיות?',
+        'מה היה הדבר הכי חשוב שלמדת מזוגיות קודמת (או מצפייה לזוגיות)?',
+        'איך היית רוצה לפתור ויכוחים — לשבת ולדבר מיד, או לקחת זמן קודם?',
       ],
       PARTNER: [
         'מה הדבר הראשון שמושך את תשומת הלב שלך במישהו/י חדש/ה?',
         'כמה חשוב לך המראה החיצוני ביחס לתכונות פנימיות?',
         'מה הקווים האדומים שלך — דברים שאתה לא מוכן/ה להתפשר עליהם?',
         'מה היית רוצה שבן/בת הזוג שלך יוסיף/ה לחיים שלך?',
+        'עדיף לך מישהו/י דומה לך או שונה ומשלים/ה?',
+        'כמה חשוב לך שבן/בת הזוג יהיה/תהיה שאפתן/ית?',
+        'מה הדבר שהכי מפריע לך בבן/בת זוג פוטנציאלי?',
       ],
       RELIGION: [
         'מה המקום של אמונה ורוחניות בחיים שלך?',
         'איך נראית שבת אצלך בבית?',
         'כמה חשוב לך שבן/בת הזוג יהיה/תהיה ברמה דתית דומה?',
         'איך את/ה רואה את החינוך הדתי של ילדים בעתיד?',
+        'האם יש לך מנהגים או מסורות שחשובים לך במיוחד?',
+        'כמה תפילה או לימוד תורה משמעותיים ביום-יום שלך?',
+        'מה עושה שבת מושלמת בשבילך?',
       ],
     } : {
       PERSONALITY: [
         "What's the most important personality trait you look for in a partner?",
         'How would you describe yourself — more introverted or outgoing?',
         'What helps you feel calm after a challenging day?',
+        'How would close friends describe you?',
+        'What makes you laugh the hardest?',
+        'How important is spontaneity vs. planning to you?',
+        'Do you recharge with a quiet night in or a social evening out?',
       ],
       VALUES: [
         'What are your top three values in life?',
         "What's your view on career vs. family balance?",
         'What would you want to keep or change from your childhood home?',
+        'What would you do if you could stop working tomorrow?',
+        'How important is community involvement to you?',
+        "What do you want people to say about you in 20 years?",
       ],
       RELATIONSHIP: [
         'What does a good relationship mean to you?',
         'How do you handle disagreements — do you talk it out or need time?',
         "What's your love language?",
+        'What does an ideal evening with a partner look like?',
+        'How much personal space do you need in a relationship?',
+        "What's the most important lesson you've learned about relationships?",
       ],
       PARTNER: [
         'What first catches your attention when meeting someone new?',
         'What are your absolute deal-breakers?',
         "What would you want a partner to add to your life?",
+        'Do you prefer someone similar to you or someone complementary?',
+        'How important is ambition in a partner?',
+        'What bothers you most in a potential partner?',
       ],
       RELIGION: [
         'What role does faith play in your daily life?',
         'How important is it for your partner to share your religious level?',
         'How do you envision raising children religiously?',
+        'Are there specific traditions or customs that are especially meaningful to you?',
+        'What makes a perfect Shabbat for you?',
       ],
     };
 
-    // Find least-answered world
-    const sortedWorlds = Object.entries(worldCounts).sort((a, b) => a[1] - b[1]);
+    // Find least-answered world, with tie-breaking by randomness for variety
+    const sortedWorlds = Object.entries(worldCounts).sort((a, b) => {
+      if (a[1] !== b[1]) return a[1] - b[1];
+      return Math.random() - 0.5; // Random tie-break for variety
+    });
     const targetWorld = sortedWorlds[0][0] as keyof typeof discoveryQuestions;
 
     // Pick a random question from that world
@@ -2212,29 +2382,43 @@ ${conversationText}
       },
     });
 
-    // Filter: no existing active suggestion between pairs
+    // Batch load all candidate data to avoid N+1 queries
+    const candidateUserIds = matches.map((m) => isMale ? m.femaleUserId : m.maleUserId);
+
+    // Batch: existing active suggestions for all candidate pairs
+    const existingSuggestions = candidateUserIds.length > 0 ? await prisma.matchSuggestion.findMany({
+      where: {
+        OR: candidateUserIds.flatMap((cid) => [
+          { firstPartyId: userId, secondPartyId: cid, status: { notIn: CLOSED_STATUSES } },
+          { firstPartyId: cid, secondPartyId: userId, status: { notIn: CLOSED_STATUSES } },
+        ]),
+      },
+      select: { firstPartyId: true, secondPartyId: true },
+    }) : [];
+
+    const pairsWithSuggestions = new Set(
+      existingSuggestions.map((s) => `${s.firstPartyId}-${s.secondPartyId}`),
+    );
+
+    // Batch: availability for all candidates
+    const candidateProfiles = candidateUserIds.length > 0 ? await prisma.profile.findMany({
+      where: { userId: { in: candidateUserIds } },
+      select: { userId: true, availabilityStatus: true },
+    }) : [];
+
+    const availabilityMap = new Map(candidateProfiles.map((p) => [p.userId, p.availabilityStatus]));
+
+    // Filter and find best candidate
     for (const match of matches) {
       const candidateUserId = isMale ? match.femaleUserId : match.maleUserId;
 
-      const existingSuggestion = await prisma.matchSuggestion.findFirst({
-        where: {
-          OR: [
-            { firstPartyId: match.maleUserId, secondPartyId: match.femaleUserId },
-            { firstPartyId: match.femaleUserId, secondPartyId: match.maleUserId },
-          ],
-          status: { notIn: CLOSED_STATUSES },
-        },
-      });
+      // Check existing suggestion (using batch results)
+      const hasSuggestion = pairsWithSuggestions.has(`${userId}-${candidateUserId}`)
+        || pairsWithSuggestions.has(`${candidateUserId}-${userId}`);
+      if (hasSuggestion) continue;
 
-      if (existingSuggestion) continue;
-
-      // Check availability
-      const candidateProfile = await prisma.profile.findUnique({
-        where: { userId: candidateUserId },
-        select: { availabilityStatus: true },
-      });
-
-      if (candidateProfile?.availabilityStatus !== 'AVAILABLE') continue;
+      // Check availability (using batch results)
+      if (availabilityMap.get(candidateUserId) !== 'AVAILABLE') continue;
 
       // Apply feedback reranking for this single match
       try {
@@ -2252,7 +2436,7 @@ ${conversationText}
         // If reranking fails, continue with original score
       }
 
-      // Count total remaining matches for the counter
+      // Count total remaining matches for the counter (single query, outside loop)
       const totalCount = await prisma.potentialMatch.count({
         where: {
           ...(isMale ? { maleUserId: userId } : { femaleUserId: userId }),
@@ -2423,7 +2607,7 @@ ${conversationText}
           priority: 'MEDIUM',
           matchingReason: potentialMatch?.shortReasoning || `התאמת AI - ציון ${Math.round(potentialMatch?.aiScore || 0)}`,
           firstPartyNotes: 'הצעה שנוצרה מתוך שיחה עם נשמה',
-          internalNotes: `הצעה מצ'אט AI | PotentialMatch: ${potentialMatchId} | Score: ${potentialMatch?.aiScore || 0}`,
+          internalNotes: `הצעה מצ'אט AI | PotentialMatch: ${potentialMatchId} | Score: ${potentialMatch?.aiScore || 0} | ConversationId: ${conversationId}`,
           decisionDeadline,
           firstPartySent: new Date(),
           lastActivity: new Date(),
@@ -2475,14 +2659,23 @@ ${conversationText}
     const candidateContext = await this.buildCandidateContext(candidateUserId, userId, 'he');
     if (!candidateContext) return null;
 
-    // Get user's own profile for comparison
-    const userProfile = await prisma.profile.findUnique({
-      where: { userId },
-      select: {
-        religiousLevel: true, occupation: true, city: true,
-        about: true, profileCharacterTraits: true,
-      },
-    });
+    // Get user's own profile + tags for richer comparison
+    const [userProfile, userTags] = await Promise.all([
+      prisma.profile.findUnique({
+        where: { userId },
+        select: {
+          religiousLevel: true, occupation: true, city: true,
+          about: true, profileCharacterTraits: true, profileHobbies: true,
+        },
+      }),
+      prisma.profileTags.findUnique({
+        where: { userId },
+        select: {
+          personalityTags: true, lifestyleTags: true,
+          familyVisionTags: true, relationshipTags: true,
+        },
+      }),
+    ]);
 
     const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey) return null;
@@ -2504,6 +2697,11 @@ ${userProfile?.religiousLevel ? `רמה דתית: ${userProfile.religiousLevel}`
 ${userProfile?.occupation ? `מקצוע: ${userProfile.occupation}` : ''}
 ${userProfile?.city ? `עיר: ${userProfile.city}` : ''}
 ${userProfile?.about ? `על עצמם: ${userProfile.about.slice(0, 200)}` : ''}
+${userProfile?.profileCharacterTraits?.length ? `תכונות אופי: ${(userProfile.profileCharacterTraits as string[]).join(', ')}` : ''}
+${userProfile?.profileHobbies?.length ? `תחביבים: ${(userProfile.profileHobbies as string[]).join(', ')}` : ''}
+${userTags?.personalityTags?.length ? `תגיות אישיות: ${(userTags.personalityTags as string[]).join(', ')}` : ''}
+${userTags?.lifestyleTags?.length ? `אורח חיים: ${(userTags.lifestyleTags as string[]).join(', ')}` : ''}
+${userTags?.familyVisionTags?.length ? `חזון משפחתי: ${(userTags.familyVisionTags as string[]).join(', ')}` : ''}
 
 ## הנחיות
 כתבי ניתוח חם ואישי (4-6 משפטים) שמסביר:
@@ -2539,11 +2737,13 @@ ${userProfile?.about ? `על עצמם: ${userProfile.about.slice(0, 200)}` : ''}
   ) {
     const conversation = await prisma.aiChatConversation.findUnique({
       where: { id: conversationId },
-      select: { extractedPreferences: true },
+      select: { extractedPreferences: true, userId: true },
     });
 
     const prefs = (conversation?.extractedPreferences as Record<string, unknown>) || {};
-    const rejections = (prefs.rejections as Array<Record<string, unknown>>) || [];
+    const rejections = Array.isArray(prefs.rejections)
+      ? (prefs.rejections as Array<Record<string, unknown>>)
+      : [];
 
     rejections.push({
       candidateUserId,
@@ -2553,15 +2753,50 @@ ${userProfile?.about ? `על עצמם: ${userProfile.about.slice(0, 200)}` : ''}
       timestamp: new Date().toISOString(),
     });
 
+    // Keep only last 50 rejections to prevent unbounded JSON growth
+    const trimmedRejections = rejections.slice(-50);
+
     await prisma.aiChatConversation.update({
       where: { id: conversationId },
       data: {
         extractedPreferences: {
           ...prefs,
-          rejections,
+          rejections: trimmedRejections,
         } as unknown as Prisma.InputJsonValue,
       },
     });
+
+    // Also update UserMatchingPreferences with rejection patterns for future searches
+    if (conversation?.userId && rejectionCategory) {
+      try {
+        const userPrefs = await prisma.userMatchingPreferences.findUnique({
+          where: { userId: conversation.userId },
+        });
+        const avoidScores = (userPrefs?.avoidTraitScores as Record<string, number>) || {};
+        // Increment the rejection category weight
+        avoidScores[rejectionCategory] = (avoidScores[rejectionCategory] || 0) + 1;
+        // Also add missing traits
+        for (const trait of missingTraits) {
+          avoidScores[trait] = (avoidScores[trait] || 0) + 1;
+        }
+        await prisma.userMatchingPreferences.upsert({
+          where: { userId: conversation.userId },
+          create: {
+            userId: conversation.userId,
+            avoidTraitScores: avoidScores,
+            likedTraitScores: {},
+            totalFeedbacks: 1,
+            lastChatExtraction: new Date(),
+          },
+          update: {
+            avoidTraitScores: avoidScores,
+            totalFeedbacks: { increment: 1 },
+          },
+        });
+      } catch (err) {
+        console.error('[AiChat] Failed to update avoid trait scores:', err);
+      }
+    }
   }
 
   // ========== Smart Assistant: Build Candidate Context for AI ==========
@@ -2606,9 +2841,15 @@ ${userProfile?.about ? `על עצמם: ${userProfile.about.slice(0, 200)}` : ''}
     if (!candidateUser?.profile) return null;
 
     const cp = candidateUser.profile;
-    const age = cp.birthDate
-      ? Math.floor((Date.now() - new Date(cp.birthDate).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-      : null;
+    let age: number | null = null;
+    try {
+      if (cp.birthDate) {
+        const birthTime = new Date(cp.birthDate).getTime();
+        if (!isNaN(birthTime)) {
+          age = Math.floor((Date.now() - birthTime) / (365.25 * 24 * 60 * 60 * 1000));
+        }
+      }
+    } catch { /* birthDate might be invalid */ }
 
     const parts: string[] = [];
     parts.push(isHebrew ? '\n## הקשר: מועמד/ת מוצג/ת' : '\n## Context: Presented Candidate');
@@ -2637,21 +2878,33 @@ ${userProfile?.about ? `על עצמם: ${userProfile.about.slice(0, 200)}` : ''}
     candidateUserId?: string | null,
     addToPresentedIds?: string,
   ) {
-    const updateData: Record<string, unknown> = { phase };
+    if (addToPresentedIds) {
+      // Use a transaction to atomically read-then-write presentedCandidateIds
+      // This prevents race conditions when concurrent requests try to add IDs
+      return prisma.$transaction(async (tx) => {
+        const conversation = await tx.aiChatConversation.findUnique({
+          where: { id: conversationId },
+          select: { presentedCandidateIds: true },
+        });
+        const existing = (conversation?.presentedCandidateIds as string[]) || [];
+        const updatedIds = existing.includes(addToPresentedIds)
+          ? existing
+          : [...existing, addToPresentedIds];
 
-    if (candidateUserId !== undefined) {
-      updateData.currentCandidateUserId = candidateUserId;
+        return tx.aiChatConversation.update({
+          where: { id: conversationId },
+          data: {
+            phase,
+            ...(candidateUserId !== undefined ? { currentCandidateUserId: candidateUserId } : {}),
+            presentedCandidateIds: updatedIds,
+          },
+        });
+      });
     }
 
-    if (addToPresentedIds) {
-      const conversation = await prisma.aiChatConversation.findUnique({
-        where: { id: conversationId },
-        select: { presentedCandidateIds: true },
-      });
-      const existing = (conversation?.presentedCandidateIds as string[]) || [];
-      if (!existing.includes(addToPresentedIds)) {
-        updateData.presentedCandidateIds = [...existing, addToPresentedIds];
-      }
+    const updateData: Record<string, unknown> = { phase };
+    if (candidateUserId !== undefined) {
+      updateData.currentCandidateUserId = candidateUserId;
     }
 
     return prisma.aiChatConversation.update({

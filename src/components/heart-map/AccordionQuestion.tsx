@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, SkipForward } from 'lucide-react';
 import type { SFQuestion, SFAnswers } from '@/components/soul-fingerprint/types';
 import QuestionRenderer from '@/components/soul-fingerprint/components/QuestionRenderer';
 
@@ -14,9 +14,11 @@ interface Props {
   isActive: boolean;
   isAnswered: boolean;
   onActivate: () => void;
+  onDeactivate: () => void;
   onAutoAdvance: () => void;
   questionNumber: number;
   totalQuestions: number;
+  highlightUnanswered?: boolean;
 }
 
 export default function AccordionQuestion({
@@ -28,22 +30,15 @@ export default function AccordionQuestion({
   isActive,
   isAnswered,
   onActivate,
+  onDeactivate,
   onAutoAdvance,
   questionNumber,
   totalQuestions,
+  highlightUnanswered = false,
 }: Props) {
-  const contentRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [contentHeight, setContentHeight] = useState<number>(0);
   const [showDoneButton, setShowDoneButton] = useState(false);
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Measure content height for smooth animation
-  useEffect(() => {
-    if (contentRef.current) {
-      setContentHeight(contentRef.current.scrollHeight);
-    }
-  }, [isActive, answers[question.id]]);
 
   // Auto-advance after answer selection (type-specific)
   const handleAnswer = useCallback(
@@ -140,6 +135,30 @@ export default function AccordionQuestion({
 
   const answerDisplay = getAnswerChips();
 
+  // Determine if this unanswered required question should be highlighted
+  const showValidationHighlight = highlightUnanswered && !isAnswered && !question.isOptional;
+
+  // Keyboard handler for the accordion
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      switch (e.key) {
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          if (isActive) onDeactivate();
+          else onActivate();
+          break;
+        case 'Escape':
+          if (isActive) {
+            e.preventDefault();
+            onDeactivate();
+          }
+          break;
+      }
+    },
+    [isActive, onActivate, onDeactivate]
+  );
+
   return (
     <div
       ref={containerRef}
@@ -148,24 +167,29 @@ export default function AccordionQuestion({
         rounded-2xl border-2 transition-all duration-300 overflow-hidden
         ${isActive
           ? 'border-teal-200 bg-white shadow-md'
-          : isAnswered
-            ? 'border-gray-100 bg-gray-50/80 hover:border-teal-100 cursor-pointer'
-            : 'border-gray-200 bg-white hover:border-teal-100 cursor-pointer'
+          : showValidationHighlight
+            ? 'border-red-300 bg-red-50/30 animate-[shake_0.4s_ease-in-out] cursor-pointer'
+            : isAnswered
+              ? 'border-gray-100 bg-gray-50/80 hover:border-teal-100 cursor-pointer'
+              : 'border-gray-200 bg-white hover:border-teal-100 cursor-pointer'
         }
       `}
     >
       {/* Header - always visible */}
       <button
         onClick={() => {
-          if (!isActive) onActivate();
+          if (isActive) onDeactivate();
+          else onActivate();
         }}
+        onKeyDown={handleKeyDown}
         className={`
           w-full flex items-center gap-3 p-4 transition-colors
           ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}
-          ${!isActive ? 'hover:bg-gray-50/50' : ''}
+          hover:bg-gray-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-inset rounded-2xl
         `}
-        disabled={isActive}
         type="button"
+        aria-expanded={isActive}
+        aria-controls={`sf-content-${question.id}`}
       >
         {/* Question number / check indicator */}
         <div
@@ -175,7 +199,9 @@ export default function AccordionQuestion({
               ? 'bg-teal-500 text-white'
               : isActive
                 ? 'bg-teal-100 text-teal-700 ring-2 ring-teal-300'
-                : 'bg-gray-100 text-gray-400'
+                : showValidationHighlight
+                  ? 'bg-red-100 text-red-500 ring-2 ring-red-300'
+                  : 'bg-gray-100 text-gray-400'
             }
           `}
         >
@@ -191,7 +217,7 @@ export default function AccordionQuestion({
           <h3
             className={`
               text-sm font-semibold transition-colors duration-200 leading-snug
-              ${isActive ? 'text-gray-800' : isAnswered ? 'text-gray-600' : 'text-gray-700'}
+              ${isActive ? 'text-gray-800' : showValidationHighlight ? 'text-red-600' : isAnswered ? 'text-gray-600' : 'text-gray-700'}
             `}
           >
             {t(question.textKey)}
@@ -221,86 +247,114 @@ export default function AccordionQuestion({
               <p className="text-xs text-teal-600 mt-0.5 truncate">{answerDisplay.text}</p>
             )
           )}
+          {/* Validation hint when highlighted */}
+          {showValidationHighlight && !isActive && (
+            <p className="text-[11px] text-red-500 mt-0.5">{t('labels.requiredQuestion')}</p>
+          )}
         </div>
 
         {/* Expand/collapse chevron */}
         <ChevronDown
           className={`
             w-5 h-5 flex-shrink-0 transition-transform duration-300
-            ${isActive ? 'rotate-180 text-teal-500' : 'text-gray-400'}
+            ${isActive ? 'rotate-180 text-teal-500' : showValidationHighlight ? 'text-red-400' : 'text-gray-400'}
           `}
         />
       </button>
 
-      {/* Collapsible content */}
+      {/* Collapsible content - CSS grid animation for smooth expand/collapse */}
       <div
-        className="transition-all duration-300 ease-in-out"
+        id={`sf-content-${question.id}`}
+        role="region"
+        className="grid transition-[grid-template-rows,opacity] duration-300 ease-in-out"
         style={{
-          maxHeight: isActive ? `${contentHeight + 80}px` : '0px',
+          gridTemplateRows: isActive ? '1fr' : '0fr',
           opacity: isActive ? 1 : 0,
         }}
       >
-        <div ref={contentRef} className="px-4 pb-4">
-          {/* Subtitle */}
-          {question.subtitleKey && (
-            <p className={`text-xs text-gray-500 mb-3 ${isRTL ? 'text-right' : 'text-left'}`}>
-              {t(question.subtitleKey)}
-            </p>
-          )}
+        <div className="overflow-hidden">
+          <div className="px-4 pb-4">
+            {/* Subtitle */}
+            {question.subtitleKey && (
+              <p className={`text-xs text-gray-500 mb-3 ${isRTL ? 'text-right' : 'text-left'}`}>
+                {t(question.subtitleKey)}
+              </p>
+            )}
 
-          {/* Question body */}
-          <QuestionRenderer
-            question={{ ...question, subtitleKey: undefined }}
-            answers={answers}
-            onAnswer={handleAnswer}
-            t={t}
-            isRTL={isRTL}
-          />
+            {/* Question body */}
+            <QuestionRenderer
+              question={{ ...question, subtitleKey: undefined }}
+              answers={answers}
+              onAnswer={handleAnswer}
+              t={t}
+              isRTL={isRTL}
+            />
 
-          {/* "Done" button for multiSelect */}
-          {question.type === 'multiSelect' && showDoneButton && (
-            <button
-              onClick={onAutoAdvance}
-              className={`
-                mt-3 w-full py-2 rounded-xl text-sm font-medium
-                bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200
-                transition-all duration-200
-              `}
-              type="button"
-            >
-              {t('labels.done')}
-            </button>
-          )}
+            {/* Action buttons row */}
+            <div className="flex gap-2 mt-3">
+              {/* Skip button for optional questions */}
+              {question.isOptional && (
+                <button
+                  onClick={onAutoAdvance}
+                  className={`
+                    flex items-center gap-1.5 py-2 px-4 rounded-xl text-sm font-medium
+                    bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200
+                    transition-all duration-200
+                    ${isRTL ? 'flex-row-reverse' : ''}
+                  `}
+                  type="button"
+                >
+                  <SkipForward className="w-3.5 h-3.5" />
+                  {t('labels.skip')}
+                </button>
+              )}
 
-          {/* "Done" button for openText when has content */}
-          {question.type === 'openText' && answers[question.id] && String(answers[question.id]).length > 0 && (
-            <button
-              onClick={onAutoAdvance}
-              className={`
-                mt-3 w-full py-2 rounded-xl text-sm font-medium
-                bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200
-                transition-all duration-200
-              `}
-              type="button"
-            >
-              {t('labels.done')}
-            </button>
-          )}
+              {/* "Done" button for multiSelect */}
+              {question.type === 'multiSelect' && showDoneButton && (
+                <button
+                  onClick={onAutoAdvance}
+                  className={`
+                    flex-1 py-2 rounded-xl text-sm font-medium
+                    bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200
+                    transition-all duration-200
+                  `}
+                  type="button"
+                >
+                  {t('labels.done')}
+                </button>
+              )}
 
-          {/* "Done" button for slider */}
-          {question.type === 'slider' && (
-            <button
-              onClick={onAutoAdvance}
-              className={`
-                mt-3 w-full py-2 rounded-xl text-sm font-medium
-                bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200
-                transition-all duration-200
-              `}
-              type="button"
-            >
-              {t('labels.done')}
-            </button>
-          )}
+              {/* "Done" button for openText when has content */}
+              {question.type === 'openText' && answers[question.id] && String(answers[question.id]).length > 0 && (
+                <button
+                  onClick={onAutoAdvance}
+                  className={`
+                    flex-1 py-2 rounded-xl text-sm font-medium
+                    bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200
+                    transition-all duration-200
+                  `}
+                  type="button"
+                >
+                  {t('labels.done')}
+                </button>
+              )}
+
+              {/* "Done" button for slider */}
+              {question.type === 'slider' && (
+                <button
+                  onClick={onAutoAdvance}
+                  className={`
+                    flex-1 py-2 rounded-xl text-sm font-medium
+                    bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200
+                    transition-all duration-200
+                  `}
+                  type="button"
+                >
+                  {t('labels.done')}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

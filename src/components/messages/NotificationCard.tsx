@@ -1,6 +1,8 @@
 // src/components/messages/NotificationCard.tsx
 
-import React from 'react';
+'use client';
+
+import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,114 +21,202 @@ import {
   CheckCircle,
   Info,
   ArrowRight,
+  UserCheck,
+  Phone,
+  ThumbsUp,
+  ThumbsDown,
+  Star,
+  Loader2,
+  PartyPopper,
+  RotateCcw,
+  CalendarCheck,
 } from 'lucide-react';
 import type { MessagesPageDict } from '@/types/dictionary';
 import type { Locale } from '../../../i18n-config';
 
 // ==========================================
-// Status Badge Config
+// Icon Config per feed type
 // ==========================================
 
-const statusBadgeMap: Record<string, { label: { he: string; en: string }; className: string }> = {
-  PENDING_FIRST_PARTY: {
-    label: { he: 'ממתין לתגובתך', en: 'Awaiting your response' },
-    className: 'bg-orange-100 text-orange-700 border-orange-200',
+const iconMap: Record<
+  FeedItem['type'],
+  { icon: React.ElementType; gradient: string }
+> = {
+  NEW_SUGGESTION: {
+    icon: Heart,
+    gradient: 'from-pink-400 to-rose-500',
   },
-  PENDING_SECOND_PARTY: {
-    label: { he: 'ממתין לצד השני', en: 'Awaiting other party' },
-    className: 'bg-amber-100 text-amber-700 border-amber-200',
+  ACTION_REQUIRED: {
+    icon: Zap,
+    gradient: 'from-orange-400 to-amber-500',
   },
-  FIRST_PARTY_APPROVED: {
-    label: { he: 'אישרת', en: 'You approved' },
-    className: 'bg-green-100 text-green-700 border-green-200',
+  STATUS_UPDATE: {
+    icon: CheckCircle,
+    gradient: 'from-emerald-400 to-green-500',
   },
-  FIRST_PARTY_INTERESTED: {
-    label: { he: 'מתעניין/ת', en: 'Interested' },
-    className: 'bg-teal-100 text-teal-700 border-teal-200',
+  MATCHMAKER_MESSAGE: {
+    icon: MessageCircle,
+    gradient: 'from-blue-400 to-cyan-500',
   },
-  SECOND_PARTY_APPROVED: {
-    label: { he: 'אושר!', en: 'Approved!' },
-    className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  INQUIRY_RESPONSE: {
+    icon: Info,
+    gradient: 'from-cyan-400 to-teal-500',
   },
-  CONTACT_DETAILS_SHARED: {
-    label: { he: 'פרטים שותפו', en: 'Details shared' },
-    className: 'bg-blue-100 text-blue-700 border-blue-200',
-  },
-  DATING: {
-    label: { he: 'בתהליך', en: 'Dating' },
-    className: 'bg-purple-100 text-purple-700 border-purple-200',
-  },
-  FIRST_PARTY_DECLINED: {
-    label: { he: 'נדחתה', en: 'Declined' },
-    className: 'bg-gray-100 text-gray-500 border-gray-200',
-  },
-  SECOND_PARTY_DECLINED: {
-    label: { he: 'נדחתה', en: 'Declined' },
-    className: 'bg-gray-100 text-gray-500 border-gray-200',
-  },
-  CLOSED: {
-    label: { he: 'נסגרה', en: 'Closed' },
-    className: 'bg-gray-100 text-gray-500 border-gray-200',
+  AVAILABILITY_INQUIRY: {
+    icon: UserCheck,
+    gradient: 'from-violet-400 to-purple-500',
   },
 };
+
+// ==========================================
+// CTA Config per type / status
+// ==========================================
+
+function getCtaConfig(
+  item: FeedItem,
+  dict: MessagesPageDict['notificationCard']
+): { label: string; className: string; icon: React.ElementType } {
+  const suggestion = item.payload.suggestion;
+  const status = suggestion?.status;
+
+  if (item.type === 'ACTION_REQUIRED') {
+    return {
+      label: dict.cta.respondNow,
+      className: 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600',
+      icon: Zap,
+    };
+  }
+  if (status === 'CONTACT_DETAILS_SHARED') {
+    return {
+      label: dict.cta.viewContact,
+      className: 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600',
+      icon: Phone,
+    };
+  }
+  if (status === 'AWAITING_FIRST_DATE_FEEDBACK') {
+    return {
+      label: dict.cta.giveFeedback,
+      className: 'bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-600 hover:to-violet-600',
+      icon: CalendarCheck,
+    };
+  }
+  if (item.type === 'MATCHMAKER_MESSAGE' || item.type === 'INQUIRY_RESPONSE') {
+    return {
+      label: dict.cta.viewChat,
+      className: 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600',
+      icon: MessageCircle,
+    };
+  }
+  if (item.type === 'AVAILABILITY_INQUIRY') {
+    return {
+      label: dict.cta.respondToInquiry,
+      className: 'bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600',
+      icon: UserCheck,
+    };
+  }
+  return {
+    label: dict.cta.viewDetails,
+    className: 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600',
+    icon: ArrowRight,
+  };
+}
+
+// ==========================================
+// Resolve title/description from dict keys
+// ==========================================
+
+function resolveTitle(
+  titleKey: string,
+  item: FeedItem,
+  dict: MessagesPageDict['notificationCard'],
+  userId: string
+): string {
+  const suggestion = item.payload.suggestion;
+  const otherParty = suggestion
+    ? suggestion.firstPartyId === userId
+      ? suggestion.secondParty
+      : suggestion.firstParty
+    : null;
+  const otherName = otherParty?.firstName || '';
+
+  // Check if key exists in feedTitles
+  const titleTemplate = (dict.feedTitles as Record<string, string>)?.[titleKey];
+  if (titleTemplate) {
+    return titleTemplate
+      .replace('{{name}}', otherName);
+  }
+
+  // Fallback to key itself (for backward compatibility with old API format)
+  return titleKey;
+}
+
+function resolveDescription(
+  descKey: string,
+  item: FeedItem,
+  dict: MessagesPageDict['notificationCard'],
+  userId: string
+): string {
+  const suggestion = item.payload.suggestion;
+  const inquiry = item.payload.suggestionInquiry;
+  const otherParty = suggestion
+    ? suggestion.firstPartyId === userId
+      ? suggestion.secondParty
+      : suggestion.firstParty
+    : null;
+  const otherName = otherParty?.firstName || '';
+  const matchmakerName = suggestion?.matchmaker?.firstName || '';
+
+  const descTemplate = (dict.feedDescriptions as Record<string, string>)?.[descKey];
+  if (descTemplate) {
+    let result = descTemplate
+      .replace('{{name}}', otherName)
+      .replace('{{matchmaker}}', matchmakerName);
+
+    // Preview text for inquiries
+    if (inquiry) {
+      const preview = inquiry.answer
+        ? inquiry.answer.substring(0, 40) + '...'
+        : inquiry.question.substring(0, 50) + '...';
+      result = result.replace('{{preview}}', preview);
+    }
+
+    return result;
+  }
+
+  return descKey;
+}
+
+// ==========================================
+// Component
+// ==========================================
 
 interface NotificationCardProps {
   item: FeedItem;
   userId: string;
-  // ✨ PROP UPDATE: קבלת חלק מהמילון ו-locale
   dict: MessagesPageDict['notificationCard'];
+  statusBadges: Record<string, string>;
   locale: Locale;
+  onQuickAction?: (suggestionId: string, action: 'approve' | 'decline' | 'interested') => Promise<void>;
 }
 
 const NotificationCard: React.FC<NotificationCardProps> = ({
   item,
   userId,
   dict,
+  statusBadges,
   locale,
+  onQuickAction,
 }) => {
-  // ... (לוגיקת האייקונים נשארת זהה)
-  const iconMap: Record<
-    FeedItem['type'],
-    { icon: React.ElementType; color: string; gradient: string }
-  > = {
-    NEW_SUGGESTION: {
-      icon: Heart,
-      color: 'text-pink-500',
-      gradient: 'from-pink-400 to-rose-500',
-    },
-    ACTION_REQUIRED: {
-      icon: Zap,
-      color: 'text-orange-500',
-      gradient: 'from-orange-400 to-amber-500',
-    },
-    STATUS_UPDATE: {
-      icon: CheckCircle,
-      color: 'text-green-500',
-      gradient: 'from-emerald-400 to-green-500',
-    },
-    MATCHMAKER_MESSAGE: {
-      icon: MessageCircle,
-      color: 'text-blue-500',
-      gradient: 'from-blue-400 to-cyan-500',
-    },
-    INQUIRY_RESPONSE: {
-      icon: Info,
-      color: 'text-cyan-500',
-      gradient: 'from-cyan-400 to-teal-500',
-    },
-    AVAILABILITY_INQUIRY: {
-      icon: MessageCircle,
-      color: 'text-blue-500',
-      gradient: 'from-blue-400 to-cyan-500',
-    },
-  };
+  const [quickActionLoading, setQuickActionLoading] = useState<string | null>(null);
 
   const { icon: Icon, gradient } = iconMap[item.type] || {
     icon: Info,
     gradient: 'from-gray-400 to-slate-500',
   };
+
   const suggestion = item.payload.suggestion;
   const matchmaker = suggestion?.matchmaker;
+  const isHe = locale === 'he';
 
   const otherParty = suggestion
     ? suggestion.firstPartyId === userId
@@ -135,103 +225,233 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
     : null;
   const mainImage = otherParty?.images?.find((img) => img.isMain);
 
+  const title = resolveTitle(item.title, item, dict, userId);
+  const description = resolveDescription(item.description, item, dict, userId);
+  const cta = getCtaConfig(item, dict);
+  const CtaIcon = cta.icon;
+
+  // Quick action handler
+  const handleQuickAction = useCallback(async (action: 'approve' | 'decline' | 'interested') => {
+    if (!suggestion?.id || !onQuickAction) return;
+    setQuickActionLoading(action);
+    try {
+      await onQuickAction(suggestion.id, action);
+    } finally {
+      setQuickActionLoading(null);
+    }
+  }, [suggestion?.id, onQuickAction]);
+
+  const isActionRequired = item.type === 'ACTION_REQUIRED';
+  const showQuickActions = isActionRequired && onQuickAction && suggestion;
+
   return (
-    <Card className="shadow-lg border-0 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white" dir={locale === 'he' ? 'rtl' : 'ltr'}>
-      <CardContent className="p-5 flex items-start gap-4">
-        <div className="flex flex-col items-center gap-2 flex-shrink-0">
-          <div
-            className={cn(
-              'w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br shadow-md',
-              gradient
-            )}
-          >
-            <Icon className="w-6 h-6 text-white" />
-          </div>
-          {matchmaker && (
-            <Avatar
-              className="w-10 h-10 border-2 border-white"
-              title={`${dict.matchmakerPrefix} ${matchmaker.firstName}`}
-            >
-              <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-bold">
-                {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
-              </AvatarFallback>
-            </Avatar>
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <h3 className="font-bold text-gray-800 text-lg leading-tight">
-                {item.title}
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-              {/* Status Badge */}
-              {suggestion?.status && statusBadgeMap[suggestion.status] && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'mt-2 text-[11px] font-medium px-2.5 py-0.5',
-                    statusBadgeMap[suggestion.status].className
-                  )}
-                >
-                  {statusBadgeMap[suggestion.status].label[locale === 'he' ? 'he' : 'en']}
-                </Badge>
+    <Card
+      className={cn(
+        'border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5',
+        // Unread indicator
+        !item.isRead
+          ? 'bg-white border-s-4 border-s-teal-400 shadow-md'
+          : 'bg-white/80 border-gray-100 shadow-sm',
+        // Action required pulse
+        isActionRequired && !item.isRead && 'ring-1 ring-orange-200'
+      )}
+      dir={isHe ? 'rtl' : 'ltr'}
+    >
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex items-start gap-3 sm:gap-4">
+          {/* Icon column — hidden on very small screens */}
+          <div className="hidden sm:flex flex-col items-center gap-2 flex-shrink-0">
+            <div
+              className={cn(
+                'w-11 h-11 rounded-full flex items-center justify-center bg-gradient-to-br shadow-md',
+                gradient
               )}
+            >
+              <Icon className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xs text-gray-400 flex-shrink-0 ps-2">
-              {/* ✨ LOCALE UPDATE: שימוש ב-locale עבור תאריך */}
-              {formatDistanceToNow(new Date(item.timestamp), {
-                addSuffix: true,
-                locale: locale === 'he' ? he : enUS,
-              })}
-            </span>
+            {matchmaker && (
+              <Avatar
+                className="w-8 h-8 border-2 border-white"
+                title={`${dict.matchmakerPrefix} ${matchmaker.firstName}`}
+              >
+                <AvatarFallback className="bg-gray-200 text-gray-600 text-[10px] font-bold">
+                  {getInitials(`${matchmaker.firstName} ${matchmaker.lastName}`)}
+                </AvatarFallback>
+              </Avatar>
+            )}
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-            {otherParty && (
-              <div className="flex items-center gap-2">
-                <Avatar className="w-8 h-8 border-2 border-white shadow">
-                  {mainImage?.url ? (
-                    <Image
-                      src={getRelativeCloudinaryPath(mainImage.url)}
-                      alt={otherParty.firstName}
-                      fill
-                      className="object-cover"
-                      sizes="32px"
-                    />
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {/* Header row */}
+            <div className="flex justify-between items-start gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Mobile icon — only on small screens */}
+                  <div
+                    className={cn(
+                      'sm:hidden w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br flex-shrink-0',
+                      gradient
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <h3 className="font-bold text-gray-800 text-base sm:text-lg leading-tight truncate">
+                    {title}
+                  </h3>
+                  {/* Unread badge */}
+                  {!item.isRead && (
+                    <Badge className="bg-teal-500 text-white text-[10px] px-1.5 py-0 border-0 flex-shrink-0">
+                      {dict.unread}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{description}</p>
+
+                {/* Status Badge */}
+                {suggestion?.status && statusBadges[suggestion.status] && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      'mt-2 text-[11px] font-medium px-2.5 py-0.5',
+                      getStatusBadgeClass(suggestion.status)
+                    )}
+                  >
+                    {statusBadges[suggestion.status]}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Timestamp */}
+              <span className="text-[11px] text-gray-400 flex-shrink-0 ps-1 whitespace-nowrap">
+                {formatDistanceToNow(new Date(item.timestamp), {
+                  addSuffix: true,
+                  locale: isHe ? he : enUS,
+                })}
+              </span>
+            </div>
+
+            {/* Quick Actions for ACTION_REQUIRED */}
+            {showQuickActions && (
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  onClick={() => handleQuickAction('approve')}
+                  disabled={!!quickActionLoading}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full text-xs h-8 px-3"
+                >
+                  {quickActionLoading === 'approve' ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin me-1" />
                   ) : (
-                    <AvatarFallback className="bg-gray-300 text-gray-700 font-bold text-xs">
-                      {getInitials(
-                        `${otherParty.firstName} ${otherParty.lastName}`
-                      )}
-                    </AvatarFallback>
+                    <ThumbsUp className="w-3.5 h-3.5 me-1" />
                   )}
-                </Avatar>
-                {/* ✨ TEXT UPDATE: שימוש במילון */}
-                <span className="text-sm font-medium text-gray-700">
-                  {dict.suggestionWith.replace(
-                    '{{name}}',
-                    otherParty.firstName
+                  {quickActionLoading === 'approve' ? dict.quickActions.approving : dict.quickActions.approve}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleQuickAction('interested')}
+                  disabled={!!quickActionLoading}
+                  className="rounded-full text-xs h-8 px-3 border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  <Star className="w-3.5 h-3.5 me-1" />
+                  {dict.quickActions.interested}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleQuickAction('decline')}
+                  disabled={!!quickActionLoading}
+                  className="rounded-full text-xs h-8 px-3 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                >
+                  {quickActionLoading === 'decline' ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin me-1" />
+                  ) : (
+                    <ThumbsDown className="w-3.5 h-3.5 me-1" />
                   )}
-                </span>
+                  {quickActionLoading === 'decline' ? dict.quickActions.declining : dict.quickActions.decline}
+                </Button>
               </div>
             )}
-            <Link href={item.link} passHref>
-              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300">
-                {dict.viewDetails}
-                {locale === 'he' ? (
-                  <ArrowLeft className="ms-2 h-4 w-4" />
-                ) : (
-                  <ArrowRight className="ms-2 h-4 w-4" />
-                )}
-              </Button>
-            </Link>
+
+            {/* Footer: other party avatar + CTA */}
+            <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center gap-2">
+              {otherParty ? (
+                <div className="flex items-center gap-2 min-w-0">
+                  <Avatar className="w-7 h-7 sm:w-8 sm:h-8 border-2 border-white shadow flex-shrink-0">
+                    {mainImage?.url ? (
+                      <Image
+                        src={getRelativeCloudinaryPath(mainImage.url)}
+                        alt={otherParty.firstName}
+                        fill
+                        className="object-cover"
+                        sizes="32px"
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-gray-300 text-gray-700 font-bold text-xs">
+                        {getInitials(
+                          `${otherParty.firstName} ${otherParty.lastName}`
+                        )}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <span className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+                    {dict.suggestionWith.replace('{{name}}', otherParty.firstName)}
+                  </span>
+                </div>
+              ) : (
+                <div />
+              )}
+              <Link href={item.link} passHref>
+                <Button
+                  size="sm"
+                  className={cn(
+                    'text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4 flex-shrink-0',
+                    cta.className
+                  )}
+                >
+                  {cta.label}
+                  {isHe ? (
+                    <ArrowLeft className="ms-1.5 h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowRight className="ms-1.5 h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
 };
+
+// ==========================================
+// Status Badge Styles (using Tailwind classes)
+// ==========================================
+
+function getStatusBadgeClass(status: string): string {
+  const classMap: Record<string, string> = {
+    PENDING_FIRST_PARTY: 'bg-orange-100 text-orange-700 border-orange-200',
+    PENDING_SECOND_PARTY: 'bg-amber-100 text-amber-700 border-amber-200',
+    FIRST_PARTY_APPROVED: 'bg-green-100 text-green-700 border-green-200',
+    FIRST_PARTY_INTERESTED: 'bg-teal-100 text-teal-700 border-teal-200',
+    SECOND_PARTY_APPROVED: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    CONTACT_DETAILS_SHARED: 'bg-blue-100 text-blue-700 border-blue-200',
+    DATING: 'bg-purple-100 text-purple-700 border-purple-200',
+    FIRST_PARTY_DECLINED: 'bg-gray-100 text-gray-500 border-gray-200',
+    SECOND_PARTY_DECLINED: 'bg-gray-100 text-gray-500 border-gray-200',
+    CLOSED: 'bg-gray-100 text-gray-500 border-gray-200',
+    AWAITING_FIRST_DATE_FEEDBACK: 'bg-violet-100 text-violet-700 border-violet-200',
+    RE_OFFERED_TO_FIRST_PARTY: 'bg-sky-100 text-sky-700 border-sky-200',
+    ENGAGED: 'bg-pink-100 text-pink-700 border-pink-200',
+    MARRIED: 'bg-rose-100 text-rose-700 border-rose-200',
+    MEETING_SCHEDULED: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    THINKING_AFTER_DATE: 'bg-slate-100 text-slate-600 border-slate-200',
+    PROCEEDING_TO_SECOND_DATE: 'bg-cyan-100 text-cyan-700 border-cyan-200',
+    ENDED_AFTER_FIRST_DATE: 'bg-gray-100 text-gray-500 border-gray-200',
+  };
+  return classMap[status] || 'bg-gray-100 text-gray-500 border-gray-200';
+}
 
 export default NotificationCard;

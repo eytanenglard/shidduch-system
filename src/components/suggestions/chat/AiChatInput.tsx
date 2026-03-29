@@ -1,12 +1,12 @@
 // src/components/suggestions/chat/AiChatInput.tsx
 // =============================================================================
-// Chat input field with send button
+// Chat input field with send button and voice input
 // =============================================================================
 
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Mic, MicOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AiChatInputProps {
@@ -16,6 +16,14 @@ interface AiChatInputProps {
   placeholder?: string;
 }
 
+// Check if SpeechRecognition is available
+const getSpeechRecognition = () => {
+  if (typeof window === 'undefined') return null;
+  const SR = (window as unknown as Record<string, unknown>).SpeechRecognition
+    || (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
+  return SR as (new () => SpeechRecognition) | undefined;
+};
+
 export default function AiChatInput({
   onSend,
   isStreaming,
@@ -23,15 +31,17 @@ export default function AiChatInput({
   placeholder,
 }: AiChatInputProps) {
   const [value, setValue] = useState('');
+  const [isListening, setIsListening] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const isHebrew = locale === 'he';
+  const hasVoiceSupport = typeof window !== 'undefined' && !!getSpeechRecognition();
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim();
     if (!trimmed || isStreaming) return;
     onSend(trimmed);
     setValue('');
-    // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
@@ -44,7 +54,6 @@ export default function AiChatInput({
     }
   }, [handleSend]);
 
-  // Auto-resize textarea
   const handleInput = useCallback(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -53,13 +62,56 @@ export default function AiChatInput({
     }
   }, []);
 
+  // Voice input
+  const toggleVoice = useCallback(() => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SRClass = getSpeechRecognition();
+    if (!SRClass) return;
+
+    const recognition = new SRClass();
+    recognition.lang = isHebrew ? 'he-IL' : 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      setValue(transcript);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, [isListening, isHebrew]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
+
   // Listen for quick prompt events
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (typeof detail === 'string') {
         setValue(detail);
-        // Auto-send after a tiny delay to let state update
         setTimeout(() => {
           onSend(detail);
           setValue('');
@@ -73,6 +125,24 @@ export default function AiChatInput({
   return (
     <div className="border-t border-gray-200 bg-white px-3 py-2">
       <div className="flex items-end gap-2">
+        {/* Voice input button */}
+        {hasVoiceSupport && (
+          <button
+            onClick={toggleVoice}
+            disabled={isStreaming}
+            className={cn(
+              'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all',
+              isListening
+                ? 'bg-red-500 text-white animate-pulse'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+              isStreaming && 'opacity-50 cursor-not-allowed',
+            )}
+            title={isListening ? (isHebrew ? 'עצור הקלטה' : 'Stop recording') : (isHebrew ? 'הקלט הודעה' : 'Voice input')}
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </button>
+        )}
+
         <textarea
           ref={textareaRef}
           value={value}
@@ -81,12 +151,17 @@ export default function AiChatInput({
             handleInput();
           }}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder || (isHebrew ? 'כתוב/כתבי הודעה...' : 'Type a message...')}
+          placeholder={
+            isListening
+              ? (isHebrew ? 'מקשיב...' : 'Listening...')
+              : placeholder || (isHebrew ? 'כתוב/כתבי הודעה...' : 'Type a message...')
+          }
           className={cn(
-            'flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm',
+            'flex-1 resize-none rounded-xl border px-3 py-2 text-sm',
             'placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-transparent',
             'max-h-[120px] min-h-[38px]',
             'text-right',
+            isListening ? 'border-red-300 bg-red-50/30' : 'border-gray-200',
           )}
           rows={1}
           maxLength={2000}

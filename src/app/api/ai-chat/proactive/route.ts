@@ -157,6 +157,57 @@ export async function POST(req: NextRequest) {
       sent++;
     }
 
+    // 3. Re-engage discovery conversations that went silent for 24h+
+    const silentDiscoveries = await prisma.aiChatConversation.findMany({
+      where: {
+        phase: 'discovery',
+        status: 'ACTIVE',
+        suggestionId: null, // General chat only
+        updatedAt: { lte: reminderCutoff },
+      },
+      take: MAX_PROACTIVE_PER_RUN,
+      select: {
+        id: true,
+        userId: true,
+        user: { select: { language: true } },
+      },
+    });
+
+    for (const conv of silentDiscoveries) {
+      // Check if we already sent a re-engagement message
+      const existingProactive = await prisma.aiChatMessage.findFirst({
+        where: {
+          conversationId: conv.id,
+          role: 'assistant',
+          metadata: { path: ['trigger'], equals: 'discovery_reengagement' },
+        },
+      });
+
+      if (existingProactive) continue;
+
+      const locale = (conv.user?.language === 'en' ? 'en' : 'he') as 'he' | 'en';
+      const message = locale === 'he'
+        ? 'היי! 👋 עבר קצת זמן מאז שדיברנו. יש לי כמה הצעות חדשות שחושבת שיכולות לעניין אותך — רוצה שנמשיך?'
+        : "Hey! 👋 It's been a while since we chatted. I have some new suggestions that might interest you — want to continue?";
+
+      await AiChatService.saveMessage(conv.id, 'assistant', message, {
+        proactive: true,
+        trigger: 'discovery_reengagement',
+      });
+
+      // Send push notification
+      await sendPushToUser(conv.userId, {
+        title: locale === 'he' ? '💬 נשמה' : '💬 Neshama',
+        body: message.length > 120 ? message.slice(0, 120) + '…' : message,
+        data: {
+          type: 'AI_CHAT_PROACTIVE',
+          screen: 'suggestions',
+        },
+      });
+
+      sent++;
+    }
+
     console.log(`[Proactive AI] Sent ${sent} proactive messages`);
 
     return NextResponse.json({ success: true, sent });

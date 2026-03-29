@@ -304,7 +304,11 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         />
 
         {/* Preference Toggle */}
-        <FirstPartyPreferenceToggle initialValue={wantsToBeFirstParty} locale={locale} />
+        <FirstPartyPreferenceToggle
+          initialValue={wantsToBeFirstParty}
+          locale={locale}
+          dict={suggestionsDict.container.autoSuggestions.toggle}
+        />
 
         {/* Active Process Banner */}
         {suggestions.activeProcessSuggestion && (
@@ -316,38 +320,8 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             onContactMatchmaker={(s) => {
               actions.handleViewDetails(s);
             }}
+            onStatusUpdate={actions.handleStatusChange}
           />
-        )}
-
-        {/* Date Feedback CTA */}
-        {suggestions.datingSuggestion && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden flex items-center gap-3 p-4 rounded-2xl border border-rose-200/50 shadow-sm"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-rose-50 via-pink-50/50 to-white" />
-            <div className="absolute -top-6 -end-6 w-24 h-24 rounded-full bg-rose-100/40 blur-2xl pointer-events-none" />
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-rose-400/25">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <div className="relative flex-1">
-              <h4 className="text-sm font-bold text-rose-800">
-                {suggestionsDict.container.dateFeedback.title}
-              </h4>
-              <p className="text-xs text-rose-600/80">
-                {suggestionsDict.container.dateFeedback.description}
-              </p>
-            </div>
-            <Button
-              size="sm"
-              className="relative bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl text-xs px-4 shadow-md shadow-rose-500/25 hover:shadow-lg transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
-              onClick={() => actions.setShowDateFeedbackDialog(true)}
-            >
-              <MessageCircle className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
-              {suggestionsDict.container.dateFeedback.shareButton}
-            </Button>
-          </motion.div>
         )}
 
         {/* Tabs */}
@@ -539,6 +513,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
         isOpen={actions.showDetailsPanel}
         onClose={actions.handleCloseDetailsPanel}
         onActionRequest={actions.handleRequestAction}
+        onStatusUpdate={actions.handleStatusChange}
         onRefresh={() => suggestions.fetchSuggestions(false)}
         isUserInActiveProcess={suggestions.isUserInActiveProcess}
         questionnaire={selectedQuestionnaire}

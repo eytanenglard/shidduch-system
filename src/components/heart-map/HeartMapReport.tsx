@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback } from 'react';
-import { Download, Heart } from 'lucide-react';
+import { Download, Heart, Loader2 } from 'lucide-react';
 import { SF_SECTIONS } from '@/components/soul-fingerprint/questions';
 import { isQuestionVisible, getSectorGroup } from '@/components/soul-fingerprint/types';
 import type { SFAnswers, SFQuestion, SectorValue, LifeStageValue } from '@/components/soul-fingerprint/types';
@@ -59,6 +59,7 @@ export default function HeartMapReport({ answers, gender, locale, t, tHm }: Prop
   const isRTL = locale === 'he';
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfProgress, setPdfProgress] = useState<'loading' | 'rendering' | 'saving' | null>(null);
 
   const sector = (answers['anchor_sector'] as SectorValue) || null;
   const sectorGroup = getSectorGroup(sector);
@@ -67,6 +68,7 @@ export default function HeartMapReport({ answers, gender, locale, t, tHm }: Prop
   const handleDownloadPdf = useCallback(async () => {
     if (!reportRef.current) return;
     setIsGeneratingPdf(true);
+    setPdfProgress('loading');
 
     try {
       const [html2canvasModule, jsPDFModule] = await Promise.all([
@@ -76,6 +78,7 @@ export default function HeartMapReport({ answers, gender, locale, t, tHm }: Prop
       const html2canvas = html2canvasModule.default;
       const { jsPDF } = jsPDFModule;
 
+      setPdfProgress('rendering');
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         useCORS: true,
@@ -105,12 +108,14 @@ export default function HeartMapReport({ answers, gender, locale, t, tHm }: Prop
         heightLeft -= pdfHeight;
       }
 
+      setPdfProgress('saving');
       const date = new Date().toISOString().split('T')[0];
       pdf.save(`heart-map-report-${date}.pdf`);
     } catch (err) {
       console.error('[HeartMapReport] PDF generation failed:', err);
     } finally {
       setIsGeneratingPdf(false);
+      setPdfProgress(null);
     }
   }, []);
 
@@ -122,12 +127,23 @@ export default function HeartMapReport({ answers, gender, locale, t, tHm }: Prop
           id="heart-map-pdf-download"
           onClick={handleDownloadPdf}
           disabled={isGeneratingPdf}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 text-white font-medium text-sm hover:bg-teal-600 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 text-white font-medium text-sm hover:bg-teal-600 transition-colors disabled:opacity-70 disabled:cursor-wait min-w-[160px] justify-center"
         >
-          <Download className="w-4 h-4" />
-          {isGeneratingPdf
-            ? (isRTL ? 'מייצר PDF...' : 'Generating PDF...')
-            : tHm('report.downloadPdf')}
+          {isGeneratingPdf ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>
+                {pdfProgress === 'loading' && (isRTL ? 'טוען...' : 'Loading...')}
+                {pdfProgress === 'rendering' && (isRTL ? 'מעבד את הדוח...' : 'Rendering...')}
+                {pdfProgress === 'saving' && (isRTL ? 'שומר PDF...' : 'Saving PDF...')}
+              </span>
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" />
+              {tHm('report.downloadPdf')}
+            </>
+          )}
         </button>
       </div>
 

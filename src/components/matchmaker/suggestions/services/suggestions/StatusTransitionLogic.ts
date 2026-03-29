@@ -82,6 +82,7 @@ const VALID_TRANSITIONS: Record<MatchSuggestionStatus, MatchSuggestionStatus[]> 
     MatchSuggestionStatus.CANCELLED
   ],
   CONTACT_DETAILS_SHARED: [
+    MatchSuggestionStatus.MEETING_SCHEDULED,
     MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK,
     MatchSuggestionStatus.CANCELLED
   ],
@@ -95,6 +96,11 @@ const VALID_TRANSITIONS: Record<MatchSuggestionStatus, MatchSuggestionStatus[]> 
     MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE,
     MatchSuggestionStatus.CANCELLED
   ],
+  MEETING_SCHEDULED: [
+    MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK,
+    MatchSuggestionStatus.DATING,
+    MatchSuggestionStatus.CANCELLED
+  ],
   PROCEEDING_TO_SECOND_DATE: [
     MatchSuggestionStatus.DATING,
     MatchSuggestionStatus.CANCELLED
@@ -104,10 +110,6 @@ const VALID_TRANSITIONS: Record<MatchSuggestionStatus, MatchSuggestionStatus[]> 
   ],
   MEETING_PENDING: [
     MatchSuggestionStatus.MEETING_SCHEDULED,
-    MatchSuggestionStatus.CANCELLED
-  ],
-  MEETING_SCHEDULED: [
-    MatchSuggestionStatus.DATING,
     MatchSuggestionStatus.CANCELLED
   ],
   MATCH_APPROVED: [
@@ -257,14 +259,42 @@ export function getAvailableActions(
       ]
     },
     CONTACT_DETAILS_SHARED: {
-      firstParty: [{ id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }],
-      secondParty: [{ id: "provide-feedback", label: "דיווח משוב לאחר פגישה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK }],
+      firstParty: [
+        { id: "date-scheduled", label: "נקבע דייט ראשון", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
+        { id: "provide-feedback", label: "היה דייט ראשון", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
+      ],
+      secondParty: [
+        { id: "date-scheduled", label: "נקבע דייט ראשון", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
+        { id: "provide-feedback", label: "היה דייט ראשון", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
+      ],
       matchmaker: [
+        { id: "schedule-date", label: "נקבע דייט", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
+        { id: "request-feedback", label: "בקש משוב", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
+        { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
+      ]
+    },
+    MEETING_SCHEDULED: {
+      firstParty: [
+        { id: "date-happened", label: "הדייט היה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
+      ],
+      secondParty: [
+        { id: "date-happened", label: "הדייט היה", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
+      ],
+      matchmaker: [
+        { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
         { id: "request-feedback", label: "בקש משוב", nextStatus: MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK },
         { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
       ]
     },
     AWAITING_FIRST_DATE_FEEDBACK: {
+      firstParty: [
+        { id: "thinking", label: "צריך/ה לחשוב", nextStatus: MatchSuggestionStatus.THINKING_AFTER_DATE },
+        { id: "not-continuing", label: "לא ממשיך/ה", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
+      ],
+      secondParty: [
+        { id: "thinking", label: "צריך/ה לחשוב", nextStatus: MatchSuggestionStatus.THINKING_AFTER_DATE },
+        { id: "not-continuing", label: "לא ממשיך/ה", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
+      ],
       matchmaker: [
         { id: "mark-thinking", label: "סמן כ'בחשיבה'", nextStatus: MatchSuggestionStatus.THINKING_AFTER_DATE },
         { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
@@ -272,6 +302,14 @@ export function getAvailableActions(
       ]
     },
     THINKING_AFTER_DATE: {
+      firstParty: [
+        { id: "proceed-second", label: "ממשיכים לדייט שני!", nextStatus: MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE },
+        { id: "not-continuing", label: "לא ממשיך/ה", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
+      ],
+      secondParty: [
+        { id: "proceed-second", label: "ממשיכים לדייט שני!", nextStatus: MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE },
+        { id: "not-continuing", label: "לא ממשיך/ה", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
+      ],
       matchmaker: [
         { id: "proceed-second", label: "המשך לפגישה שניה", nextStatus: MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE },
         { id: "mark-ended-first", label: "סמן כ'הסתיים לאחר פגישה'", nextStatus: MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE },
@@ -279,6 +317,12 @@ export function getAvailableActions(
       ]
     },
     PROCEEDING_TO_SECOND_DATE: {
+      firstParty: [
+        { id: "mark-dating", label: "אנחנו בתהליך!", nextStatus: MatchSuggestionStatus.DATING },
+      ],
+      secondParty: [
+        { id: "mark-dating", label: "אנחנו בתהליך!", nextStatus: MatchSuggestionStatus.DATING },
+      ],
       matchmaker: [
         { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
         { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
@@ -288,12 +332,6 @@ export function getAvailableActions(
     MEETING_PENDING: {
       matchmaker: [
         { id: "schedule-meeting", label: "קביעת פגישה", nextStatus: MatchSuggestionStatus.MEETING_SCHEDULED },
-        { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
-      ]
-    },
-    MEETING_SCHEDULED: {
-      matchmaker: [
-        { id: "mark-dating", label: "סמן כ'בתהליך היכרות'", nextStatus: MatchSuggestionStatus.DATING },
         { id: "cancel", label: "ביטול ההצעה", nextStatus: MatchSuggestionStatus.CANCELLED }
       ]
     },

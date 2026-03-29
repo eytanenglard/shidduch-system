@@ -11,6 +11,12 @@ interface Props {
   locale: string;
   tHm: (key: string) => string;
   onContinue: () => void;
+  nextSectionInfo?: {
+    icon: string;
+    titleKey: string;
+    questionCount: number;
+  };
+  t?: (key: string) => string;
 }
 
 export default function HeartMapSectionReminder({
@@ -20,9 +26,15 @@ export default function HeartMapSectionReminder({
   locale,
   tHm,
   onContinue,
+  nextSectionInfo,
+  t,
 }: Props) {
   const isRTL = locale === 'he';
   const progressPercent = Math.round((currentSection / totalSections) * 100);
+
+  // Estimate ~1.5 minutes per section
+  const remainingSections = totalSections - currentSection;
+  const estimatedMinutes = Math.max(1, Math.round(remainingSections * 1.5));
 
   return (
     <AnimatePresence>
@@ -58,7 +70,7 @@ export default function HeartMapSectionReminder({
               </p>
 
               {/* Progress bar */}
-              <div className="w-full bg-gray-100 rounded-full h-2.5 mb-5">
+              <div className="w-full bg-gray-100 rounded-full h-2.5 mb-3">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
@@ -66,7 +78,34 @@ export default function HeartMapSectionReminder({
                   className="bg-gradient-to-r from-teal-500 to-orange-500 h-2.5 rounded-full"
                 />
               </div>
+
+              {/* Estimated time remaining */}
+              <p className="text-xs text-gray-400">
+                {isRTL
+                  ? `נשארו עוד כ-${estimatedMinutes} ${estimatedMinutes === 1 ? 'דקה' : 'דקות'}`
+                  : `About ${estimatedMinutes} ${estimatedMinutes === 1 ? 'minute' : 'minutes'} remaining`}
+              </p>
             </div>
+
+            {/* Next section preview */}
+            {nextSectionInfo && t && (
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-4">
+                <p className="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wider">
+                  {isRTL ? 'המקטע הבא' : 'Next section'}
+                </p>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{nextSectionInfo.icon}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">
+                      {t(nextSectionInfo.titleKey)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {nextSectionInfo.questionCount} {isRTL ? 'שאלות' : 'questions'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Save notice */}
             <div className="bg-amber-50 border border-amber-200/50 rounded-xl p-4 mb-5">

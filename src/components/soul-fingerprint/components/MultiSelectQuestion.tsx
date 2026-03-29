@@ -7,9 +7,19 @@ import type { SFQuestion } from '../types';
 
 // Haptic feedback for mobile web
 function triggerHaptic() {
-  if (typeof navigator !== 'undefined' && navigator.vibrate) {
-    navigator.vibrate(10);
+  try {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+  } catch {
+    // Vibration not supported or denied — no-op
   }
+}
+
+// Check if user prefers reduced motion
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 interface Props {
@@ -80,13 +90,14 @@ export default function MultiSelectQuestion({ question, value, onChange, customV
     if (collapseTimer.current) clearTimeout(collapseTimer.current);
 
     if (shouldAutoCollapse && !wasManuallyExpanded.current) {
+      const collapseDelay = prefersReducedMotion() ? 0 : 700;
       collapseTimer.current = setTimeout(() => {
         setIsCollapsed(true);
-        // Show undo toast
+        // Show undo toast — 5 seconds to give users enough time to react
         setShowUndo(true);
         if (undoTimer.current) clearTimeout(undoTimer.current);
-        undoTimer.current = setTimeout(() => setShowUndo(false), 3000);
-      }, 700);
+        undoTimer.current = setTimeout(() => setShowUndo(false), 5000);
+      }, collapseDelay);
     } else if (!shouldAutoCollapse) {
       setIsCollapsed(false);
       setShowUndo(false);
@@ -130,18 +141,18 @@ export default function MultiSelectQuestion({ question, value, onChange, customV
           {' '} ({value.length}/{question.maxSelections})
         </p>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className={`grid gap-2 ${allOptions.length > 4 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
         <AnimatePresence mode="popLayout">
           {visibleOptions.map((opt) => {
             const isSelected = value.includes(opt.value);
             return (
               <motion.div
                 key={opt.value}
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
+                layout={!prefersReducedMotion()}
+                initial={prefersReducedMotion() ? false : { opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
+                exit={prefersReducedMotion() ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
+                transition={{ duration: prefersReducedMotion() ? 0 : 0.2 }}
               >
                 <button
                   onClick={() => handleToggle(opt.value)}

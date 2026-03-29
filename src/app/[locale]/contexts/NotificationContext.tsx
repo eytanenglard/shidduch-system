@@ -2,12 +2,10 @@
 // src/app/[locale]/contexts/NotificationContext.tsx
 // =============================================================================
 //
-// UPDATED: Role-aware notification fetching
-//
-// Changes from current version:
-//   1. For MATCHMAKER/ADMIN: fetches both suggestion chat + direct chat unreads
-//   2. For CANDIDATE: fetches /api/messages/chats which includes both types
-//   3. Fixes bug where matchmaker-only endpoint was called for all users
+// Optimized notification polling:
+//   - Uses lightweight countOnly endpoint for feed action counts
+//   - Role-aware chat unread fetching
+//   - AbortController to cancel stale requests
 // =============================================================================
 
 "use client";
@@ -22,7 +20,6 @@ import React, {
 import { useSession } from "next-auth/react";
 import type { Session } from "next-auth";
 import type { NotificationCount } from "@/types/messages";
-import type { FeedItem } from "@/types/messages";
 
 interface NotificationContextType {
   notifications: NotificationCount;
@@ -55,6 +52,7 @@ export function NotificationProvider({
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
 
   const pollingInterval = useRef<NodeJS.Timeout | undefined>(undefined);
+  const abortControllerRef = useRef<AbortController | undefined>(undefined);
 
   const fetchNotifications = useCallback(async () => {
     if (status !== "authenticated" || !session?.user?.id) {
@@ -63,21 +61,25 @@ export function NotificationProvider({
       return;
     }
 
+    // Cancel any in-flight request
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoadingNotifications(true);
     try {
       const userRole = (session.user as { role?: string }).role;
       const isMatchmaker = userRole === "MATCHMAKER" || userRole === "ADMIN";
 
-      // === 1. Feed (action required items) — same for all roles ===
-      const feedResponse = await fetch("/api/messages/feed");
+      // === 1. Lightweight feed count (countOnly mode) ===
+      const feedResponse = await fetch("/api/messages/feed?countOnly=true", {
+        signal: controller.signal,
+      });
       let actionRequiredCount = 0;
       if (feedResponse.ok) {
         const data = await feedResponse.json();
-        if (data.success && Array.isArray(data.feed)) {
-          const feed: FeedItem[] = data.feed;
-          actionRequiredCount = feed.filter(
-            (item) => item.type === "ACTION_REQUIRED"
-          ).length;
+        if (data.success) {
+          actionRequiredCount = data.actionRequiredCount || 0;
         }
       }
 
@@ -85,10 +87,9 @@ export function NotificationProvider({
       let chatUnreadCount = 0;
 
       if (isMatchmaker) {
-        // Matchmaker: fetch suggestion chat unreads + direct chat unreads
         const [suggestionRes, directRes] = await Promise.all([
-          fetch("/api/matchmaker/chat/unread"),
-          fetch("/api/matchmaker/direct-chats"),
+          fetch("/api/matchmaker/chat/unread", { signal: controller.signal }),
+          fetch("/api/matchmaker/direct-chats", { signal: controller.signal }),
         ]);
 
         if (suggestionRes.ok) {
@@ -105,8 +106,9 @@ export function NotificationProvider({
           }
         }
       } else {
-        // Candidate: /api/messages/chats returns totalUnread (both direct + suggestion)
-        const chatsRes = await fetch("/api/messages/chats");
+        const chatsRes = await fetch("/api/messages/chats", {
+          signal: controller.signal,
+        });
         if (chatsRes.ok) {
           const chatsData = await chatsRes.json();
           if (chatsData.success) {
@@ -122,6 +124,8 @@ export function NotificationProvider({
       };
       setNotifications(newNotifications);
     } catch (error) {
+      // Ignore abort errors
+      if (error instanceof DOMException && error.name === 'AbortError') return;
       console.error(
         "[NotificationContext] Error fetching notifications:",
         error
@@ -145,6 +149,7 @@ export function NotificationProvider({
 
     return () => {
       if (pollingInterval.current) clearInterval(pollingInterval.current);
+      abortControllerRef.current?.abort();
     };
   }, [session?.user?.id, status, fetchNotifications]);
 

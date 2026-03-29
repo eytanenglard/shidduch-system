@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Heart, Clock, Sparkles, FileText, Users, ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, Clock, Sparkles, FileText, Users, ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 interface Props {
@@ -17,6 +17,7 @@ interface Props {
 
 export default function HeartMapIntro({ tHm, locale, hasExistingProgress, savedGender, onStart, isAuthenticated = false, userName }: Props) {
   const [selectedGender, setSelectedGender] = useState<'MALE' | 'FEMALE' | null>(savedGender);
+  const [showStartOverConfirm, setShowStartOverConfirm] = useState(false);
   const isRTL = locale === 'he';
 
   const features = [
@@ -94,59 +95,63 @@ export default function HeartMapIntro({ tHm, locale, hasExistingProgress, savedG
         ))}
       </motion.div>
 
-      {/* Gender Selection */}
+      {/* Gender Selection — only show if gender is not already known from profile */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
         className="bg-white rounded-3xl border border-gray-100 shadow-lg p-6 sm:p-8 mb-8"
       >
-        <h2 className="text-lg font-bold text-gray-800 text-center mb-2">
-          {tHm('intro.genderSelect.title')}
-        </h2>
-        <p className="text-sm text-gray-500 text-center mb-6">
-          {tHm('intro.genderSelect.subtitle')}
-        </p>
+        {!savedGender && (
+          <>
+            <h2 className="text-lg font-bold text-gray-800 text-center mb-2">
+              {tHm('intro.genderSelect.title')}
+            </h2>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              {tHm('intro.genderSelect.subtitle')}
+            </p>
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <button
-            onClick={() => setSelectedGender('MALE')}
-            className={`relative rounded-2xl border-2 p-5 sm:p-6 transition-all duration-200 text-center ${
-              selectedGender === 'MALE'
-                ? 'border-teal-500 bg-teal-50/50 shadow-md'
-                : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50/30'
-            }`}
-          >
-            <div className="text-4xl mb-3">👨</div>
-            <span className="font-semibold text-gray-800">{tHm('intro.genderSelect.male')}</span>
-            {selectedGender === 'MALE' && (
-              <div className="absolute top-3 end-3 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            )}
-          </button>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <button
+                onClick={() => setSelectedGender('MALE')}
+                className={`relative rounded-2xl border-2 p-5 sm:p-6 transition-all duration-200 text-center ${
+                  selectedGender === 'MALE'
+                    ? 'border-teal-500 bg-teal-50/50 shadow-md'
+                    : 'border-gray-200 hover:border-teal-300 hover:bg-teal-50/30'
+                }`}
+              >
+                <div className="text-4xl mb-3">👨</div>
+                <span className="font-semibold text-gray-800">{tHm('intro.genderSelect.male')}</span>
+                {selectedGender === 'MALE' && (
+                  <div className="absolute top-3 end-3 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+              </button>
 
-          <button
-            onClick={() => setSelectedGender('FEMALE')}
-            className={`relative rounded-2xl border-2 p-5 sm:p-6 transition-all duration-200 text-center ${
-              selectedGender === 'FEMALE'
-                ? 'border-orange-500 bg-orange-50/50 shadow-md'
-                : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/30'
-            }`}
-          >
-            <div className="text-4xl mb-3">👩</div>
-            <span className="font-semibold text-gray-800">{tHm('intro.genderSelect.female')}</span>
-            {selectedGender === 'FEMALE' && (
-              <div className="absolute top-3 end-3 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            )}
-          </button>
-        </div>
+              <button
+                onClick={() => setSelectedGender('FEMALE')}
+                className={`relative rounded-2xl border-2 p-5 sm:p-6 transition-all duration-200 text-center ${
+                  selectedGender === 'FEMALE'
+                    ? 'border-orange-500 bg-orange-50/50 shadow-md'
+                    : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/30'
+                }`}
+              >
+                <div className="text-4xl mb-3">👩</div>
+                <span className="font-semibold text-gray-800">{tHm('intro.genderSelect.female')}</span>
+                {selectedGender === 'FEMALE' && (
+                  <div className="absolute top-3 end-3 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+              </button>
+            </div>
+          </>
+        )}
 
         {/* Info badges */}
         <div className="flex items-center justify-center gap-4 text-xs text-gray-400 mb-6">
@@ -170,7 +175,7 @@ export default function HeartMapIntro({ tHm, locale, hasExistingProgress, savedG
                 {tHm('intro.resumeCta')}
               </button>
               <button
-                onClick={() => selectedGender && onStart(selectedGender, true)}
+                onClick={() => setShowStartOverConfirm(true)}
                 disabled={!selectedGender}
                 className="w-full py-3 rounded-full border border-gray-200 text-gray-600 font-medium text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -188,6 +193,60 @@ export default function HeartMapIntro({ tHm, locale, hasExistingProgress, savedG
           )}
         </div>
       </motion.div>
+
+      {/* Start Over Confirmation Dialog */}
+      <AnimatePresence>
+        {showStartOverConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowStartOverConfirm(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"
+              dir={isRTL ? 'rtl' : 'ltr'}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                </div>
+                <h3 className="font-bold text-gray-800">
+                  {isRTL ? 'להתחיל מחדש?' : 'Start over?'}
+                </h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                {isRTL
+                  ? 'כל התשובות שמילאתם עד עכשיו יימחקו ותתחילו מההתחלה. פעולה זו לא ניתנת לביטול.'
+                  : 'All your answers will be deleted and you\'ll start from the beginning. This action cannot be undone.'}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowStartOverConfirm(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors"
+                >
+                  {isRTL ? 'ביטול' : 'Cancel'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowStartOverConfirm(false);
+                    if (selectedGender) onStart(selectedGender, true);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-medium text-sm hover:bg-red-600 transition-colors"
+                >
+                  {isRTL ? 'כן, להתחיל מחדש' : 'Yes, start over'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

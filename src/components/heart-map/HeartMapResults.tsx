@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, UserPlus, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { Download, Eye, UserPlus, ArrowLeft, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useMatchEstimate } from './hooks/useMatchEstimate';
 import { deriveTagsFromAnswers } from '@/components/soul-fingerprint/types';
@@ -19,37 +19,26 @@ interface Props {
   isAuthenticated?: boolean;
 }
 
-function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
-  const [count, setCount] = useState(0);
-  const startTime = useRef<number | null>(null);
-  const frameRef = useRef<number>(undefined);
+// Tag category labels and colors for tooltips
+const TAG_CATEGORIES = {
+  sectorTags: { he: 'זהות ומגזר', en: 'Identity & Sector', color: 'from-teal-50 to-teal-100 border-teal-200 text-teal-700' },
+  personalityTags: { he: 'אישיות', en: 'Personality', color: 'from-purple-50 to-purple-100 border-purple-200 text-purple-700' },
+  careerTags: { he: 'קריירה', en: 'Career', color: 'from-amber-50 to-amber-100 border-amber-200 text-amber-700' },
+  lifestyleTags: { he: 'אורח חיים', en: 'Lifestyle', color: 'from-green-50 to-green-100 border-green-200 text-green-700' },
+  familyVisionTags: { he: 'חזון משפחתי', en: 'Family Vision', color: 'from-sky-50 to-sky-100 border-sky-200 text-sky-700' },
+  relationshipTags: { he: 'זוגיות', en: 'Relationship', color: 'from-rose-50 to-rose-100 border-rose-200 text-rose-700' },
+} as const;
 
-  useEffect(() => {
-    const animate = (timestamp: number) => {
-      if (!startTime.current) startTime.current = timestamp;
-      const progress = Math.min((timestamp - startTime.current) / duration, 1);
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.round(eased * target));
-
-      if (progress < 1) {
-        frameRef.current = requestAnimationFrame(animate);
-      }
-    };
-
-    frameRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (frameRef.current) cancelAnimationFrame(frameRef.current);
-    };
-  }, [target, duration]);
-
-  return <span>{count}</span>;
+interface TagWithCategory {
+  tag: string;
+  category: keyof typeof TAG_CATEGORIES;
 }
 
 export default function HeartMapResults({ answers, gender, locale, t, tHm, isAuthenticated = false }: Props) {
   const isRTL = locale === 'he';
   const { result, isLoading, fetchEstimate } = useMatchEstimate();
   const [showReport, setShowReport] = useState(false);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
 
   // Fetch estimate on mount
   useEffect(() => {
@@ -58,14 +47,11 @@ export default function HeartMapResults({ answers, gender, locale, t, tHm, isAut
 
   const matchCount = result?.estimatedMatches ?? 0;
   const tags = deriveTagsFromAnswers(answers);
-  const allTags = [
-    ...tags.sectorTags,
-    ...tags.personalityTags,
-    ...tags.careerTags,
-    ...tags.lifestyleTags,
-    ...tags.familyVisionTags,
-    ...tags.relationshipTags,
-  ].slice(0, 12);
+
+  // Build tagged items with category info
+  const allTagsWithCategory: TagWithCategory[] = (Object.keys(TAG_CATEGORIES) as (keyof typeof TAG_CATEGORIES)[]).flatMap(
+    (category) => (tags[category] || []).map((tag: string) => ({ tag, category }))
+  ).slice(0, 12);
 
   const getTitle = () => {
     if (matchCount >= 10) return tHm('results.title.hasMatches').replace('{count}', String(matchCount));
@@ -113,8 +99,14 @@ export default function HeartMapResults({ answers, gender, locale, t, tHm, isAut
         className="text-center mb-10"
       >
         <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-teal-400 via-orange-400 to-amber-400 flex items-center justify-center shadow-xl">
-          <span className="text-4xl font-bold text-white">
-            <AnimatedCounter target={matchCount} />
+          <span
+            className="text-4xl font-bold text-white tabular-nums"
+            style={{
+              // CSS counter animation
+              animation: 'countUp 2s ease-out forwards',
+            }}
+          >
+            {matchCount}
           </span>
         </div>
 
@@ -126,22 +118,46 @@ export default function HeartMapResults({ answers, gender, locale, t, tHm, isAut
         </p>
       </motion.div>
 
-      {/* Tag Cloud */}
-      {allTags.length > 0 && (
+      {/* Interactive Tag Cloud */}
+      {allTagsWithCategory.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-wrap justify-center gap-2 mb-10"
+          className="mb-10"
         >
-          {allTags.map((tag) => (
-            <span
-              key={tag}
-              className="px-3 py-1.5 bg-gradient-to-r from-teal-50 to-orange-50 border border-teal-200/50 rounded-full text-xs font-medium text-teal-700"
-            >
-              {tag}
-            </span>
-          ))}
+          <div className="flex flex-wrap justify-center gap-2">
+            {allTagsWithCategory.map(({ tag, category }, i) => {
+              const catInfo = TAG_CATEGORIES[category];
+              const isActive = activeTag === tag;
+              return (
+                <motion.button
+                  key={`${tag}-${i}`}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.3 + i * 0.05 }}
+                  onClick={() => setActiveTag(isActive ? null : tag)}
+                  className={`
+                    relative px-3 py-1.5 bg-gradient-to-r ${catInfo.color} border rounded-full text-xs font-medium
+                    transition-all duration-200 cursor-pointer
+                    ${isActive ? 'ring-2 ring-offset-1 ring-teal-400 scale-105' : 'hover:scale-105'}
+                  `}
+                >
+                  {tag}
+                  {/* Tooltip */}
+                  {isActive && (
+                    <motion.span
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded z-10"
+                    >
+                      {isRTL ? catInfo.he : catInfo.en}
+                    </motion.span>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
         </motion.div>
       )}
 

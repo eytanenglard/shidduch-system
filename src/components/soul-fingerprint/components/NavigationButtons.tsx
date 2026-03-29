@@ -1,5 +1,7 @@
 'use client';
 
+import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react';
+
 interface Props {
   onNext: () => void;
   onBack: () => void;
@@ -67,23 +69,36 @@ export default function NavigationButtons({
         )}
 
         <div className="flex items-center gap-3">
-          {saveStatus === 'saving' && (
-            <span className="text-xs text-gray-400 animate-pulse">{t('labels.saving')}</span>
-          )}
-          {saveStatus === 'saved' && (
-            <span className="text-xs text-green-500">{t('labels.saved')}</span>
-          )}
-          {saveStatus === 'error' && (
-            <span className="text-xs text-red-500">{t('labels.saveError')}</span>
-          )}
+          {/* Save status indicator with animated icons */}
+          <div className="flex items-center gap-1.5 text-xs transition-all duration-300">
+            {saveStatus === 'saving' && (
+              <span className="flex items-center gap-1 text-gray-400">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                {t('labels.saving')}
+              </span>
+            )}
+            {saveStatus === 'saved' && (
+              <span className="flex items-center gap-1 text-green-500 animate-fade-in">
+                <Cloud className="w-3.5 h-3.5" />
+                <Check className="w-3 h-3 -ml-2.5 mb-0.5" />
+              </span>
+            )}
+            {saveStatus === 'error' && (
+              <span className="flex items-center gap-1 text-red-500">
+                <CloudOff className="w-3.5 h-3.5" />
+                {t('labels.saveError')}
+              </span>
+            )}
+          </div>
+
           <button
             onClick={handleClick}
             className={`
-              px-6 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm
+              px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm
               ${
                 hasUnansweredRequired
-                  ? 'bg-gray-300 text-gray-500 hover:bg-gray-400 hover:text-gray-600'
-                  : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md'
+                  ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                  : 'bg-teal-500 text-white hover:bg-teal-600 hover:shadow-md active:scale-[0.98]'
               }
             `}
           >

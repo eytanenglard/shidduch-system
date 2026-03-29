@@ -1049,18 +1049,338 @@ export async function generateVirtualProfile(
 }
 
 
+// ═══════════════════════════════════════════════════════════════
+// AI Suggestion Comparison — side-by-side analysis for end users
+// ═══════════════════════════════════════════════════════════════
+
+export interface AiComparisonResult {
+  comparisonSummary: string;
+  suggestionA: { score: number; title: string; highlight: string };
+  suggestionB: { score: number; title: string; highlight: string };
+  worldComparison: Array<{
+    world: string;
+    chemistryA: 'high' | 'medium' | 'low';
+    chemistryB: 'high' | 'medium' | 'low';
+    insight: string;
+  }>;
+  uniqueStrengthsA: string[];
+  uniqueStrengthsB: string[];
+  considerationsA: string[];
+  considerationsB: string[];
+  recommendation: string;
+  decisionQuestions: string[];
+}
+
+/** Enrichment context for comparison — system scores, tags, rejection patterns */
+export interface ComparisonEnrichmentContext {
+  contextA?: SuggestionAnalysisContext;
+  contextB?: SuggestionAnalysisContext;
+  rejectionPatterns?: string[];
+}
+
+/**
+ * A/B testing for comparison prompts.
+ * Variants control the tone/style of the comparison analysis.
+ */
+export type ComparisonPromptVariant = 'warm' | 'direct' | 'analytical';
+
+/** Randomly assigns a prompt variant for A/B testing */
+export function getComparisonVariant(): ComparisonPromptVariant {
+  const variants: ComparisonPromptVariant[] = ['warm', 'direct', 'analytical'];
+  return variants[Math.floor(Math.random() * variants.length)];
+}
+
+const VARIANT_TONE_INSTRUCTIONS: Record<ComparisonPromptVariant, { he: string; en: string }> = {
+  warm: {
+    he: 'הטון שלך חם, מעודד ואותנטי. השתמש בשפה רגשית ואמפתית.',
+    en: 'Your tone is warm, encouraging, and authentic. Use emotional and empathetic language.',
+  },
+  direct: {
+    he: 'הטון שלך ישיר, תכליתי ומקצועי. דבר בקצרה ולעניין, בלי ביטויים רגשיים מיותרים.',
+    en: 'Your tone is direct, concise, and professional. Be brief and to the point, without unnecessary emotional language.',
+  },
+  analytical: {
+    he: 'הטון שלך אנליטי ומבוסס נתונים. השתמש בהשוואות מספריות וניתוח שיטתי. פחות רגש, יותר עובדות.',
+    en: 'Your tone is analytical and data-driven. Use numerical comparisons and systematic analysis. Less emotion, more facts.',
+  },
+};
+
+/**
+ * משווה בין שתי הצעות שידוך עבור אותו משתמש.
+ * מחזיר ניתוח השוואתי שעוזר למשתמש להבין מי מתאים יותר ולמה.
+ */
+export async function compareSuggestionsForUser(
+  currentUserProfileText: string,
+  suggestedUserAProfileText: string,
+  suggestedUserBProfileText: string,
+  nameA: string,
+  nameB: string,
+  locale: 'he' | 'en' = 'he',
+  enrichment?: ComparisonEnrichmentContext
+): Promise<(AiComparisonResult & { _variant?: ComparisonPromptVariant }) | null> {
+  const variant = getComparisonVariant();
+  console.log(`--- [AI Comparison] Starting suggestion comparison (variant: ${variant}) ---`);
+  currentUserProfileText = sanitizeForAi(currentUserProfileText);
+  suggestedUserAProfileText = sanitizeForAi(suggestedUserAProfileText);
+  suggestedUserBProfileText = sanitizeForAi(suggestedUserBProfileText);
+
+  if (!currentUserProfileText || !suggestedUserAProfileText || !suggestedUserBProfileText) {
+    console.error('[AI Comparison] Called with one or more empty profiles.');
+    return null;
+  }
+
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    generationConfig: {
+      responseMimeType: 'application/json',
+      temperature: 0.5,
+    },
+  });
+
+  const isHebrew = locale === 'he';
+  const lang = isHebrew ? 'עברית' : 'English';
+  const toneInstruction = VARIANT_TONE_INSTRUCTIONS[variant][locale];
+
+  // Build enrichment sections for the prompt
+  const buildEnrichmentSection = (ctx: SuggestionAnalysisContext | undefined, label: string): string => {
+    if (!ctx) return '';
+    const parts: string[] = [];
+
+    if (ctx.matchmakerReason) {
+      parts.push(`נימוק השדכן/ית: ${ctx.matchmakerReason}`);
+    }
+    if (ctx.systemScore != null) {
+      parts.push(`ציון מערכת: ${ctx.systemScore}/100`);
+    }
+    if (ctx.scoreBreakdown && Object.keys(ctx.scoreBreakdown).length > 0) {
+      const breakdown = Object.entries(ctx.scoreBreakdown)
+        .map(([key, val]) => `  ${key}: ${val}`)
+        .join('\n');
+      parts.push(`פירוט ציונים:\n${breakdown}`);
+    }
+    if (ctx.profileTags?.otherUser) {
+      const tags = ctx.profileTags.otherUser;
+      const tagLines: string[] = [];
+      if (tags.sectorTags?.length) tagLines.push(`מגזר: ${tags.sectorTags.join(', ')}`);
+      if (tags.personalityTags?.length) tagLines.push(`אישיות: ${tags.personalityTags.join(', ')}`);
+      if (tags.careerTags?.length) tagLines.push(`קריירה: ${tags.careerTags.join(', ')}`);
+      if (tags.lifestyleTags?.length) tagLines.push(`סגנון חיים: ${tags.lifestyleTags.join(', ')}`);
+      if (tags.familyVisionTags?.length) tagLines.push(`חזון משפחתי: ${tags.familyVisionTags.join(', ')}`);
+      if (tagLines.length) parts.push(`תגיות מפת הלב:\n  ${tagLines.join('\n  ')}`);
+    }
+
+    if (parts.length === 0) return '';
+    return `\n--- נתוני מערכת עבור ${label} ---\n${parts.join('\n')}\n`;
+  };
+
+  let enrichmentSection = '';
+  if (enrichment?.contextA) {
+    enrichmentSection += buildEnrichmentSection(enrichment.contextA, nameA);
+  }
+  if (enrichment?.contextB) {
+    enrichmentSection += buildEnrichmentSection(enrichment.contextB, nameB);
+  }
+  if (enrichment?.rejectionPatterns?.length) {
+    enrichmentSection += `\n--- דפוסי דחייה של המשתמש (חשוב!) ---\n`;
+    enrichmentSection += `המשתמש נוטה לדחות הצעות בגלל: ${enrichment.rejectionPatterns.join(', ')}\n`;
+    enrichmentSection += `הנחיות:\n`;
+    enrichmentSection += `- השווה ישירות: איזו הצעה פחות חשופה לדפוסי הדחייה האלה?\n`;
+    enrichmentSection += `- אם אחת ההצעות חזקה בתחומים שבדרך כלל מדאיגים אותו — ציין זאת בפירוש\n`;
+    enrichmentSection += `- ב-uniqueStrengths, ציין אם הצעה מסוימת "שוברת" דפוס דחייה קודם\n`;
+    enrichmentSection += `- ב-considerationsA/B, הזכר אם דפוס דחייה רלוונטי להצעה מסוימת\n`;
+  }
+
+  const prompt = isHebrew
+    ? `
+אתה "יועץ התאמה AI" בפלטפורמת שידוכים מקצועית. ${toneInstruction}
+המטרה: לעזור למשתמש להשוות בין שתי הצעות שידוך שקיבל ולהבין מה מתאים לו/לה יותר.
+
+═══════════════════════════════════════════════════════════════
+הנחיות קריטיות:
+═══════════════════════════════════════════════════════════════
+1. אתה לא בוחר או ממליץ על אחד מהם — אתה עוזר למשתמש להבין את ההבדלים ולהחליט בעצמו
+2. נתח כל הצעה לעומק — דינמיקה, אנרגיה, וחיבור רגשי אפשרי
+3. השתמש במידע מהשאלונים (ערכים, אישיות, זוגיות, דת) כדי לייצר תובנות ספציפיות
+4. אל תשווה באופן שמציב אחד כ"טוב" והשני כ"רע" — לכל הצעה יש ערך ייחודי
+5. ההמלצה צריכה להיות על בסיס "מה מתאים למה" ולא "מי יותר טוב"
+6. הכל ב${lang} בלבד
+
+═══════════════════════════════════════════════════════════════
+worldComparison - השוואה לפי תחומי חיים:
+═══════════════════════════════════════════════════════════════
+חובה לספק בדיוק 4 השוואות, אחת לכל תחום:
+- "דת ורוחניות" — התאמה ברמה דתית, השקפה, אורח חיים דתי
+- "אישיות וסגנון חיים" — אנרגיה חברתית, תכונות אופי, סדר יום, תחביבים
+- "ערכים ומשפחה" — סדרי עדיפויות, חזון משפחתי, יחס לכסף וקריירה
+- "זוגיות ותקשורת" — שפות אהבה, סגנון תקשורת, התמודדות עם קונפליקטים
+
+לכל תחום, ציין chemistry עבור כל הצעה:
+- "high" = חיבור חזק וטבעי
+- "medium" = יש בסיס טוב אבל יש מה לבנות
+- "low" = הבדל שדורש שימת לב (נסח בחיוב!)
+
+═══════════════════════════════════════════════════════════════
+decisionQuestions - שאלות שיעזרו להחליט:
+═══════════════════════════════════════════════════════════════
+צור 3-4 שאלות פתוחות ומעמיקות שיעזרו למשתמש להבין מה חשוב לו באמת.
+דוגמאות: "מה חשוב לך יותר — שותף שמאתגר אותך או כזה שמרגיע אותך?"
+
+═══════════════════════════════════════════════════════════════
+
+הפלט חייב להיות JSON תקין ב${lang} בלבד.
+השתמש בשם "${nameA}" עבור הצעה א' ו-"${nameB}" עבור הצעה ב'.
+
+{
+  "comparisonSummary": "סיכום כללי של ההשוואה — 2-3 משפטים על ההבדלים העיקריים",
+  "suggestionA": {
+    "score": number (0-100),
+    "title": "כותרת קצרה על ההתאמה (עד 5 מילים)",
+    "highlight": "משפט אחד — מה הכי בולט בהצעה הזו"
+  },
+  "suggestionB": {
+    "score": number (0-100),
+    "title": "כותרת קצרה על ההתאמה (עד 5 מילים)",
+    "highlight": "משפט אחד — מה הכי בולט בהצעה הזו"
+  },
+  "worldComparison": [
+    { "world": "דת ורוחניות", "chemistryA": "high|medium|low", "chemistryB": "high|medium|low", "insight": "תובנה השוואתית ספציפית" },
+    { "world": "אישיות וסגנון חיים", "chemistryA": "high|medium|low", "chemistryB": "high|medium|low", "insight": "תובנה השוואתית" },
+    { "world": "ערכים ומשפחה", "chemistryA": "high|medium|low", "chemistryB": "high|medium|low", "insight": "תובנה השוואתית" },
+    { "world": "זוגיות ותקשורת", "chemistryA": "high|medium|low", "chemistryB": "high|medium|low", "insight": "תובנה השוואתית" }
+  ],
+  "uniqueStrengthsA": ["2-3 יתרונות ייחודיים של הצעה א'"],
+  "uniqueStrengthsB": ["2-3 יתרונות ייחודיים של הצעה ב'"],
+  "considerationsA": ["1-2 נקודות למחשבה על הצעה א' (ניסוח חיובי)"],
+  "considerationsB": ["1-2 נקודות למחשבה על הצעה ב' (ניסוח חיובי)"],
+  "recommendation": "המלצה — לא מי יותר טוב, אלא מה מתאים לאיזה סוג של זוגיות",
+  "decisionQuestions": ["3-4 שאלות פתוחות שיעזרו למשתמש להחליט"]
+}
+
+--- הפרופיל שלי ---
+${currentUserProfileText}
+
+--- הצעה א' (${nameA}) ---
+${suggestedUserAProfileText}
+
+--- הצעה ב' (${nameB}) ---
+${suggestedUserBProfileText}
+${enrichmentSection}
+`
+    : `
+You are an "AI Matching Advisor" in a professional matchmaking platform. ${toneInstruction}
+Goal: Help the user compare two match suggestions they received and understand which one might be a better fit for them.
+
+═══════════════════════════════════════════════════════════════
+Critical Guidelines:
+═══════════════════════════════════════════════════════════════
+1. You do NOT pick one — you help the user understand the differences and decide on their own
+2. Analyze each suggestion deeply — dynamics, energy, and potential emotional connection
+3. Use questionnaire data (values, personality, relationship, religion) for specific insights
+4. Never frame one as "good" and the other as "bad" — each has unique value
+5. The recommendation should be about "what fits what" not "who is better"
+6. All output in ${lang} only
+
+═══════════════════════════════════════════════════════════════
+worldComparison - Life domain comparison:
+═══════════════════════════════════════════════════════════════
+You MUST provide exactly 4 comparisons, one per domain:
+- "Religion & Spirituality" — religious alignment, outlook, religious lifestyle
+- "Personality & Lifestyle" — social energy, character traits, daily life, hobbies
+- "Values & Family" — priorities, family vision, approach to money and career
+- "Partnership & Communication" — love languages, communication style, conflict resolution
+
+For each domain, rate chemistry for EACH suggestion:
+- "high" = strong, natural connection
+- "medium" = good foundation, room to grow
+- "low" = difference that needs attention (frame positively!)
+
+═══════════════════════════════════════════════════════════════
+decisionQuestions - Questions to help decide:
+═══════════════════════════════════════════════════════════════
+Create 3-4 open-ended, thought-provoking questions to help the user understand what truly matters to them.
+
+═══════════════════════════════════════════════════════════════
+
+Output must be valid JSON in ${lang} only.
+Use the name "${nameA}" for suggestion A and "${nameB}" for suggestion B.
+
+{
+  "comparisonSummary": "Overall comparison summary — 2-3 sentences about the key differences",
+  "suggestionA": {
+    "score": number (0-100),
+    "title": "Short title about the match (up to 5 words)",
+    "highlight": "One sentence — what stands out most about this suggestion"
+  },
+  "suggestionB": {
+    "score": number (0-100),
+    "title": "Short title about the match (up to 5 words)",
+    "highlight": "One sentence — what stands out most about this suggestion"
+  },
+  "worldComparison": [
+    { "world": "Religion & Spirituality", "chemistryA": "high|medium|low", "chemistryB": "high|medium|low", "insight": "Specific comparative insight" },
+    { "world": "Personality & Lifestyle", "chemistryA": "high|medium|low", "chemistryB": "high|medium|low", "insight": "Comparative insight" },
+    { "world": "Values & Family", "chemistryA": "high|medium|low", "chemistryB": "high|medium|low", "insight": "Comparative insight" },
+    { "world": "Partnership & Communication", "chemistryA": "high|medium|low", "chemistryB": "high|medium|low", "insight": "Comparative insight" }
+  ],
+  "uniqueStrengthsA": ["2-3 unique strengths of suggestion A"],
+  "uniqueStrengthsB": ["2-3 unique strengths of suggestion B"],
+  "considerationsA": ["1-2 considerations for suggestion A (positive framing)"],
+  "considerationsB": ["1-2 considerations for suggestion B (positive framing)"],
+  "recommendation": "Recommendation — not who is better, but what fits which type of relationship",
+  "decisionQuestions": ["3-4 open-ended questions to help the user decide"]
+}
+
+--- My Profile ---
+${currentUserProfileText}
+
+--- Suggestion A (${nameA}) ---
+${suggestedUserAProfileText}
+
+--- Suggestion B (${nameB}) ---
+${suggestedUserBProfileText}
+${enrichmentSection}
+`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const jsonString = response.text();
+
+    if (!jsonString) {
+      console.error('[AI Comparison] Gemini API returned an empty response.');
+      return null;
+    }
+
+    const parsed = JSON.parse(jsonString) as AiComparisonResult & { _variant?: ComparisonPromptVariant };
+
+    // Ensure worldComparison exists
+    if (!parsed.worldComparison) {
+      parsed.worldComparison = [];
+    }
+
+    // Attach A/B variant for tracking
+    parsed._variant = variant;
+
+    return parsed;
+  } catch (error) {
+    console.error('[AI Comparison] Error generating comparison:', error);
+    return null;
+  }
+}
+
 // ייצוא כל הפונקציות כאובייקט אחד
 const aiService = {
   generateTextEmbedding,
   analyzePairCompatibility,
   getProfileAnalysis,
   analyzeSuggestionForUser,
+  compareSuggestionsForUser,
   generateSuggestionRationale,
   generateFullSuggestionRationale,
   generateNeshamaTechSummary,
   analyzeCvInDepth,
   generateProfileSummary,
-  generateVirtualProfile, 
+  generateVirtualProfile,
   generateText,
 };
 

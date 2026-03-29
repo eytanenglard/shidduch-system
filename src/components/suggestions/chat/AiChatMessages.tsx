@@ -7,6 +7,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import AiChatBubble from './AiChatBubble';
 import AiChatProfileCard from './AiChatProfileCard';
 import AiChatActionButtons from './AiChatActionButtons';
@@ -28,14 +29,16 @@ interface AiChatMessagesProps {
   quickReplies?: string[];
   onQuickReply?: (text: string) => void;
   onRateMessage?: (messageId: string, rating: 'up' | 'down') => void;
+  onReactToMessage?: (messageId: string, emoji: string) => void;
   // Smart assistant props
   isGeneralChat?: boolean;
+  phase?: 'discovery' | 'searching' | 'presenting' | 'discussing';
   actionButtons?: ChatActionButton[];
   onChatAction?: (type: ChatActionButton['type']) => void;
   isLoadingDiscovery?: boolean;
   // Rejection picker
   showRejectionPicker?: boolean;
-  onRejectWithCategory?: (category: string) => void;
+  onRejectWithCategory?: (category: string, freeText?: string) => void;
   onCancelRejection?: () => void;
 }
 
@@ -51,7 +54,9 @@ export default function AiChatMessages({
   quickReplies,
   onQuickReply,
   onRateMessage,
+  onReactToMessage,
   isGeneralChat = false,
+  phase,
   actionButtons,
   onChatAction,
   isLoadingDiscovery = false,
@@ -111,10 +116,16 @@ export default function AiChatMessages({
                   />
                 </div>
               )}
-              <AiChatProfileCard
-                candidateUserId={msg.metadata.candidateUserId}
-                locale={locale}
-              />
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+              >
+                <AiChatProfileCard
+                  candidateUserId={msg.metadata.candidateUserId}
+                  locale={locale}
+                />
+              </motion.div>
             </div>
           );
         }
@@ -128,11 +139,46 @@ export default function AiChatMessages({
               createdAt={msg.createdAt}
               messageId={msg.id}
               userRating={msg.metadata?.userRating}
+              userReaction={msg.metadata?.userReaction as string | undefined}
               onRate={msg.role === 'assistant' ? onRateMessage : undefined}
+              onReact={msg.role === 'assistant' ? onReactToMessage : undefined}
             />
           </div>
         );
       })}
+
+      {/* Discovery progress indicator */}
+      {isGeneralChat && phase === 'discovery' && !isStreaming && (() => {
+        const userMsgCount = messages.filter((m) => m.role === 'user').length;
+        const TARGET = 4;
+        if (userMsgCount > 0 && userMsgCount < TARGET) {
+          const progress = Math.min((userMsgCount / TARGET) * 100, 100);
+          return (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="px-3 py-1.5"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-violet-400 to-purple-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                  />
+                </div>
+                <span className="text-[10px] text-gray-400 flex-shrink-0">
+                  {isHebrew
+                    ? `עוד ${TARGET - userMsgCount} תשובות ואחפש לך`
+                    : `${TARGET - userMsgCount} more answers and I'll search`}
+                </span>
+              </div>
+            </motion.div>
+          );
+        }
+        return null;
+      })()}
 
       {/* Streaming message */}
       {isStreaming && streamingContent && (

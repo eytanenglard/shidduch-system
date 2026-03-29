@@ -1,6 +1,6 @@
 // src/app/api/messages/feed/route.ts
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -10,7 +10,6 @@ import { MatchSuggestionStatus, UserRole } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 
-// הגדרה אחידה לשליפת פרטי משתמשים מלאים
 const partySelect = {
   id: true,
   email: true,
@@ -33,7 +32,9 @@ const partySelect = {
   },
 };
 
-export async function GET() {
+const PAGE_SIZE = 20;
+
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,9 +42,53 @@ export async function GET() {
   const userId = session.user.id;
   const userRole = session.user.role as UserRole;
 
+  // Pagination params
+  const { searchParams } = new URL(req.url);
+  const cursor = searchParams.get('cursor'); // ID of last item for cursor-based pagination
+  const limit = Math.min(parseInt(searchParams.get('limit') || String(PAGE_SIZE)), 50);
+  const countOnly = searchParams.get('countOnly') === 'true'; // Lightweight mode for polling
+
   try {
-    // 1. שלוף הצעות שידוך רלוונטיות
-    // Prisma שולף אוטומטית את השדות הסקלריים החדשים (firstPartyLastViewedAt, secondPartyLastViewedAt)
+    // === Lightweight count-only mode for notification polling ===
+    if (countOnly) {
+      const actionRequiredCount = await prisma.matchSuggestion.count({
+        where: {
+          OR: [
+            { firstPartyId: userId, status: MatchSuggestionStatus.PENDING_FIRST_PARTY },
+            { secondPartyId: userId, status: MatchSuggestionStatus.PENDING_SECOND_PARTY },
+          ],
+        },
+      });
+
+      // Count suggestions where lastViewedAt is null (never viewed)
+      const neverViewedCount = await prisma.matchSuggestion.count({
+        where: {
+          OR: [
+            {
+              firstPartyId: userId,
+              status: { notIn: [MatchSuggestionStatus.DRAFT, MatchSuggestionStatus.CANCELLED] },
+              firstPartyLastViewedAt: null,
+            },
+            {
+              secondPartyId: userId,
+              status: { notIn: [MatchSuggestionStatus.DRAFT, MatchSuggestionStatus.CANCELLED] },
+              secondPartyLastViewedAt: null,
+            },
+          ],
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        actionRequiredCount,
+        unreadCount: neverViewedCount,
+        totalCount: actionRequiredCount + neverViewedCount,
+      });
+    }
+
+    // === Full feed mode ===
+
+    // 1. Fetch relevant suggestions with pagination
     const suggestionsFromDb = await prisma.matchSuggestion.findMany({
       where: {
         OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
@@ -53,17 +98,17 @@ export async function GET() {
         matchmaker: { select: { firstName: true, lastName: true } },
         firstParty: { select: partySelect },
         secondParty: { select: partySelect },
-        statusHistory: { orderBy: { createdAt: "desc" } },
+        statusHistory: { orderBy: { createdAt: "desc" }, take: 1 },
       },
       orderBy: { lastActivity: "desc" },
+      take: limit + 10, // Extra buffer for dedup
     });
 
     const suggestions: ExtendedMatchSuggestion[] = suggestionsFromDb.filter(
       (s) => s.firstParty?.profile && s.secondParty?.profile
     ) as ExtendedMatchSuggestion[];
 
-    // 2. שלוף הודעות צ'אט רלוונטיות
-    // Prisma שולף אוטומטית את השדה החדש (recipientReadAt)
+    // 2. Fetch chat inquiries (only those NOT already covered by suggestion items)
     const inquiriesFromDb = await prisma.suggestionInquiry.findMany({
       where: {
         OR: [{ fromUserId: userId }, { toUserId: userId }]
@@ -83,24 +128,35 @@ export async function GET() {
       take: 30
     });
 
-    // 3. המרת הצעות למבנה FeedItem עם חישוב isRead מעודכן
+    // 3. Fetch availability inquiries
+    const availabilityInquiries = await prisma.availabilityInquiry.findMany({
+      where: {
+        OR: [{ firstPartyId: userId }, { secondPartyId: userId }],
+        expiresAt: { gt: new Date() }, // Only non-expired
+      },
+      include: {
+        matchmaker: { select: { firstName: true, lastName: true } },
+        firstParty: { select: { firstName: true, lastName: true, profile: true } },
+        secondParty: { select: { firstName: true, lastName: true, profile: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
+
+    // 4. Convert suggestions to FeedItems (returning type keys, not hardcoded text)
     const suggestionFeedItems: FeedItem[] = suggestions.map((s) => {
       const isFirstParty = s.firstPartyId === userId;
       const otherParty = isFirstParty ? s.secondParty : s.firstParty;
-      
-      let type: FeedItemType = 'STATUS_UPDATE';
-      let title = `עדכון בהצעה עם ${otherParty.firstName}`;
-      let description = "הסטטוס התעדכן. לחץ/י לפרטים.";
 
-      // === לוגיקה לחישוב האם נקרא ===
-      // שליפת זמן הצפייה האחרון לפי הצד הרלוונטי (שדות אלו חייבים להיות קיימים ב-Schema המעודכן)
+      let type: FeedItemType = 'STATUS_UPDATE';
+      // Title/description keys for client-side i18n
+      let titleKey = 'statusUpdate';
+      let descriptionKey = 'statusUpdate';
+
       const lastViewedAt = isFirstParty ? s.firstPartyLastViewedAt : s.secondPartyLastViewedAt;
-      
-      // ההודעה נחשבת כנקראה רק אם קיים זמן צפייה והוא מאוחר או שווה לזמן הפעילות האחרונה
-      const isRead = lastViewedAt 
+      const isRead = lastViewedAt
         ? new Date(lastViewedAt).getTime() >= new Date(s.lastActivity).getTime()
         : false;
-      // ==============================
 
       const link = userRole === 'CANDIDATE'
         ? `/matches?suggestionId=${s.id}`
@@ -108,87 +164,158 @@ export async function GET() {
 
       if ((s.status === "PENDING_FIRST_PARTY" && isFirstParty) || (s.status === "PENDING_SECOND_PARTY" && !isFirstParty)) {
         type = 'ACTION_REQUIRED';
-        title = `הצעה חדשה ממתינה לך!`;
-        description = `${s.matchmaker?.firstName} חושב/ת שיש כאן פוטנציאל גדול.`;
+        titleKey = 'actionRequired';
+        descriptionKey = 'actionRequired';
       } else if (s.status === "CONTACT_DETAILS_SHARED") {
-        title = "מזל טוב, יש התאמה!";
-        description = `פרטי הקשר הועברו. זה הזמן ליצור קשר.`;
+        titleKey = 'contactShared';
+        descriptionKey = 'contactShared';
       } else if (s.status === "AWAITING_FIRST_DATE_FEEDBACK") {
         type = 'ACTION_REQUIRED';
-        title = "איך הייתה הפגישה הראשונה?";
-        description = "נשמח לשמוע את דעתך כדי להמשיך ולסייע.";
+        titleKey = 'dateFeedback';
+        descriptionKey = 'dateFeedback';
+      } else if (s.status === "RE_OFFERED_TO_FIRST_PARTY" && isFirstParty) {
+        type = 'ACTION_REQUIRED';
+        titleKey = 'reOffered';
+        descriptionKey = 'reOffered';
+      } else if (s.status === "ENGAGED") {
+        titleKey = 'engaged';
+        descriptionKey = 'engaged';
+      } else if (s.status === "MARRIED") {
+        titleKey = 'married';
+        descriptionKey = 'married';
       }
 
       return {
-        id: `${s.id}-${s.status}`,
+        id: `suggestion-${s.id}`,
         type,
-        title,
-        description,
+        title: titleKey,
+        description: descriptionKey,
         timestamp: s.lastActivity,
-        isRead: isRead, // שימוש בערך המחושב
-        link: link,
-        payload: { suggestion: s },
+        isRead,
+        link,
+        payload: {
+          suggestion: s,
+        },
       };
     });
 
-    // 4. המרת הודעות צ'אט למבנה FeedItem עם חישוב isRead מעודכן
-    const inquiryFeedItems: FeedItem[] = inquiriesFromDb.map((inquiry): FeedItem => {
+    // 5. Convert inquiries — deduplicate by grouping per suggestion
+    // Only create inquiry feed items for suggestions that DON'T already have an ACTION_REQUIRED entry
+    const suggestionIdsWithAction = new Set(
+      suggestionFeedItems
+        .filter(item => item.type === 'ACTION_REQUIRED')
+        .map(item => item.payload.suggestion?.id)
+    );
+
+    const latestInquiryPerSuggestion = new Map<string, typeof inquiriesFromDb[0]>();
+    for (const inquiry of inquiriesFromDb) {
+      if (!latestInquiryPerSuggestion.has(inquiry.suggestionId)) {
+        latestInquiryPerSuggestion.set(inquiry.suggestionId, inquiry);
+      }
+    }
+
+    const inquiryFeedItems: FeedItem[] = [];
+    for (const [, inquiry] of latestInquiryPerSuggestion) {
+      // Skip if suggestion already has an action-required entry
+      if (suggestionIdsWithAction.has(inquiry.suggestionId)) continue;
+
       const isMyMessage = inquiry.fromUserId === userId;
       const otherUser = isMyMessage ? inquiry.toUser : inquiry.fromUser;
-      const suggestionParticipant = inquiry.suggestion.firstPartyId === userId 
-        ? inquiry.suggestion.secondParty 
+      const suggestionParticipant = inquiry.suggestion.firstPartyId === userId
+        ? inquiry.suggestion.secondParty
         : inquiry.suggestion.firstParty;
 
-      let title: string;
-      let description: string;
+      let titleKey: string;
+      let descriptionKey: string;
       let type: FeedItemType;
 
       const link = userRole === 'CANDIDATE'
         ? `/matches?suggestionId=${inquiry.suggestionId}&view=chat`
         : `/matchmaker/suggestions?suggestionId=${inquiry.suggestionId}&view=chat`;
 
-      // === לוגיקה לחישוב האם נקרא ===
-      // 1. אם אני שלחתי את ההודעה, היא תמיד "קרואה" מבחינתי.
-      // 2. אם קיבלתי אותה, בודקים אם קיים recipientReadAt.
       const isRead = isMyMessage || !!inquiry.recipientReadAt;
-      // ==============================
 
       if (isMyMessage) {
-        title = `שלחת שאלה ל${otherUser.firstName}`;
-        description = `"${inquiry.question.substring(0, 50)}..."`;
+        titleKey = 'sentQuestion';
+        descriptionKey = 'sentQuestion';
         type = inquiry.answer ? 'INQUIRY_RESPONSE' : 'MATCHMAKER_MESSAGE';
       } else {
         if (inquiry.answer) {
-          title = `התקבלה תשובה מ${otherUser.firstName}`;
-          description = `לגבי שאלתך על ${suggestionParticipant.firstName}: "${inquiry.answer.substring(0, 40)}..."`;
+          titleKey = 'receivedAnswer';
+          descriptionKey = 'receivedAnswer';
           type = 'INQUIRY_RESPONSE';
         } else {
-          title = `הודעה חדשה מ${otherUser.firstName}`;
-          description = `לגבי ההצעה עם ${suggestionParticipant.firstName}`;
+          titleKey = 'newMessage';
+          descriptionKey = 'newMessage';
           type = userRole === 'MATCHMAKER' && inquiry.status === 'PENDING' ? 'ACTION_REQUIRED' : 'MATCHMAKER_MESSAGE';
         }
       }
 
-      return {
-        id: inquiry.id,
-        type: type,
-        title,
-        description,
+      inquiryFeedItems.push({
+        id: `inquiry-${inquiry.id}`,
+        type,
+        title: titleKey,
+        description: descriptionKey,
         timestamp: inquiry.answeredAt ? inquiry.answeredAt : inquiry.createdAt,
-        isRead: isRead, // שימוש בערך המחושב
-        link: link,
+        isRead,
+        link,
         payload: {
           suggestion: inquiry.suggestion as unknown as ExtendedMatchSuggestion,
           suggestionInquiry: inquiry as unknown as ExtendedSuggestionInquiry
         }
+      });
+    }
+
+    // 6. Convert availability inquiries to feed items
+    const availabilityFeedItems: FeedItem[] = availabilityInquiries.map((inquiry) => {
+      const isFirstParty = inquiry.firstPartyId === userId;
+      const myResponse = isFirstParty ? inquiry.firstPartyResponse : inquiry.secondPartyResponse;
+      const isRead = myResponse !== null; // Read if user has responded
+
+      return {
+        id: `availability-${inquiry.id}`,
+        type: 'AVAILABILITY_INQUIRY' as FeedItemType,
+        title: 'availabilityRequest',
+        description: 'availabilityRequest',
+        timestamp: inquiry.createdAt,
+        isRead,
+        link: `/matches?availabilityId=${inquiry.id}`,
+        payload: {
+          availabilityInquiry: {
+            ...inquiry,
+            matchmaker: inquiry.matchmaker,
+            firstParty: { ...inquiry.firstParty, profile: inquiry.firstParty.profile },
+            secondParty: { ...inquiry.secondParty, profile: inquiry.secondParty.profile },
+          } as any,
+        },
       };
     });
 
-    // 5. איחוד, מיון והחזרה
-    const allFeedItems = [...suggestionFeedItems, ...inquiryFeedItems];
+    // 7. Merge, sort, apply cursor pagination
+    let allFeedItems = [...suggestionFeedItems, ...inquiryFeedItems, ...availabilityFeedItems];
     allFeedItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    return NextResponse.json({ success: true, feed: allFeedItems });
+    // Cursor-based pagination
+    if (cursor) {
+      const cursorIndex = allFeedItems.findIndex(item => item.id === cursor);
+      if (cursorIndex !== -1) {
+        allFeedItems = allFeedItems.slice(cursorIndex + 1);
+      }
+    }
+
+    const hasMore = allFeedItems.length > limit;
+    const paginatedItems = allFeedItems.slice(0, limit);
+    const nextCursor = hasMore ? paginatedItems[paginatedItems.length - 1]?.id : null;
+
+    return NextResponse.json({
+      success: true,
+      feed: paginatedItems,
+      pagination: {
+        hasMore,
+        nextCursor,
+        totalCount: allFeedItems.length + (cursor ? limit : 0), // Approximate
+      },
+    });
 
   } catch (error) {
     console.error("Error fetching activity feed:", error);

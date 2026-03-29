@@ -2,10 +2,12 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useGuestAnswers } from './hooks/useGuestAnswers';
 import HeartMapIntro from './HeartMapIntro';
 import HeartMapFlow from './HeartMapFlow';
 import HeartMapResults from './HeartMapResults';
+import HeartMapErrorBoundary from './HeartMapErrorBoundary';
 import StandardizedLoadingSpinner from '@/components/questionnaire/common/StandardizedLoadingSpinner';
 import type { SFAnswers } from '@/components/soul-fingerprint/types';
 
@@ -41,7 +43,7 @@ function getNestedValue(obj: Record<string, unknown>, path: string, gender?: 'MA
 export default function HeartMapPageClient({ locale }: Props) {
   const isRTL = locale === 'he';
   const { data: session, status: sessionStatus } = useSession();
-  const isAuthenticated = sessionStatus === 'authenticated';
+  const router = useRouter();
   const { loadAnswers, saveAnswers } = useGuestAnswers();
 
   const [screen, setScreen] = useState<FlowScreen>('intro');
@@ -79,52 +81,23 @@ export default function HeartMapPageClient({ locale }: Props) {
     [locale, gender]
   );
 
-  // Initialize: load profile + server SF data (authenticated) or localStorage (guest)
+  // Redirect authenticated users to the dedicated soul-fingerprint page
   useEffect(() => {
-    if (sessionStatus === 'loading') return;
+    if (sessionStatus === 'authenticated') {
+      router.replace(`/${locale}/soul-fingerprint`);
+    }
+  }, [sessionStatus, router, locale]);
+
+  // Initialize: load localStorage answers (guest only)
+  useEffect(() => {
+    if (sessionStatus === 'loading' || sessionStatus === 'authenticated') return;
 
     const init = async () => {
       setIsInitializing(true);
 
-      // 1. Always check localStorage first (available for both guests and authenticated)
       const localSaved = loadAnswers();
-
-      if (session?.user?.id) {
-        // Authenticated user: fetch profile gender + existing SF answers from server
-        try {
-          const [profileRes, sfRes] = await Promise.all([
-            fetch('/api/profile'),
-            fetch('/api/user/soul-fingerprint'),
-          ]);
-
-          // Set gender from profile (authoritative source for authenticated users)
-          if (profileRes.ok) {
-            const profileData = await profileRes.json();
-            const g = profileData?.profile?.gender;
-            if (g === 'MALE' || g === 'FEMALE') {
-              setGender(g);
-            }
-          }
-
-          // Load existing SF answers from server (takes priority over localStorage)
-          if (sfRes.ok) {
-            const sfData = await sfRes.json();
-            const serverAnswers = sfData?.profileTags?.sectionAnswers as SFAnswers | undefined;
-            if (serverAnswers && Object.keys(serverAnswers).length > 0) {
-              setInitialAnswers(serverAnswers);
-              setIsInitializing(false);
-              return; // Server data found — skip localStorage
-            }
-          }
-        } catch {
-          // Silently fail — fall through to localStorage
-        }
-      }
-
-      // Fallback: load from localStorage (guest or no server data)
       if (localSaved && Object.keys(localSaved.answers).length > 0) {
         setInitialAnswers(localSaved.answers);
-        // Only set gender from localStorage if not already set by profile
         setGender((prev) => prev ?? localSaved.gender);
       }
 
@@ -132,7 +105,7 @@ export default function HeartMapPageClient({ locale }: Props) {
     };
 
     init();
-  }, [session?.user?.id, sessionStatus, loadAnswers]);
+  }, [sessionStatus, loadAnswers]);
 
   const handleStartQuestionnaire = useCallback((selectedGender: 'MALE' | 'FEMALE', startFresh: boolean) => {
     setGender(selectedGender);
@@ -152,8 +125,8 @@ export default function HeartMapPageClient({ locale }: Props) {
     setScreen('intro');
   }, []);
 
-  // Show spinner while session or initial data is loading
-  if (sessionStatus === 'loading' || isInitializing) {
+  // Show spinner while session is loading, redirecting, or initializing
+  if (sessionStatus === 'loading' || sessionStatus === 'authenticated' || isInitializing) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white via-teal-50/20 to-orange-50/10 flex items-center justify-center">
         <StandardizedLoadingSpinner text={isRTL ? 'טוען...' : 'Loading...'} />
@@ -162,6 +135,7 @@ export default function HeartMapPageClient({ locale }: Props) {
   }
 
   return (
+    <HeartMapErrorBoundary locale={locale}>
     <div className="min-h-screen bg-gradient-to-b from-white via-teal-50/20 to-orange-50/10" dir={isRTL ? 'rtl' : 'ltr'}>
       {screen === 'intro' && (
         <HeartMapIntro
@@ -170,8 +144,8 @@ export default function HeartMapPageClient({ locale }: Props) {
           hasExistingProgress={!!initialAnswers && Object.keys(initialAnswers).length > 0}
           savedGender={gender}
           onStart={handleStartQuestionnaire}
-          isAuthenticated={isAuthenticated}
-          userName={session?.user?.firstName || null}
+          isAuthenticated={false}
+          userName={null}
         />
       )}
 
@@ -185,7 +159,7 @@ export default function HeartMapPageClient({ locale }: Props) {
           saveToLocalStorage={saveAnswers}
           onComplete={handleQuestionnaireComplete}
           onBack={handleBackToIntro}
-          isAuthenticated={isAuthenticated}
+          isAuthenticated={false}
         />
       )}
 
@@ -196,9 +170,10 @@ export default function HeartMapPageClient({ locale }: Props) {
           locale={locale}
           t={t}
           tHm={tHm}
-          isAuthenticated={isAuthenticated}
+          isAuthenticated={false}
         />
       )}
     </div>
+    </HeartMapErrorBoundary>
   );
 }

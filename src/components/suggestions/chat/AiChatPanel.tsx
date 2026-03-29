@@ -7,7 +7,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Sparkles, X, AlertCircle, UserCheck, HelpCircle } from 'lucide-react';
+import { MessageCircle, Sparkles, X, AlertCircle, UserCheck, HelpCircle, Brain, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAiChat } from './useAiChat';
@@ -15,6 +15,8 @@ import AiChatMessages from './AiChatMessages';
 import AiChatInput from './AiChatInput';
 import AiChatSearchResults from './AiChatSearchResults';
 import AiChatHowItWorks from './AiChatHowItWorks';
+import AiChatLearnedPreferences from './AiChatLearnedPreferences';
+import AiChatConversationRating from './AiChatConversationRating';
 
 interface AiChatPanelProps {
   locale: 'he' | 'en';
@@ -56,6 +58,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
     executeAction,
     quickReplies,
     rateMessage,
+    reactToMessage,
     // Smart assistant
     phase,
     actionButtons,
@@ -70,7 +73,10 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
   } = useAiChat({ locale, suggestionId, proactiveMessage, initialOpen });
 
   const [isEscalating, setIsEscalating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [showLearnedPrefs, setShowLearnedPrefs] = useState(false);
+  const [ratingDismissed, setRatingDismissed] = useState(false);
   const autoSendFired = React.useRef(false);
 
   // Auto-send message when chat is ready (history loaded, not streaming)
@@ -114,6 +120,27 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
       setIsEscalating(false);
     }
   }, [suggestionId, conversationId, isHebrew, isEscalating]);
+
+  const handleShareWithMatchmaker = useCallback(async () => {
+    if (!conversationId || isSharing) return;
+    setIsSharing(true);
+    try {
+      const res = await fetch('/api/ai-chat/summaries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId }),
+      });
+      if (!res.ok) throw new Error('Share failed');
+      toast.success(
+        isHebrew ? 'סיכום השיחה נשלח לשדכנית' : 'Chat summary sent to matchmaker',
+        { description: isHebrew ? 'השדכנית שלך תקבל את התובנות מהשיחה' : 'Your matchmaker will receive the conversation insights' }
+      );
+    } catch {
+      toast.error(isHebrew ? 'שגיאה בשליחת הסיכום' : 'Failed to send summary');
+    } finally {
+      setIsSharing(false);
+    }
+  }, [conversationId, isHebrew, isSharing]);
 
   const panelTitle = title || (isHebrew ? 'נשמה' : 'Neshama');
   const panelSubtitle = subtitle || (
@@ -206,11 +233,28 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                       {candidateCounter.shown}/{candidateCounter.total} {isHebrew ? 'התאמות' : 'matches'}
                     </span>
                   )}
-                  {/* Weekly usage badge */}
+                  {/* Weekly usage badge — show remaining, with warning color when low */}
                   {isGeneralChat && weeklyUsage && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90 font-medium backdrop-blur-sm">
-                      {weeklyUsage.used}/{weeklyUsage.limit} {isHebrew ? 'השבוע' : 'this week'}
+                    <span className={cn(
+                      'text-[10px] px-2 py-0.5 rounded-full font-medium backdrop-blur-sm',
+                      weeklyUsage.remaining <= 1
+                        ? 'bg-amber-400/25 text-amber-100 border border-amber-300/30'
+                        : 'bg-white/15 text-white/90',
+                    )}>
+                      {weeklyUsage.remaining > 0
+                        ? `${weeklyUsage.remaining} ${isHebrew ? 'נותרו' : 'left'}`
+                        : (isHebrew ? 'המכסה מלאה' : 'Limit reached')}
                     </span>
+                  )}
+                  {/* Learned preferences button */}
+                  {isGeneralChat && (
+                    <button
+                      onClick={() => setShowLearnedPrefs(true)}
+                      className="w-7 h-7 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
+                      title={isHebrew ? 'מה למדתי עלייך' : 'What I learned'}
+                    >
+                      <Brain className="w-4 h-4 text-white/80" />
+                    </button>
                   )}
                   {/* How it works button */}
                   {isGeneralChat && (
@@ -259,13 +303,15 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                   quickReplies={quickReplies}
                   onQuickReply={sendMessage}
                   onRateMessage={rateMessage}
+                  onReactToMessage={reactToMessage}
                   isGeneralChat={isGeneralChat}
+                  phase={phase}
                   actionButtons={actionButtons}
                   onChatAction={executeChatAction}
                   isLoadingDiscovery={isLoadingDiscovery}
                   showRejectionPicker={showRejectionPicker}
-                  onRejectWithCategory={(category) => {
-                    executeChatAction('not_for_me', { rejectionCategory: category });
+                  onRejectWithCategory={(category, freeText) => {
+                    executeChatAction('not_for_me', { rejectionCategory: category, feedback: freeText });
                   }}
                   onCancelRejection={() => setShowRejectionPicker(false)}
                 />
@@ -322,19 +368,46 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                 />
               </div>
 
-              {/* Escalation button (only for suggestion-specific chats) */}
-              {suggestionId && !escalated && messages.length >= 2 && (
-                <div className="px-4 py-2 border-t border-gray-200/60">
-                  <button
-                    onClick={handleEscalate}
-                    disabled={isEscalating}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-violet-700 bg-violet-50/80 hover:bg-violet-100 border border-violet-200/60 transition-all duration-200 disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    <UserCheck className="w-3.5 h-3.5" />
-                    {isEscalating
-                      ? (isHebrew ? 'מעביר...' : 'Transferring...')
-                      : (isHebrew ? 'העבר לשדכנית' : 'Transfer to matchmaker')}
-                  </button>
+              {/* Conversation rating — after 6+ user messages */}
+              {!ratingDismissed && conversationId && !isStreaming
+                && messages.filter((m) => m.role === 'user').length >= 6
+                && (
+                <AiChatConversationRating
+                  locale={locale}
+                  conversationId={conversationId}
+                  onDismiss={() => setRatingDismissed(true)}
+                />
+              )}
+
+              {/* Action buttons row */}
+              {messages.length >= 2 && (
+                <div className="px-4 py-2 border-t border-gray-200/60 flex gap-2">
+                  {/* Escalation button (suggestion-specific chats) */}
+                  {suggestionId && !escalated && (
+                    <button
+                      onClick={handleEscalate}
+                      disabled={isEscalating}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-violet-700 bg-violet-50/80 hover:bg-violet-100 border border-violet-200/60 transition-all duration-200 disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                      <UserCheck className="w-3.5 h-3.5" />
+                      {isEscalating
+                        ? (isHebrew ? 'מעביר...' : 'Transferring...')
+                        : (isHebrew ? 'העבר לשדכנית' : 'Transfer to matchmaker')}
+                    </button>
+                  )}
+                  {/* Share with matchmaker button (general chat) */}
+                  {isGeneralChat && conversationId && (
+                    <button
+                      onClick={handleShareWithMatchmaker}
+                      disabled={isSharing}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-teal-700 bg-teal-50/80 hover:bg-teal-100 border border-teal-200/60 transition-all duration-200 disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      {isSharing
+                        ? (isHebrew ? 'שולח...' : 'Sharing...')
+                        : (isHebrew ? 'שתף עם השדכנית' : 'Share with matchmaker')}
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -357,6 +430,15 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
           locale={locale}
           open={showHowItWorks}
           onOpenChange={setShowHowItWorks}
+        />
+      )}
+
+      {/* Learned preferences dialog */}
+      {showLearnedPrefs && (
+        <AiChatLearnedPreferences
+          locale={locale}
+          open={showLearnedPrefs}
+          onOpenChange={setShowLearnedPrefs}
         />
       )}
     </div>

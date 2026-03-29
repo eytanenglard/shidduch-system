@@ -92,6 +92,36 @@ export const createReligiousLevelMap = (
     icon: BookOpen,
     color: 'text-indigo-600',
   },
+  charedi_litvak: {
+    label: dict.charedi_litvak,
+    shortLabel: 'חרדי ליטאי',
+    icon: BookMarked,
+    color: 'text-indigo-700',
+  },
+  charedi_sephardic: {
+    label: dict.charedi_sephardic,
+    shortLabel: 'חרדי ספרדי',
+    icon: BookMarked,
+    color: 'text-indigo-700',
+  },
+  charedi_hasidic: {
+    label: dict.charedi_hasidic,
+    shortLabel: 'חרדי חסידי',
+    icon: BookMarked,
+    color: 'text-indigo-800',
+  },
+  chabad: {
+    label: dict.chabad,
+    shortLabel: 'חב״ד',
+    icon: Star,
+    color: 'text-indigo-600',
+  },
+  breslov: {
+    label: dict.breslov,
+    shortLabel: 'ברסלב',
+    icon: Sparkle,
+    color: 'text-indigo-500',
+  },
   dati_leumi_torani: {
     label: dict.dati_leumi_torani,
     shortLabel: 'דתי תורני',

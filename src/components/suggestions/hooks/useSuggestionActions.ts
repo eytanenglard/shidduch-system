@@ -61,6 +61,11 @@ export function useSuggestionActions({
 
         await fetchSuggestions(false);
 
+        // Auto-open date feedback dialog when transitioning to AWAITING_FIRST_DATE_FEEDBACK
+        if (newStatus === 'AWAITING_FIRST_DATE_FEEDBACK') {
+          setShowDateFeedbackDialog(true);
+        }
+
         const statusMessages: Record<string, string> = {
           FIRST_PARTY_APPROVED: suggestionsDict.container.toasts.approvedSuccess,
           SECOND_PARTY_APPROVED: suggestionsDict.container.toasts.approvedSuccess,
@@ -111,6 +116,18 @@ export function useSuggestionActions({
           description = isRtl
             ? 'ההצעה נשמרה ברשימת ההמתנה שלך'
             : 'Suggestion saved to your waitlist';
+        } else if (newStatus === 'MEETING_SCHEDULED') {
+          description = isRtl ? 'בהצלחה בדייט! עדכנו אותנו אחרי 🤞' : 'Good luck on the date! Update us after 🤞';
+        } else if (newStatus === 'AWAITING_FIRST_DATE_FEEDBACK') {
+          description = isRtl ? 'תודה על העדכון! השדכן/ית יהיו בקשר' : 'Thanks for the update! Your matchmaker will be in touch';
+        } else if (newStatus === 'THINKING_AFTER_DATE') {
+          description = isRtl ? 'קחו את הזמן, עדכנו כשתהיו מוכנים' : 'Take your time, update when ready';
+        } else if (newStatus === 'PROCEEDING_TO_SECOND_DATE') {
+          description = isRtl ? 'כל הכבוד! בהצלחה בפגישה הבאה' : 'Great! Good luck on the next date';
+        } else if (newStatus === 'DATING') {
+          description = isRtl ? 'מדהים! מאחלים לכם בהצלחה' : 'Amazing! Wishing you the best';
+        } else if (newStatus === 'ENDED_AFTER_FIRST_DATE') {
+          description = isRtl ? 'תודה על העדכון. ממשיכים לחפש עבורך!' : 'Thanks for the update. We keep looking for you!';
         } else {
           description = suggestionsDict.container.toasts.matchmakerNotified;
         }

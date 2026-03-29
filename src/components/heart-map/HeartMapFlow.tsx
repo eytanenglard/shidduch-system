@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useSoulFingerprint } from '@/components/soul-fingerprint/hooks/useSoulFingerprint';
 import ProgressIndicator from '@/components/soul-fingerprint/components/ProgressIndicator';
 import SelfPartnerTabs from '@/components/soul-fingerprint/components/SelfPartnerTabs';
@@ -8,9 +8,10 @@ import NavigationButtons from '@/components/soul-fingerprint/components/Navigati
 import AccordionQuestion from './AccordionQuestion';
 import HeartMapSectionReminder from './HeartMapSectionReminder';
 import type { SFAnswers } from '@/components/soul-fingerprint/types';
-import { deriveTagsFromAnswers, derivePartnerTagsFromAnswers } from '@/components/soul-fingerprint/types';
+import { deriveTagsFromAnswers, derivePartnerTagsFromAnswers, isQuestionVisible } from '@/components/soul-fingerprint/types';
+import { SF_SECTIONS } from '@/components/soul-fingerprint/questions';
 import type { GuestHeartMapData } from './hooks/useGuestAnswers';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Clock } from 'lucide-react';
 
 interface Props {
   gender: 'MALE' | 'FEMALE';
@@ -40,6 +41,11 @@ export default function HeartMapFlow({
   const [showReminder, setShowReminder] = useState(false);
   const [partnerTransition, setPartnerTransition] = useState(false);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
+  const [showValidation, setShowValidation] = useState(false);
+
+  // Swipe detection refs
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   // Custom save function that writes to localStorage (and also server if authenticated)
   const customSaveFn = useCallback(
@@ -110,6 +116,7 @@ export default function HeartMapFlow({
       return false;
     });
     setActiveQuestionIndex(firstUnanswered >= 0 ? firstUnanswered : 0);
+    setShowValidation(false);
   }, [state.currentSectionIndex, state.showingPartnerQuestions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save section index to localStorage whenever it changes
@@ -121,6 +128,17 @@ export default function HeartMapFlow({
       startedAt: new Date().toISOString(),
     });
   }, [state.answers, state.currentSectionIndex, gender, saveToLocalStorage]);
+
+  // Check if a question is answered
+  const isQuestionAnswered = useCallback(
+    (questionId: string) => {
+      const ans = state.answers[questionId];
+      if (ans === null || ans === undefined || ans === '') return false;
+      if (Array.isArray(ans) && ans.length === 0) return false;
+      return true;
+    },
+    [state.answers]
+  );
 
   const unansweredRequiredIds = useMemo(() => {
     return currentQuestions
@@ -136,16 +154,50 @@ export default function HeartMapFlow({
 
   const hasUnansweredRequired = unansweredRequiredIds.length > 0;
 
-  // Check if a question is answered
-  const isQuestionAnswered = useCallback(
-    (questionId: string) => {
-      const ans = state.answers[questionId];
-      if (ans === null || ans === undefined || ans === '') return false;
-      if (Array.isArray(ans) && ans.length === 0) return false;
-      return true;
-    },
-    [state.answers]
-  );
+  // Count answered questions for progress display
+  const answeredCount = useMemo(() => {
+    return currentQuestions.filter((q) => isQuestionAnswered(q.id)).length;
+  }, [currentQuestions, isQuestionAnswered]);
+
+  // Compute next section info for the section reminder modal
+  const nextSectionInfo = useMemo(() => {
+    const nextIdx = state.currentSectionIndex + 1;
+    if (nextIdx >= totalSections) return undefined;
+    const nextSec = SF_SECTIONS[nextIdx];
+    const questionCount = nextSec.questions.filter(
+      (q) => q.forSelf && isQuestionVisible(q, state.answers, null, null, null, gender)
+    ).length;
+    return {
+      icon: nextSec.icon,
+      titleKey: nextSec.titleKey,
+      questionCount,
+    };
+  }, [state.currentSectionIndex, state.answers, gender, totalSections]);
+
+  // Estimated time remaining (across all remaining sections)
+  const estimatedMinutesRemaining = useMemo(() => {
+    let totalRemaining = 0;
+    for (let i = state.currentSectionIndex; i < totalSections; i++) {
+      const sec = SF_SECTIONS[i];
+      const qCount = sec.questions.filter(
+        (q) => (q.forSelf || q.forPartner) && isQuestionVisible(q, state.answers, null, null, null, gender)
+      ).length;
+      // Estimate ~15 seconds per unanswered question
+      const answeredInSection = sec.questions.filter((q) => {
+        const ans = state.answers[q.id];
+        return ans !== null && ans !== undefined && ans !== '' && !(Array.isArray(ans) && ans.length === 0);
+      }).length;
+      totalRemaining += Math.max(0, qCount - answeredInSection);
+    }
+    return Math.max(1, Math.round((totalRemaining * 15) / 60));
+  }, [state.currentSectionIndex, state.answers, gender, totalSections]);
+
+  // Reset validation when answers change
+  useEffect(() => {
+    if (showValidation && !hasUnansweredRequired) {
+      setShowValidation(false);
+    }
+  }, [hasUnansweredRequired, showValidation]);
 
   // Auto-advance: move to next question and scroll into view
   const handleAutoAdvance = useCallback(
@@ -168,6 +220,7 @@ export default function HeartMapFlow({
 
   const handleScrollToUnanswered = useCallback(() => {
     if (unansweredRequiredIds.length === 0) return;
+    setShowValidation(true);
     const idx = currentQuestions.findIndex((q) => q.id === unansweredRequiredIds[0]);
     if (idx >= 0) {
       setActiveQuestionIndex(idx);
@@ -240,6 +293,32 @@ export default function HeartMapFlow({
     [switchToPartner, switchToSelf]
   );
 
+  // Swipe gesture handlers for section navigation
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    // Only trigger if horizontal swipe > 80px and more horizontal than vertical
+    if (Math.abs(deltaX) < 80 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+    const isSwipeForward = isRTL ? deltaX > 0 : deltaX < 0;
+    const isSwipeBack = isRTL ? deltaX < 0 : deltaX > 0;
+
+    if (isSwipeForward && !hasUnansweredRequired) {
+      handleNext();
+    } else if (isSwipeBack) {
+      handleBack();
+    }
+  }, [isRTL, hasUnansweredRequired, handleNext, handleBack]);
+
   // Partner transition overlay
   if (partnerTransition) {
     return (
@@ -261,7 +340,12 @@ export default function HeartMapFlow({
 
   return (
     <>
-      <div className="max-w-xl mx-auto py-6 px-4" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div
+        className="max-w-xl mx-auto py-6 px-4"
+        dir={isRTL ? 'rtl' : 'ltr'}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Back button */}
         <button
           onClick={handleBack}
@@ -289,6 +373,15 @@ export default function HeartMapFlow({
             {t(currentSection.titleKey)}
           </h2>
           <p className="text-sm text-gray-500 mt-1">{t(currentSection.subtitleKey)}</p>
+          {/* Estimated time remaining */}
+          <div className={`inline-flex items-center gap-1.5 mt-2 text-xs text-gray-400 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <Clock className="w-3.5 h-3.5" />
+            <span>
+              {isRTL
+                ? `כ-${estimatedMinutesRemaining} ${estimatedMinutesRemaining === 1 ? 'דקה' : 'דקות'} נותרו`
+                : `~${estimatedMinutesRemaining} ${estimatedMinutesRemaining === 1 ? 'minute' : 'minutes'} remaining`}
+            </span>
+          </div>
         </div>
 
         {/* Self/Partner tabs */}
@@ -307,6 +400,28 @@ export default function HeartMapFlow({
           <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-6 text-center">
             <p className="text-sm font-medium text-teal-700">{t('labels.partnerSectionIntro')}</p>
             <p className="text-xs text-teal-600 mt-1">{t('labels.partnerSectionSubtitle')}</p>
+          </div>
+        )}
+
+        {/* In-section progress bar */}
+        {currentQuestions.length > 0 && (
+          <div className="mb-4">
+            <div className={`flex items-center justify-between mb-1.5 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <span className="text-xs text-gray-500 font-medium">
+                {answeredCount}/{currentQuestions.length} {isRTL ? 'שאלות' : 'questions'}
+              </span>
+              <span className="text-xs text-gray-400">
+                {currentQuestions.length > 0
+                  ? `${Math.round((answeredCount / currentQuestions.length) * 100)}%`
+                  : '0%'}
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-teal-400 to-teal-500 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${currentQuestions.length > 0 ? (answeredCount / currentQuestions.length) * 100 : 0}%` }}
+              />
+            </div>
           </div>
         )}
 
@@ -331,9 +446,11 @@ export default function HeartMapFlow({
                   }
                 }, 350);
               }}
+              onDeactivate={() => setActiveQuestionIndex(-1)}
               onAutoAdvance={() => handleAutoAdvance(index)}
               questionNumber={index + 1}
               totalQuestions={currentQuestions.length}
+              highlightUnanswered={showValidation}
             />
           ))}
         </div>
@@ -374,6 +491,8 @@ export default function HeartMapFlow({
         locale={locale}
         tHm={tHm}
         onContinue={handleReminderContinue}
+        nextSectionInfo={nextSectionInfo}
+        t={t}
       />
     </>
   );

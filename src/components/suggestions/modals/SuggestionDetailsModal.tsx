@@ -43,6 +43,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
     locale,
     isOpen,
     onClose,
+    onStatusUpdate,
     questionnaire,
     isDemo = false,
     demoAnalysisData = null,
@@ -234,6 +235,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
               dict={{
                 aiAnalysisCta: dict.suggestions.modal.aiAnalysisCta,
                 aiAnalysis: dict.suggestions.aiAnalysis,
+                aiInsight: dict.suggestions.aiInsight,
                 compatibility: dict.suggestions.compatibility,
               }}
             />
@@ -339,6 +341,7 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
           onInterested={handleInterested}
           onAskQuestion={() => handleTabChange('details')}
           onWithdraw={handleWithdraw}
+          onStatusUpdate={onStatusUpdate ? (newStatus) => onStatusUpdate(suggestion.id, newStatus) : undefined}
           approvedAt={suggestion.firstPartyResponded}
           secondPartySent={suggestion.secondPartySent}
           dict={dict.suggestions.modal.actions}

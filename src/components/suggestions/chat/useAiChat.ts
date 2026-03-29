@@ -17,6 +17,8 @@ export interface ChatMessage {
     matchSearchResults?: string[];
     toolUsed?: string;
     userRating?: 'up' | 'down';
+    userReaction?: string;
+    readAt?: string;
     // Smart assistant types
     type?: 'text' | 'profile_card' | 'action_buttons' | 'action_confirmation' | 'no_more_candidates' | 'no_candidates_found' | 'decline_feedback' | 'limit_reached';
     candidateUserId?: string;
@@ -190,8 +192,14 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     }
   }, [locale, suggestionId, proactiveMessage, isGeneralChat]);
 
+  const lastSendRef = useRef<number>(0);
+
   const sendMessage = useCallback(async (text: string, requestType?: 'profile_summary') => {
     if (!text.trim() || isStreaming) return;
+    // Debounce: prevent double-sends within 500ms
+    const now = Date.now();
+    if (now - lastSendRef.current < 500) return;
+    lastSendRef.current = now;
 
     setError(null);
     setSearchResults([]);
@@ -215,6 +223,9 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     }
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
+
+    // Auto-abort after 30 seconds to prevent infinite loading
+    const timeoutId = setTimeout(() => abortController.abort(), 30000);
 
     try {
       const res = await fetch('/api/ai-chat', {
@@ -328,7 +339,12 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
         setMessages((prev) => [...prev, assistantMessage]);
       }
     } catch (err) {
-      if ((err as Error).name === 'AbortError') return;
+      if ((err as Error).name === 'AbortError') {
+        // Check if it was a timeout (not a manual abort)
+        if (!abortControllerRef.current) return;
+        setError(locale === 'he' ? 'הבקשה ארכה יותר מדי זמן. נסה שוב' : 'Request timed out. Please try again');
+        return;
+      }
       console.error('[AiChat] Send error:', err);
       const errorMessage = (err as Error).message;
 
@@ -338,6 +354,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
         setError(locale === 'he' ? 'שגיאה בשליחת ההודעה. נסה שוב' : 'Failed to send message. Please try again');
       }
     } finally {
+      clearTimeout(timeoutId);
       setIsStreaming(false);
       setStreamingContent('');
       abortControllerRef.current = null;
@@ -530,6 +547,27 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     }
   }, [conversationId, currentCandidateUserId, potentialMatchId, locale, actionExecuting]);
 
+  const reactToMessage = useCallback(async (messageId: string, emoji: string) => {
+    try {
+      const res = await fetch('/api/ai-chat/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, reaction: emoji }),
+      });
+      if (!res.ok) return;
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, metadata: { ...m.metadata, userReaction: m.metadata?.userReaction === emoji ? undefined : emoji } }
+            : m,
+        ),
+      );
+    } catch (err) {
+      console.error('[AiChat] React error:', err);
+    }
+  }, []);
+
   const rateMessage = useCallback(async (messageId: string, rating: 'up' | 'down') => {
     try {
       const res = await fetch('/api/ai-chat/rate', {
@@ -548,6 +586,20 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
       console.error('[AiChat] Rate error:', err);
     }
   }, []);
+
+  // Mark messages as read when chat is open and has new assistant messages
+  useEffect(() => {
+    if (!isOpen || !conversationId || messages.length === 0) return;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.role === 'assistant' && !lastMsg.metadata?.readAt) {
+      // Fire-and-forget: mark conversation as read
+      void fetch('/api/ai-chat/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId: lastMsg.id, action: 'mark_read' }),
+      }).catch(() => { /* non-critical */ });
+    }
+  }, [isOpen, messages, conversationId]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -576,6 +628,7 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
     executeAction,
     quickReplies,
     rateMessage,
+    reactToMessage,
     // Smart assistant
     phase,
     currentCandidateUserId,

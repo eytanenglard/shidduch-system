@@ -12,6 +12,15 @@ import InterestedActions from './action-states/InterestedActions';
 import ReOfferedActions from './action-states/ReOfferedActions';
 import WithdrawActions from './action-states/WithdrawActions';
 import DefaultActions from './action-states/DefaultActions';
+import DatingPhaseActions from './action-states/DatingPhaseActions';
+
+const DATING_PHASE_STATUSES = [
+  'CONTACT_DETAILS_SHARED',
+  'MEETING_SCHEDULED',
+  'AWAITING_FIRST_DATE_FEEDBACK',
+  'THINKING_AFTER_DATE',
+  'PROCEEDING_TO_SECOND_DATE',
+];
 
 const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
   isExpanded,
@@ -25,6 +34,7 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
   onInterested,
   onAskQuestion,
   onWithdraw,
+  onStatusUpdate,
   approvedAt,
   secondPartySent,
   dict,
@@ -33,10 +43,13 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
   const isHe = locale === 'he';
   const [withdrawCountdown, setWithdrawCountdown] = useState<number | null>(null);
 
+  const isDatingPhase = DATING_PHASE_STATUSES.includes(status);
+
   // Determine if this is a pending action that should always show buttons
   const hasPendingAction =
     (status === 'PENDING_FIRST_PARTY' && isFirstParty) ||
-    (status === 'PENDING_SECOND_PARTY' && !isFirstParty);
+    (status === 'PENDING_SECOND_PARTY' && !isFirstParty) ||
+    isDatingPhase;
 
   // Auto-expand on pending statuses
   useEffect(() => {
@@ -89,6 +102,17 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
         />
       );
     }
+    if (isDatingPhase && onStatusUpdate && dict.datingPhase) {
+      return (
+        <DatingPhaseActions
+          status={status}
+          isSubmitting={isSubmitting}
+          isHe={isHe}
+          onStatusUpdate={onStatusUpdate}
+          dict={dict.datingPhase}
+        />
+      );
+    }
     return <DefaultActions isSubmitting={isSubmitting} isHe={isHe} onAskQuestion={onAskQuestion} label={dict.ask} />;
   };
 
@@ -96,7 +120,8 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
     status === 'PENDING_FIRST_PARTY' ||
     status === 'PENDING_SECOND_PARTY' ||
     status === 'FIRST_PARTY_INTERESTED' ||
-    status === 'RE_OFFERED_TO_FIRST_PARTY';
+    status === 'RE_OFFERED_TO_FIRST_PARTY' ||
+    isDatingPhase;
 
   const isOpen = isExpanded;
 

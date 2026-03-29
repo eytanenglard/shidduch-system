@@ -149,6 +149,8 @@
     "showUnanswered": "הצג",
     "showMoreOptions": "הצג עוד {{count}} אפשרויות",
     "done": "המשך",
+    "skip": "דלג",
+    "requiredQuestion": "שאלת חובה",
     "resumeBanner": {
       "male": "ברוך שובך! נשארו לך {{count}} שאלות — ממשיכים מאיפה שעצרת",
       "female": "ברוכה שובך! נשארו לך {{count}} שאלות — ממשיכים מאיפה שעצרת"

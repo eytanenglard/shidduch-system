@@ -279,6 +279,37 @@ export class StatusTransitionService {
           sendPushToUser(suggestion.secondPartyId, { title: '🎉 פרטי קשר שותפו!', body: 'שני הצדדים אישרו! לחץ/י לראות את פרטי הקשר', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
         ]);
         break;
+      case MatchSuggestionStatus.MEETING_SCHEDULED:
+        await Promise.all([
+          notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `📅 נקבע דייט ראשון בין ${suggestion.firstParty.firstName} ל${suggestion.secondParty.firstName}!` }),
+          sendPushToUser(suggestion.firstPartyId, { title: '📅 נקבע דייט!', body: 'בהצלחה בפגישה!', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+          sendPushToUser(suggestion.secondPartyId, { title: '📅 נקבע דייט!', body: 'בהצלחה בפגישה!', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+        ]);
+        break;
+      case MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK:
+        await Promise.all([
+          notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `☕ ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName} דיווחו על דייט — ממתין למשוב` }),
+          sendPushToUser(suggestion.firstPartyId, { title: '☕ איך היה הדייט?', body: 'שתפו אותנו — זה עוזר לנו לעזור לכם', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+          sendPushToUser(suggestion.secondPartyId, { title: '☕ איך היה הדייט?', body: 'שתפו אותנו — זה עוזר לנו לעזור לכם', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+        ]);
+        break;
+      case MatchSuggestionStatus.THINKING_AFTER_DATE:
+        await notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `💭 אחד הצדדים בחשיבה לאחר הפגישה` });
+        break;
+      case MatchSuggestionStatus.PROCEEDING_TO_SECOND_DATE:
+        await Promise.all([
+          notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `🎉 ${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName} ממשיכים לדייט שני!` }),
+          sendPushToUser(suggestion.firstPartyId, { title: '🎉 ממשיכים לדייט שני!', body: 'כל הכבוד! בהצלחה בפגישה הבאה', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+          sendPushToUser(suggestion.secondPartyId, { title: '🎉 ממשיכים לדייט שני!', body: 'כל הכבוד! בהצלחה בפגישה הבאה', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+        ]);
+        break;
+      case MatchSuggestionStatus.ENDED_AFTER_FIRST_DATE:
+        await Promise.all([
+          notifyStatusChange({ userId: suggestion.matchmakerId, suggestionId: suggestion.id, statusMessage: `${suggestion.firstParty.firstName} ו${suggestion.secondParty.firstName} — הסתיים לאחר פגישה ראשונה` }),
+          sendPushToUser(suggestion.firstPartyId, { title: 'עדכון לגבי ההצעה', body: 'תודה על העדכון. ממשיכים לחפש עבורך!', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+          sendPushToUser(suggestion.secondPartyId, { title: 'עדכון לגבי ההצעה', body: 'תודה על העדכון. ממשיכים לחפש עבורך!', data: { type: 'STATUS_CHANGE', suggestionId: suggestion.id }, sound: 'default' }),
+        ]);
+        break;
       case MatchSuggestionStatus.ENGAGED:
       case MatchSuggestionStatus.MARRIED: {
         const emoji = newStatus === 'ENGAGED' ? '💍' : '💒';
@@ -356,6 +387,7 @@ export class StatusTransitionService {
         MatchSuggestionStatus.CANCELLED,
       ],
       CONTACT_DETAILS_SHARED: [
+        MatchSuggestionStatus.MEETING_SCHEDULED,
         MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK,
         MatchSuggestionStatus.CANCELLED,
       ],
@@ -381,6 +413,7 @@ export class StatusTransitionService {
         MatchSuggestionStatus.CANCELLED,
       ],
       MEETING_SCHEDULED: [
+        MatchSuggestionStatus.AWAITING_FIRST_DATE_FEEDBACK,
         MatchSuggestionStatus.DATING,
         MatchSuggestionStatus.CANCELLED,
       ],

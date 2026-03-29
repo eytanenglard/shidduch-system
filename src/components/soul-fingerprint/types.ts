@@ -88,6 +88,7 @@ export interface SFQuestion {
   isOptional?: boolean;
   sliderMin?: number;
   sliderMax?: number;
+  sliderStep?: number;
   sliderLeftKey?: string;
   sliderRightKey?: string;
 }

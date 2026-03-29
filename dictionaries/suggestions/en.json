@@ -130,6 +130,24 @@
       }
     },
     "autoSuggestions": {
+      "toggle": {
+        "label": "Auto Suggestions",
+        "enabledDesc": "System sends you suggestions",
+        "disabledDesc": "Matchmaker only",
+        "encourageEnable": "Enable to receive personalized AI-powered match suggestions",
+        "enabledToast": "✅ You will receive auto-scan suggestions",
+        "disabledToast": "🔕 Auto-scan suggestions disabled",
+        "errorToast": "Save failed, please try again",
+        "infoTitle": "How does it work?",
+        "infoItems": [
+          "The system scans and finds quality matches using AI",
+          "Suggestions are sent on Sundays and Wednesdays",
+          "After you approve, a human matchmaker guides the process",
+          "The system learns from your responses and improves over time"
+        ],
+        "infoFooter": "You can turn this on/off anytime. When off, suggestions come only from a matchmaker.",
+        "infoAriaLabel": "What are auto suggestions?"
+      },
       "title": "Smart Suggestions",
       "subtitle": "Our system learns from your responses and improves suggestions",
       "scheduleInfo": "Match suggestions are sent on Sundays and Wednesdays",
@@ -362,7 +380,32 @@
       },
       "reOfferInfo": "The other side is now available and approved! Is this still relevant for you?",
       "gracePeriodExpired": "Grace period expired",
-      "withdrawError": "Error withdrawing"
+      "withdrawError": "Error withdrawing",
+      "datingPhase": {
+        "dateScheduled": "First date scheduled",
+        "dateHappened": "First date happened",
+        "dateWentWell": "The date happened",
+        "thinking": "Need to think",
+        "notContinuing": "Not continuing",
+        "proceedSecond": "On to the second date!",
+        "inProcess": "We're in the process!",
+        "contactSharedTitle": "How's it going?",
+        "contactSharedSubtitle": "Update us so we can help",
+        "meetingScheduledTitle": "Good luck on the date!",
+        "meetingScheduledSubtitle": "Update us after the meeting",
+        "feedbackTitle": "How was it?",
+        "feedbackSubtitle": "Your feedback matters to us",
+        "thinkingTitle": "Take your time",
+        "thinkingSubtitle": "Update us when you're ready",
+        "proceedingTitle": "Making progress!",
+        "proceedingSubtitle": "Good luck on the next date",
+        "confirmEndTitle": "Are you sure?",
+        "confirmEndMessage": "This will mark the suggestion as ended. The matchmaker will be notified.",
+        "confirmEndButton": "Yes, not continuing",
+        "goBack": "Go back",
+        "updateSuccess": "Status updated successfully",
+        "updateError": "Error updating status"
+      }
     },
     "detailsTab": {
       "timelineTitle": "Status Tracking",
@@ -457,6 +500,40 @@
     "noteText": "Remember, this analysis is a powerful tool, but it's meant to guide, not decide. True chemistry and connection are discovered through genuine human interaction.",
     "backButton": "Back to Introduction",
     "triggerButton": "Run AI Compatibility Analysis"
+  },
+  "aiInsight": {
+    "idle": {
+      "title": "AI Compatibility Insights",
+      "description": "Deep insights into your match potential",
+      "button": "Analyze Now"
+    },
+    "loading": {
+      "title": "Analyzing Deep Compatibility...",
+      "description": "Examining dozens of parameters for an accurate picture",
+      "step1": "Processing Profiles",
+      "step2": "Analyzing Values",
+      "step3": "Measuring Compatibility",
+      "step4": "Generating Insights",
+      "step5": "Finalizing Report"
+    },
+    "error": {
+      "description": "Could not complete the analysis. Please try again.",
+      "retry": "Try Again",
+      "toastTitle": "Analysis Error"
+    },
+    "deepDive": "Dive deeper into the analysis",
+    "drawer": {
+      "title": "Deep Compatibility Analysis",
+      "strengths": "Strong Connection Points",
+      "considerations": "Points for Thought & Growth",
+      "conversationStarters": "Suggested Conversation Starters",
+      "noStrengths": "No specific connection points found",
+      "noConsiderations": "No specific points for attention found",
+      "copy": "Copy",
+      "noteTitle": "Important Note",
+      "noteText": "Remember, this analysis is a tool for guidance only. True chemistry is discovered through genuine human interaction.",
+      "contactMatchmaker": "Message Your Matchmaker"
+    }
   },
   "list": {
     "emptyState": {

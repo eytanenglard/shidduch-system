@@ -342,6 +342,8 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
   const [items, setItems] = useState<ExtendedMatchSuggestion[]>([]);
   const [isReordering, setIsReordering] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
+  const [showAutoCompareHint, setShowAutoCompareHint] = useState(false);
+  const prevCountRef = React.useRef(suggestions.length);
 
   // Sort by rank and sync with prop changes
   useEffect(() => {
@@ -350,6 +352,17 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
     );
     setItems(sorted);
   }, [suggestions]);
+
+  // Smart auto-compare: detect when a new suggestion was added to the queue
+  useEffect(() => {
+    if (suggestions.length > prevCountRef.current && suggestions.length >= 2) {
+      setShowAutoCompareHint(true);
+      // Auto-dismiss after 10 seconds
+      const timer = setTimeout(() => setShowAutoCompareHint(false), 10000);
+      return () => clearTimeout(timer);
+    }
+    prevCountRef.current = suggestions.length;
+  }, [suggestions.length]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -473,8 +486,28 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
             </SortableContext>
           </DndContext>
 
+          {/* Smart auto-compare hint — shown when a new suggestion enters the queue */}
+          {showAutoCompareHint && items.length >= 2 && (
+            <motion.button
+              type="button"
+              initial={{ opacity: 0, y: -8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8 }}
+              onClick={() => {
+                setShowAutoCompareHint(false);
+                setShowCompare(true);
+              }}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-300/60 rounded-xl text-sm font-semibold text-amber-800 hover:from-amber-100 hover:to-orange-100 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] group animate-pulse"
+            >
+              <Scale className="w-4 h-4 text-amber-600 group-hover:scale-110 transition-transform" />
+              {locale === 'he'
+                ? `🆕 נוספה הצעה חדשה! רוצה להשוות עם AI?`
+                : `🆕 New suggestion added! Want to compare with AI?`}
+            </motion.button>
+          )}
+
           {/* Compare CTA banner — shown when 2+ suggestions */}
-          {items.length >= 2 && (
+          {items.length >= 2 && !showAutoCompareHint && (
             <button
               type="button"
               onClick={() => setShowCompare(true)}

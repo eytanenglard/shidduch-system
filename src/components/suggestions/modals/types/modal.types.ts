@@ -5,6 +5,7 @@ import type {
   SuggestionsDictionary,
   SuggestionsCompatibilityDict,
   ProfileCardDict,
+  AiInsightDict,
 } from '@/types/dictionary';
 
 // --- Main Props (unchanged, same interface for all 3 callers) ---
@@ -17,6 +18,7 @@ export interface SuggestionDetailsModalProps {
     suggestion: ExtendedMatchSuggestion,
     action: 'approve' | 'decline' | 'interested'
   ) => void;
+  onStatusUpdate?: (suggestionId: string, newStatus: string, notes?: string) => Promise<void>;
   onRefresh?: () => void;
   locale: 'he' | 'en';
   questionnaire: QuestionnaireResponse | null;
@@ -150,6 +152,7 @@ export interface CompatibilityTabProps {
   dict: {
     aiAnalysisCta: SuggestionsDictionary['modal']['aiAnalysisCta'];
     aiAnalysis: SuggestionsDictionary['aiAnalysis'];
+    aiInsight: AiInsightDict;
     compatibility: SuggestionsCompatibilityDict;
   };
 }
@@ -188,6 +191,7 @@ export interface QuickActionsBarProps {
   onInterested: () => void;
   onAskQuestion: () => void;
   onWithdraw?: (type: 'grace_period' | 'before_second_party') => void;
+  onStatusUpdate?: (newStatus: string) => void;
   approvedAt?: Date | string | null;
   secondPartySent?: Date | string | null;
   locale: 'he' | 'en';

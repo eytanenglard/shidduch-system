@@ -128,6 +128,12 @@ export async function POST(req: NextRequest) {
       searchContext = AiChatService.formatSearchResultsForAI(searchResults);
     }
 
+    // Detect show profile intent (user asks to see profile card again)
+    const isShowProfileRequest = isGeneralChat
+      && (conversationPhase === 'presenting' || conversationPhase === 'discussing')
+      && conversation.currentCandidateUserId
+      && AiChatService.detectShowProfileIntent(message);
+
     // Detect escalation intent
     const isEscalationRequest = AiChatService.detectEscalationIntent(message);
 
@@ -307,6 +313,21 @@ export async function POST(req: NextRequest) {
             );
           }
 
+          // Re-show profile card if user explicitly asked for it
+          const showProfileCardAgain = isShowProfileRequest && conversation.currentCandidateUserId;
+          if (showProfileCardAgain) {
+            await AiChatService.saveMessage(
+              conversation.id,
+              'assistant',
+              '',
+              { type: 'profile_card', candidateUserId: conversation.currentCandidateUserId },
+            );
+          }
+
+          // Determine if we should show action buttons (new candidate OR re-showing profile)
+          const shouldShowActionButtons = nextCandidate || showProfileCardAgain;
+          const actionButtonsCandidateId = nextCandidate?.candidateUserId || (showProfileCardAgain ? conversation.currentCandidateUserId : undefined);
+
           // Send done event
           const doneData = JSON.stringify({
             type: 'done',
@@ -321,8 +342,10 @@ export async function POST(req: NextRequest) {
             escalated,
             actions: actions.length > 0 ? actions : undefined,
             quickReplies: quickReplies.length > 0 ? quickReplies : undefined,
+            // Re-show profile card when user asked for it
+            showProfileCard: showProfileCardAgain ? true : undefined,
             // Action buttons for presenting phase
-            actionButtons: nextCandidate ? [
+            actionButtons: shouldShowActionButtons ? [
               { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
               { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
               { type: 'tell_me_more', label: { he: 'ספר/י לי עוד', en: 'Tell me more' } },

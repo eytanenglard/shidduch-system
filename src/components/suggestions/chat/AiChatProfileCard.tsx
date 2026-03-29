@@ -51,18 +51,30 @@ interface AiChatProfileCardProps {
   locale: 'he' | 'en';
 }
 
+// Simple in-memory cache for profile data to avoid redundant fetches
+const profileCache = new Map<string, CandidateProfileData>();
+
 export default function AiChatProfileCard({
   candidateUserId,
   locale,
 }: AiChatProfileCardProps) {
-  const [data, setData] = useState<CandidateProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<CandidateProfileData | null>(
+    profileCache.get(candidateUserId) || null,
+  );
+  const [isLoading, setIsLoading] = useState(!profileCache.has(candidateUserId));
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogImageIndex, setDialogImageIndex] = useState(0);
   const isHebrew = locale === 'he';
 
   useEffect(() => {
+    // Skip fetch if already cached
+    if (profileCache.has(candidateUserId)) {
+      setData(profileCache.get(candidateUserId)!);
+      setIsLoading(false);
+      return;
+    }
+
     let cancelled = false;
 
     async function fetchProfile() {
@@ -72,6 +84,7 @@ export default function AiChatProfileCard({
         if (!res.ok) throw new Error('Failed to load profile');
         const json = await res.json();
         if (!cancelled && json.success) {
+          profileCache.set(candidateUserId, json);
           setData(json);
         }
       } catch (err) {

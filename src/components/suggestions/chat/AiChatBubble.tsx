@@ -95,6 +95,8 @@ function parseMarkdown(text: string): React.ReactNode[] {
   return elements;
 }
 
+const EMOJI_REACTIONS = ['❤️', '😊', '🤔', '👏'] as const;
+
 interface AiChatBubbleProps {
   role: 'user' | 'assistant' | 'matchmaker';
   content: string;
@@ -102,7 +104,9 @@ interface AiChatBubbleProps {
   isStreaming?: boolean;
   messageId?: string;
   userRating?: 'up' | 'down';
+  userReaction?: string;
   onRate?: (messageId: string, rating: 'up' | 'down') => void;
+  onReact?: (messageId: string, emoji: string) => void;
 }
 
 export default function AiChatBubble({
@@ -112,7 +116,9 @@ export default function AiChatBubble({
   isStreaming,
   messageId,
   userRating,
+  userReaction,
   onRate,
+  onReact,
 }: AiChatBubbleProps) {
   const isUser = role === 'user';
   const isMatchmaker = role === 'matchmaker';
@@ -141,7 +147,7 @@ export default function AiChatBubble({
       {/* Message bubble */}
       <div
         className={cn(
-          'rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
+          'relative rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed',
           isUser
             ? 'bg-violet-100 text-violet-900 rounded-tr-md'
             : isMatchmaker
@@ -193,8 +199,30 @@ export default function AiChatBubble({
                 >
                   <ThumbsDown className="w-3 h-3" />
                 </button>
+                {/* Emoji quick reactions */}
+                <div className="flex items-center gap-0.5 mr-1 border-r border-gray-200 pr-1">
+                  {EMOJI_REACTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={(e) => { e.stopPropagation(); onReact?.(messageId, emoji); }}
+                      className={cn(
+                        'text-[11px] w-5 h-5 rounded hover:bg-gray-100 flex items-center justify-center transition-all',
+                        userReaction === emoji ? 'bg-violet-100 scale-110' : 'opacity-60 hover:opacity-100',
+                      )}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Active reaction badge */}
+        {userReaction && (
+          <div className="absolute -bottom-2 end-2 bg-white border border-gray-200 rounded-full px-1 py-0.5 shadow-sm text-xs">
+            {userReaction}
           </div>
         )}
       </div>

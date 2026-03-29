@@ -80,6 +80,8 @@
     "showUnanswered": "Show",
     "showMoreOptions": "Show {{count}} more options",
     "done": "Continue",
+    "skip": "Skip",
+    "requiredQuestion": "Required question",
     "resumeBanner": "Welcome back! You have {{count}} questions left — let's continue where you stopped"
   },
   "completion": {

@@ -2,7 +2,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
@@ -20,6 +20,7 @@ import {
   Send,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,36 +80,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'הגיע הזמן ליצור קשר ולקבוע פגישה.',
     descriptionEn: 'Time to reach out and schedule a meeting.',
     icon: Phone,
-    progress: 70,
+    progress: 65,
     step: 4,
     isCelebration: true,
-  },
-  AWAITING_FIRST_DATE_FEEDBACK: {
-    labelHe: 'ממתין למשוב פגישה',
-    labelEn: 'Waiting for date feedback',
-    descriptionHe: 'איך הלכה הפגישה? השדכן/ית ישמחו לשמוע.',
-    descriptionEn: 'How did it go? Your matchmaker would love to hear.',
-    icon: MessageCircle,
-    progress: 75,
-    step: 5,
-  },
-  THINKING_AFTER_DATE: {
-    labelHe: 'בחשיבה לאחר פגישה',
-    labelEn: 'Thinking after date',
-    descriptionHe: 'קח/י את הזמן. עדכנו את השדכן/ית כשתהיו מוכנים.',
-    descriptionEn: 'Take your time. Update your matchmaker when ready.',
-    icon: Lightbulb,
-    progress: 78,
-    step: 5,
-  },
-  PROCEEDING_TO_SECOND_DATE: {
-    labelHe: 'בדרך לפגישה שנייה',
-    labelEn: 'Heading to second date',
-    descriptionHe: 'מתקדמים! בהצלחה בפגישה הבאה.',
-    descriptionEn: 'Making progress! Good luck on the next date.',
-    icon: TrendingUp,
-    progress: 82,
-    step: 5,
   },
   MEETING_SCHEDULED: {
     labelHe: 'פגישה קבועה!',
@@ -116,7 +90,34 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'יש לך פגישה קבועה. בהצלחה!',
     descriptionEn: 'You have a scheduled meeting. Good luck!',
     icon: Calendar,
-    progress: 74,
+    progress: 72,
+    step: 4,
+  },
+  AWAITING_FIRST_DATE_FEEDBACK: {
+    labelHe: 'איך היה הדייט?',
+    labelEn: 'How was the date?',
+    descriptionHe: 'שתפו אותנו — זה עוזר לנו לעזור לכם.',
+    descriptionEn: 'Share with us — it helps us help you.',
+    icon: MessageCircle,
+    progress: 78,
+    step: 5,
+  },
+  THINKING_AFTER_DATE: {
+    labelHe: 'בחשיבה לאחר פגישה',
+    labelEn: 'Thinking after date',
+    descriptionHe: 'קח/י את הזמן. עדכנו כשתהיו מוכנים.',
+    descriptionEn: 'Take your time. Update when ready.',
+    icon: Lightbulb,
+    progress: 82,
+    step: 5,
+  },
+  PROCEEDING_TO_SECOND_DATE: {
+    labelHe: 'בדרך לפגישה שנייה!',
+    labelEn: 'Heading to second date!',
+    descriptionHe: 'מתקדמים! בהצלחה בפגישה הבאה.',
+    descriptionEn: 'Making progress! Good luck on the next date.',
+    icon: TrendingUp,
+    progress: 85,
     step: 5,
   },
   DATING: {
@@ -125,7 +126,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     descriptionHe: 'מאחלים לכם הצלחה!',
     descriptionEn: 'Wishing you the best!',
     icon: Heart,
-    progress: 85,
+    progress: 88,
     step: 5,
   },
   ENGAGED: {
@@ -190,12 +191,53 @@ const CelebrationParticles = () => (
 // ============================================================
 // Component
 // ============================================================
+// Quick action config for dating-phase statuses
+interface QuickActionConfig {
+  labelHe: string;
+  labelEn: string;
+  nextStatus: string;
+  icon: React.ElementType;
+  gradient: string;
+}
+
+const QUICK_ACTION_CONFIG: Record<string, QuickActionConfig> = {
+  CONTACT_DETAILS_SHARED: {
+    labelHe: 'נקבע דייט',
+    labelEn: 'Date scheduled',
+    nextStatus: 'MEETING_SCHEDULED',
+    icon: Calendar,
+    gradient: 'from-teal-500 to-emerald-500',
+  },
+  MEETING_SCHEDULED: {
+    labelHe: 'הדייט היה',
+    labelEn: 'Date happened',
+    nextStatus: 'AWAITING_FIRST_DATE_FEEDBACK',
+    icon: CheckCircle2,
+    gradient: 'from-violet-500 to-purple-500',
+  },
+  THINKING_AFTER_DATE: {
+    labelHe: 'ממשיכים!',
+    labelEn: 'Continuing!',
+    nextStatus: 'PROCEEDING_TO_SECOND_DATE',
+    icon: TrendingUp,
+    gradient: 'from-teal-500 to-emerald-500',
+  },
+  PROCEEDING_TO_SECOND_DATE: {
+    labelHe: 'בתהליך!',
+    labelEn: 'In process!',
+    nextStatus: 'DATING',
+    icon: Heart,
+    gradient: 'from-pink-500 to-rose-500',
+  },
+};
+
 interface ActiveSuggestionHeroProps {
   suggestion: ExtendedMatchSuggestion;
   userId: string;
   locale: 'he' | 'en';
   onViewDetails: (suggestion: ExtendedMatchSuggestion) => void;
   onContactMatchmaker: (suggestion: ExtendedMatchSuggestion) => void;
+  onStatusUpdate?: (suggestionId: string, newStatus: string) => Promise<void>;
   className?: string;
 }
 
@@ -205,6 +247,7 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
   locale,
   onViewDetails,
   onContactMatchmaker,
+  onStatusUpdate,
   className,
 }) => {
   const config = STATUS_CONFIG[suggestion.status] || DEFAULT_CONFIG;
@@ -231,6 +274,32 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
     otherParty?.firstName,
     otherParty?.lastName
   );
+
+  const quickAction = QUICK_ACTION_CONFIG[suggestion.status] || null;
+  const [isQuickActionLoading, setIsQuickActionLoading] = useState(false);
+  const [showContact, setShowContact] = useState(false);
+
+  const showContactButton = [
+    'CONTACT_DETAILS_SHARED',
+    'MEETING_SCHEDULED',
+    'AWAITING_FIRST_DATE_FEEDBACK',
+    'THINKING_AFTER_DATE',
+    'PROCEEDING_TO_SECOND_DATE',
+    'DATING',
+  ].includes(suggestion.status);
+  const otherPhone = otherParty?.phone;
+  const otherEmail = otherParty?.email;
+
+  const handleQuickAction = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!quickAction || !onStatusUpdate || isQuickActionLoading) return;
+    setIsQuickActionLoading(true);
+    try {
+      await onStatusUpdate(suggestion.id, quickAction.nextStatus);
+    } finally {
+      setIsQuickActionLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -359,6 +428,26 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
 
             {/* CTA Buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
+              {quickAction && onStatusUpdate && (
+                <Button
+                  size="sm"
+                  className={cn(
+                    'rounded-xl text-white shadow-md transition-all duration-200 h-9 px-3 hover:scale-105 active:scale-95 bg-gradient-to-r',
+                    quickAction.gradient
+                  )}
+                  disabled={isQuickActionLoading}
+                  onClick={handleQuickAction}
+                >
+                  {isQuickActionLoading ? (
+                    <Loader2 className={cn('w-3.5 h-3.5 animate-spin', isRtl ? 'ml-1.5' : 'mr-1.5')} />
+                  ) : (
+                    <quickAction.icon className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
+                  )}
+                  <span className="text-xs font-medium">
+                    {locale === 'he' ? quickAction.labelHe : quickAction.labelEn}
+                  </span>
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -379,6 +468,59 @@ const ActiveSuggestionHero: React.FC<ActiveSuggestionHeroProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Contact details shortcut */}
+          {showContactButton && (otherPhone || otherEmail) && (
+            <div className="mt-3">
+              <button
+                type="button"
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200',
+                  showContact
+                    ? 'bg-teal-100/80 text-teal-700'
+                    : 'bg-white/60 text-teal-600 hover:bg-teal-50/80'
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowContact(!showContact);
+                }}
+              >
+                <Phone className="w-3 h-3" />
+                {locale === 'he' ? 'פרטי קשר' : 'Contact'}
+              </button>
+              {showContact && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-2 flex items-center gap-3 px-3 py-2 bg-white/70 backdrop-blur-sm rounded-lg border border-teal-100/50"
+                >
+                  {otherPhone && (
+                    <a
+                      href={`tel:${otherPhone}`}
+                      className="flex items-center gap-1 text-xs text-teal-700 hover:text-teal-900 font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                      dir="ltr"
+                    >
+                      <Phone className="w-3 h-3" />
+                      {otherPhone}
+                    </a>
+                  )}
+                  {otherPhone && otherEmail && <span className="text-gray-300">|</span>}
+                  {otherEmail && (
+                    <a
+                      href={`mailto:${otherEmail}`}
+                      className="flex items-center gap-1 text-xs text-teal-700 hover:text-teal-900 font-medium truncate"
+                      onClick={(e) => e.stopPropagation()}
+                      dir="ltr"
+                    >
+                      <Send className="w-3 h-3" />
+                      {otherEmail}
+                    </a>
+                  )}
+                </motion.div>
+              )}
+            </div>
+          )}
 
           {/* Progress Bar — status-themed gradient */}
           <div className="mt-4 space-y-1.5">
