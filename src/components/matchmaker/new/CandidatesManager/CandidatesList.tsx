@@ -49,6 +49,7 @@ import {
   NoSearchResultsEmpty,
   NoFilterResultsEmpty,
 } from '../shared/EmptyStates';
+import type { FilterSuggestion } from '../shared/EmptyStates';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
@@ -110,6 +111,8 @@ interface CandidatesListProps {
   onShowSimilar?: (candidate: Candidate, e: React.MouseEvent) => void;
   /** Callback when tags are changed on a candidate */
   onTagsChanged?: () => void;
+  /** Smart filter suggestions for empty state — suggests which filters to remove */
+  filterSuggestions?: FilterSuggestion[];
 }
 
 // ============================================================================
@@ -147,6 +150,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   isLoadingMore = false,
   onShowSimilar,
   onTagsChanged,
+  filterSuggestions,
 }) => {
   // Base states
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
@@ -155,6 +159,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [questionnaireResponse, setQuestionnaireResponse] =
     useState<QuestionnaireResponse | null>(null);
   const [sfAnswers, setSfAnswers] = useState<Record<string, unknown> | null>(null);
+  const [isSfLoading, setIsSfLoading] = useState(false);
   const [isMatchmaker, setIsMatchmaker] = useState(true);
   // QuickView Sheet state (replaces hover-based QuickView)
   const [quickViewCandidate, setQuickViewCandidate] =
@@ -253,6 +258,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         setSfAnswers(null);
         return;
       }
+      setIsSfLoading(true);
       try {
         const params = new URLSearchParams();
         params.append('userId', selectedCandidate.id);
@@ -274,6 +280,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         setSfAnswers(profileData.success ? profileData.sfAnswers || null : null);
       } catch {
         toast.error('שגיאה בטעינת השאלון');
+      } finally {
+        setIsSfLoading(false);
       }
     };
     loadQuestionnaire();
@@ -465,6 +473,38 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   }, [isMobile, mobileView, viewMode]);
 
   // ============================================================================
+  // Stable card callbacks (extracted from renderCard to avoid re-creating per render)
+  // ============================================================================
+  const aiTargetName = useMemo(
+    () => aiTargetCandidate ? `${aiTargetCandidate.firstName} ${aiTargetCandidate.lastName}` : undefined,
+    [aiTargetCandidate]
+  );
+
+  const handleAnalyze = useCallback(
+    (c: Candidate, e: React.MouseEvent) => {
+      e.stopPropagation();
+      handleAction('analyze', c);
+    },
+    [handleAction]
+  );
+
+  const handleSendFeedback = useCallback(
+    (c: Candidate, e: React.MouseEvent) => {
+      e.stopPropagation();
+      handleAction('sendFeedback', c);
+    },
+    [handleAction]
+  );
+
+  const handleEditAction = useCallback(
+    (c: Candidate, e: React.MouseEvent) => {
+      e.stopPropagation();
+      handleAction('edit', c);
+    },
+    [handleAction]
+  );
+
+  // ============================================================================
   // Render individual card
   // ============================================================================
   const renderCard = useCallback(
@@ -477,32 +517,18 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           key={candidate.id}
           {...itemProps}
           className={cn(
-            'group relative',
+            'relative',
             focused && 'ring-2 ring-primary/50 rounded-xl'
           )}
           onContextMenu={(e) => handleCardRightClick(candidate, e)}
-          onClick={() => handleAction('view', candidate)}
         >
           <MinimalCard
             candidate={candidate}
             onClick={() => handleAction('view', candidate)}
-            onAnalyze={(c, e) => {
-              e.stopPropagation();
-              handleAction('analyze', c);
-            }}
-            aiTargetName={
-              aiTargetCandidate
-                ? `${aiTargetCandidate.firstName} ${aiTargetCandidate.lastName}`
-                : undefined
-            }
-            onSendProfileFeedback={(c, e) => {
-              e.stopPropagation();
-              handleAction('sendFeedback', c);
-            }}
-            onEdit={(c, e) => {
-              e.stopPropagation();
-              handleAction('edit', c);
-            }}
+            onAnalyze={handleAnalyze}
+            aiTargetName={aiTargetName}
+            onSendProfileFeedback={handleSendFeedback}
+            onEdit={handleEditAction}
             className={cn(
               viewMode === 'list' && !isMobile
                 ? 'flex flex-row-reverse gap-4 h-32'
@@ -534,8 +560,12 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       getItemProps,
       isFocused,
       handleCardRightClick,
+      handleAnalyze,
+      handleSendFeedback,
+      handleEditAction,
       handleAction,
       aiTargetCandidate,
+      aiTargetName,
       viewMode,
       isMobile,
       mobileView,
@@ -598,6 +628,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
         <NoFilterResultsEmpty
           activeFilterCount={activeFilterCount}
           onResetFilters={onResetFilters}
+          filterSuggestions={filterSuggestions}
           className={className}
         />
       );

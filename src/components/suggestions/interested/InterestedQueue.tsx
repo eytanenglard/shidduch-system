@@ -1,10 +1,11 @@
 // src/components/suggestions/interested/InterestedQueue.tsx
-// V3: Merged version with drag-and-drop, improved UX, and mobile-aligned flow
+// V4: Enhanced design with gradient header, glow effects, and polished interactions
 
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import {
   Bookmark,
   Heart,
@@ -127,7 +128,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
   userId,
   locale,
   isUserInActiveProcess,
-  onActivate,
+  onActivate: _onActivate,
   onRemove,
   onViewDetails,
 }) => {
@@ -163,14 +164,12 @@ const SortableItem: React.FC<SortableItemProps> = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group relative flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200',
+        'group relative flex items-center gap-2.5 px-3 py-3 rounded-xl transition-all duration-200',
         isFirst
-          ? 'bg-amber-50 border border-amber-200/50 shadow-sm'
-          : 'bg-white border border-gray-100',
+          ? 'bg-gradient-to-r from-amber-50 to-orange-50/50 border border-amber-200/60 shadow-md shadow-amber-200/30'
+          : 'bg-white border border-gray-100 hover:bg-amber-50/20 hover:border-amber-200/30 hover:shadow-sm',
         isDragging &&
-          'bg-amber-100 shadow-md ring-2 ring-amber-400/50 scale-[1.02]',
-        !isDragging &&
-          'hover:bg-amber-50/30 hover:border-amber-200/50 hover:shadow-sm'
+          'bg-amber-100 shadow-lg ring-2 ring-amber-400/50 scale-[1.02]',
       )}
     >
       {/* Drag Handle */}
@@ -178,7 +177,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <button
-              className="cursor-grab active:cursor-grabbing p-0.5 rounded-md hover:bg-amber-100 transition-colors touch-none flex-shrink-0"
+              className="cursor-grab active:cursor-grabbing p-1 rounded-lg hover:bg-amber-100/80 transition-colors touch-none flex-shrink-0"
               {...attributes}
               {...listeners}
             >
@@ -200,11 +199,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
       {/* Rank Badge */}
       {isFirst ? (
-        <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center shadow-sm flex-shrink-0">
-          <Crown className="w-3 h-3 text-white" />
+        <div className="relative w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center shadow-md shadow-amber-400/30 flex-shrink-0">
+          <Crown className="w-3.5 h-3.5 text-white" />
+          {/* Pulse glow on crown */}
+          <span className="absolute inset-0 rounded-full bg-amber-400/30 animate-ping" style={{ animationDuration: '2s' }} />
         </div>
       ) : (
-        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+        <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 border border-gray-200/50">
           <span className="text-gray-600 text-[10px] font-bold">{index + 1}</span>
         </div>
       )}
@@ -214,13 +215,16 @@ const SortableItem: React.FC<SortableItemProps> = ({
         onClick={() => onViewDetails(suggestion)}
         className="flex-shrink-0"
       >
-        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm hover:shadow-md transition-shadow">
+        <div className={cn(
+          'w-11 h-11 rounded-full overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105',
+          isFirst ? 'ring-2 ring-amber-300/50' : 'ring-2 ring-white',
+        )}>
           {mainImage ? (
             <Image
               src={getRelativeCloudinaryPath(mainImage.url)}
               alt={targetParty.firstName}
-              width={40}
-              height={40}
+              width={44}
+              height={44}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -256,7 +260,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           )}
         </div>
         {isFirst && !isUserInActiveProcess && (
-          <Badge className="bg-amber-500 text-white border-0 text-[9px] px-1.5 py-0 mt-0.5 inline-flex">
+          <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0 text-[9px] px-1.5 py-0 mt-0.5 inline-flex shadow-sm">
             <ArrowUpCircle className="w-2.5 h-2.5 mr-0.5" />
             {texts.nextInLine}
           </Badge>
@@ -265,14 +269,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
       {/* Action Buttons */}
       <div className="flex items-center gap-0.5 flex-shrink-0">
-        {/* View Profile */}
         <TooltipProvider>
           <Tooltip delayDuration={100}>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 hover:bg-amber-100 text-gray-400 hover:text-gray-600"
+                className="h-8 w-8 rounded-lg hover:bg-amber-100 text-gray-400 hover:text-amber-700 transition-all"
                 onClick={() => onViewDetails(suggestion)}
               >
                 <Eye className="w-3.5 h-3.5" />
@@ -284,14 +287,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
           </Tooltip>
         </TooltipProvider>
 
-        {/* Remove */}
         <TooltipProvider>
           <Tooltip delayDuration={100}>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 hover:bg-rose-100 text-gray-400 hover:text-rose-500"
+                className="h-8 w-8 rounded-lg hover:bg-rose-50 text-gray-400 hover:text-rose-500 transition-all"
                 onClick={() => {
                   onRemove(suggestion);
                   toast.success(texts.removeConfirm);
@@ -375,7 +377,7 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
       try {
         await onRankUpdate(newItems.map((s) => s.id));
         toast.success(texts.rankUpdated);
-      } catch (error) {
+      } catch {
         setItems(items); // Revert on error
         toast.error(texts.rankError);
       } finally {
@@ -394,126 +396,142 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
       : firstSuggestion?.firstParty?.firstName;
 
   return (
-    <Card
-      className={cn(
-        'border-0 shadow-sm bg-white rounded-xl overflow-hidden',
-        className
-      )}
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-      {/* Header */}
-      <CardHeader className="pb-3 border-b border-amber-100/50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center shadow-sm">
-            <Bookmark className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1">
-            <CardTitle className="text-lg font-bold text-amber-800 font-bold">
-              {texts.title}
-            </CardTitle>
-            <p className="text-sm text-amber-600/80">{texts.subtitle}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {suggestions.length >= 2 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 px-2.5 text-xs border-amber-200 text-amber-700 hover:bg-amber-50 rounded-lg"
-                onClick={() => setShowCompare(true)}
-              >
-                <Scale className={cn('w-3 h-3', locale === 'he' ? 'ml-1' : 'mr-1')} />
-                {texts.compare}
-              </Button>
-            )}
-            <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-bold">
-              {suggestions.length}
-            </Badge>
-          </div>
-        </div>
-      </CardHeader>
+      <Card
+        className={cn(
+          'relative overflow-hidden border-0 shadow-sm bg-white rounded-2xl',
+          className
+        )}
+      >
+        {/* Header with gradient */}
+        <CardHeader className="relative pb-3 overflow-hidden">
+          {/* Gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50/50 to-white" />
+          <div className="absolute -top-6 -end-6 w-24 h-24 rounded-full bg-amber-200/20 blur-2xl pointer-events-none" />
+          {/* Gradient bottom border */}
+          <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-200/60 to-transparent" />
 
-      <CardContent className="p-4 space-y-2">
-        {/* Draggable List */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={items.map((s) => s.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className="space-y-2">
-              {items.map((suggestion, index) => (
-                <SortableItem
-                  key={suggestion.id}
-                  suggestion={suggestion}
-                  index={index}
-                  userId={userId}
-                  locale={locale}
-                  isUserInActiveProcess={isUserInActiveProcess}
-                  onActivate={onActivate}
-                  onRemove={onRemove}
-                  onViewDetails={onViewDetails}
-                />
-              ))}
+          <div className="relative flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center shadow-md shadow-amber-400/25">
+              <Bookmark className="w-5 h-5 text-white" />
             </div>
-          </SortableContext>
-        </DndContext>
-
-        {/* CTA: Activate next suggestion */}
-        {!isUserInActiveProcess && items.length > 0 && (
-          <div className="mt-3 p-3 bg-teal-50 border border-teal-200/50 rounded-xl">
+            <div className="flex-1">
+              <CardTitle className="text-lg font-bold text-amber-800">
+                {texts.title}
+              </CardTitle>
+              <p className="text-sm text-amber-600/70">{texts.subtitle}</p>
+            </div>
             <div className="flex items-center gap-2">
-              <ArrowUpCircle className="w-4 h-4 text-teal-600 flex-shrink-0" />
-              <span className="text-sm text-teal-800 font-medium flex-1">
-                {locale === 'he'
-                  ? `מוכן/ה לאשר את ${firstPartyName}?`
-                  : `Ready to approve ${firstPartyName}?`}
-              </span>
-              <Button
-                size="sm"
-                className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs px-3 h-8 shadow-sm hover:shadow-sm transition-all"
-                onClick={() => {
-                  onActivate(firstSuggestion);
-                  toast.success(texts.activateSuccess);
-                }}
-              >
-                <Heart
-                  className={cn(
-                    'w-3.5 h-3.5',
-                    locale === 'he' ? 'ml-1.5' : 'mr-1.5'
-                  )}
-                />
-                {texts.activateNow}
-              </Button>
+              {suggestions.length >= 2 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-3 text-xs border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 rounded-xl transition-all hover:scale-[1.03] active:scale-[0.97]"
+                  onClick={() => setShowCompare(true)}
+                >
+                  <Scale className={cn('w-3 h-3', locale === 'he' ? 'ml-1' : 'mr-1')} />
+                  {texts.compare}
+                </Button>
+              )}
+              <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white border-0 font-bold shadow-sm px-2.5">
+                {suggestions.length}
+              </Badge>
             </div>
           </div>
-        )}
+        </CardHeader>
 
-        {/* Info: Active process blocking */}
-        {isUserInActiveProcess && items.length > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200/50 rounded-xl">
-            <Info className="w-4 h-4 text-gray-400 flex-shrink-0" />
-            <p className="text-xs text-gray-600 leading-relaxed">
-              {texts.activeProcessInfo}
-            </p>
-          </div>
-        )}
-      </CardContent>
+        <CardContent className="p-4 space-y-2">
+          {/* Draggable List */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={items.map((s) => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {items.map((suggestion, index) => (
+                  <SortableItem
+                    key={suggestion.id}
+                    suggestion={suggestion}
+                    index={index}
+                    userId={userId}
+                    locale={locale}
+                    isUserInActiveProcess={isUserInActiveProcess}
+                    onActivate={onActivate}
+                    onRemove={onRemove}
+                    onViewDetails={onViewDetails}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
 
-      {/* Compare Dialog */}
-      <CompareDialog
-        open={showCompare}
-        onOpenChange={setShowCompare}
-        suggestions={items}
-        userId={userId}
-        locale={locale}
-        onActivate={(suggestion) => {
-          setShowCompare(false);
-          onActivate(suggestion);
-        }}
-      />
-    </Card>
+          {/* CTA: Activate next suggestion */}
+          {!isUserInActiveProcess && items.length > 0 && (
+            <div className="relative mt-3 p-3.5 rounded-xl overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-emerald-50/50" />
+              <div className="absolute inset-0 border border-teal-200/40 rounded-xl" />
+              <div className="relative flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-400 flex items-center justify-center flex-shrink-0 shadow-sm shadow-teal-400/20">
+                  <ArrowUpCircle className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-sm text-teal-800 font-medium flex-1">
+                  {locale === 'he'
+                    ? `מוכן/ה לאשר את ${firstPartyName}?`
+                    : `Ready to approve ${firstPartyName}?`}
+                </span>
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white rounded-xl text-xs px-4 h-9 shadow-md shadow-teal-500/25 hover:shadow-lg transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
+                  onClick={() => {
+                    onActivate(firstSuggestion);
+                    toast.success(texts.activateSuccess);
+                  }}
+                >
+                  <Heart
+                    className={cn(
+                      'w-3.5 h-3.5',
+                      locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                    )}
+                  />
+                  {texts.activateNow}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Info: Active process blocking */}
+          {isUserInActiveProcess && items.length > 0 && (
+            <div className="flex items-center gap-2.5 p-3 bg-gray-50/80 border border-gray-100 rounded-xl">
+              <Info className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {texts.activeProcessInfo}
+              </p>
+            </div>
+          )}
+        </CardContent>
+
+        {/* Compare Dialog */}
+        <CompareDialog
+          open={showCompare}
+          onOpenChange={setShowCompare}
+          suggestions={items}
+          userId={userId}
+          locale={locale}
+          onActivate={(suggestion) => {
+            setShowCompare(false);
+            onActivate(suggestion);
+          }}
+        />
+      </Card>
+    </motion.div>
   );
 };
 

@@ -1,6 +1,6 @@
 // src/components/suggestions/cards/MinimalSuggestionCard.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { subDays } from 'date-fns';
 import {
@@ -94,6 +94,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
 
   // Build matching reasons list from matchingReason field
   const matchingReasons = buildMatchingReasons(suggestion, targetParty, locale);
+  const [isReasonExpanded, setIsReasonExpanded] = useState(false);
 
   const handleCardClick = () => {
     onClick(suggestion);
@@ -233,24 +234,45 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
                 {/* Expanded reasons list */}
                 {matchingReasons.length > 0 ? (
                   <ul className="space-y-1.5">
-                    {matchingReasons.slice(0, 3).map((reason, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <reason.icon
-                          className={cn(
-                            'w-3.5 h-3.5 mt-0.5 flex-shrink-0',
-                            isDaily ? 'text-violet-500' : 'text-orange-500'
-                          )}
-                        />
-                        <span
-                          className={cn(
-                            'text-sm leading-snug',
-                            isDaily ? 'text-violet-900/80' : 'text-orange-900/80'
-                          )}
-                        >
-                          {reason.text}
-                        </span>
-                      </li>
-                    ))}
+                    {matchingReasons.slice(0, 3).map((reason, i) => {
+                      const isLong = reason.text.length > 80;
+                      const displayText = isLong && !isReasonExpanded
+                        ? `${reason.text.substring(0, 80)}...`
+                        : reason.text;
+                      return (
+                        <li key={i} className="flex items-start gap-2">
+                          <reason.icon
+                            className={cn(
+                              'w-3.5 h-3.5 mt-0.5 flex-shrink-0',
+                              isDaily ? 'text-violet-500' : 'text-orange-500'
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              'text-sm leading-snug',
+                              isDaily ? 'text-violet-900/80' : 'text-orange-900/80'
+                            )}
+                          >
+                            {displayText}
+                            {isLong && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setIsReasonExpanded((prev) => !prev);
+                                }}
+                                className={cn(
+                                  'inline font-medium underline underline-offset-2 ms-1',
+                                  isDaily ? 'text-violet-600' : 'text-orange-600',
+                                )}
+                              >
+                                {isReasonExpanded ? dict.expandLess : dict.expandMore}
+                              </button>
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 ) : (
                   <p
@@ -323,9 +345,7 @@ function buildMatchingReasons(
   if (suggestion.matchingReason) {
     reasons.push({
       icon: Heart,
-      text: suggestion.matchingReason.length > 80
-        ? `${suggestion.matchingReason.substring(0, 80)}...`
-        : suggestion.matchingReason,
+      text: suggestion.matchingReason,
     });
   }
 

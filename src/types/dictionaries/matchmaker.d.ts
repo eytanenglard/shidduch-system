@@ -115,6 +115,31 @@ type ActiveFiltersDict = {
   };
 };
 
+type QuickFilterBarDict = {
+  showingResults: string;
+  filtersActive: string;
+  clearAll: string;
+  moreFilters: string;
+  gender: string;
+  age: string;
+  city: string;
+  religiousLevel: string;
+  status: string;
+  all: string;
+  male: string;
+  female: string;
+  available: string;
+  active7Days: string;
+  verified: string;
+  selectCity: string;
+  segments: {
+    newThisWeek: string;
+    waitingForSuggestion: string;
+    incompleteProfile: string;
+    activeToday: string;
+  };
+};
+
 type FilterPanelDict = {
   header: {
     title: string;
@@ -203,6 +228,9 @@ type FilterPanelDict = {
     bodyType: string;
     appearanceTone: string;
     ethnicBackground: string;
+    demographics: string;
+    religionValues: string;
+    appearance: string;
   };
   buttons: {
     male: string;
@@ -474,6 +502,7 @@ export type MatchmakerPageDictionary = {
       disableQuickViewTooltip: string;
       enableQuickViewTooltip: string;
       compareButton: string;
+      prepareSuggestionsButton: string;
       mobile: {
         split: string;
         singleCol: string;
@@ -484,6 +513,7 @@ export type MatchmakerPageDictionary = {
     viewOptions: { [key: string]: string };
     searchBar: SearchBarDict;
     activeFilters: ActiveFiltersDict;
+    quickFilterBar: QuickFilterBarDict;
     filterPanel: FilterPanelDict;
     list: CandidatesListDict;
     splitView: SplitViewDict;

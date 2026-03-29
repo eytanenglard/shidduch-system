@@ -284,7 +284,7 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
           <SuggestionChat
             suggestionId={suggestionId}
             locale={locale}
-            heightClass="h-[450px] min-h-[350px]"
+            heightClass="h-[min(450px,55vh)] min-h-[280px]"
             header={{
               title: detailsDict.chatTitle.replace(
                 '{{name}}',

@@ -47,10 +47,13 @@ const QuestionnaireItem: React.FC<QuestionnaireItemProps> = ({
           <Quote className={cn('w-4 h-4', colors.text)} />
         </div>
         <div className="flex-1 min-w-0">
-          {/* World badge — indicates this is a questionnaire answer */}
+          {/* World badge + questionnaire source indicator */}
           <div className="flex items-center gap-1.5 mb-2">
             <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full', colors.bg, colors.text)}>
               {worldName}
+            </span>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-50 text-gray-400 border border-gray-100">
+              {locale === 'he' ? 'מהשאלון' : 'Questionnaire'}
             </span>
           </div>
           <h4

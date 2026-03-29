@@ -38,6 +38,7 @@ export interface ProfileTabContextType {
   direction: 'ltr' | 'rtl';
   locale: string;
   effectiveViewMode: 'matchmaker' | 'candidate';
+  isOwnProfile: boolean;
   mobileViewLayout: 'focus' | 'detailed';
 
   // Data

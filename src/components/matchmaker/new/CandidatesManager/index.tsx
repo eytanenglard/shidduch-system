@@ -32,6 +32,7 @@ import ComparisonFloatingBar from './ComparisonFloatingBar';
 import DialogsContainer from './DialogsContainer';
 import SplitView from './SplitView';
 import FilterPanel from '../Filters/FilterPanel';
+import QuickFilterBar from '../Filters/QuickFilterBar';
 import { LoadingContainer } from '../shared/LoadingStates';
 import BulkActionToolbar from '../shared/BulkActionToolbar';
 import { BulkSuggestionsProvider } from '@/app/[locale]/contexts/BulkSuggestionsContext';
@@ -39,6 +40,7 @@ import { BulkSuggestionsProvider } from '@/app/[locale]/contexts/BulkSuggestions
 // --- Types ---
 import type { Candidate, CandidateAction } from '../types/candidates';
 import type { FilterState } from '../types/filters';
+import type { FilterSuggestion } from '../shared/EmptyStates';
 import type { MatchmakerPageDictionary } from '@/types/dictionaries/matchmaker';
 import type { ProfilePageDictionary } from '@/types/dictionary';
 
@@ -151,6 +153,20 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   // --- Derived State ---
   const activeFilterCount = useMemo(() => activeFilters.length, [activeFilters]);
 
+  // Smart filter suggestions — when no results, suggest which filters to remove
+  const filterSuggestions = useMemo((): FilterSuggestion[] => {
+    return activeFilters
+      .filter((f) => f.key !== 'searchQuery') // search has its own empty state
+      .slice(0, 4) // show max 4 suggestions
+      .map((f) => ({
+        label: f.label,
+        onRemove: () => {
+          // Clear the entire filter key (for arrays: removes all values at once)
+          removeFilter(f.key as keyof FilterState);
+        },
+      }));
+  }, [activeFilters, removeFilter]);
+
   const heroStats = useMemo(() => {
     const total = pagination.total || candidates.length;
     const male = candidates.filter((c) => c.profile.gender === 'MALE').length;
@@ -171,6 +187,56 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         : 0;
     return { total, male, female, verified, activeToday, profilesComplete };
   }, [candidates, pagination.total]);
+
+  // --- Smart Segments (computed from loaded candidates) ---
+  const smartSegments = useMemo(() => {
+    const now = Date.now();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    return {
+      newThisWeek: candidates.filter(
+        (c) => now - new Date(c.createdAt).getTime() <= oneWeek
+      ).length,
+      waitingForSuggestion: candidates.filter(
+        (c) => !c.suggestionStatus && c.isProfileComplete && c.profile.availabilityStatus === 'AVAILABLE'
+      ).length,
+      incompleteProfile: candidates.filter(
+        (c) => !c.isProfileComplete
+      ).length,
+      activeToday: candidates.filter((c) => {
+        const lastActive = c.profile.lastActiveAt
+          ? new Date(c.profile.lastActiveAt).getTime()
+          : new Date(c.createdAt).getTime();
+        return now - lastActive <= oneDay;
+      }).length,
+    };
+  }, [candidates]);
+
+  const [activeSmartSegment, setActiveSmartSegment] = useState<string | null>(null);
+
+  const handleSmartSegmentClick = useCallback((segment: string) => {
+    if (activeSmartSegment === segment) {
+      setActiveSmartSegment(null);
+      resetFilters();
+      return;
+    }
+    setActiveSmartSegment(segment);
+    switch (segment) {
+      case 'newThisWeek':
+        setFilters({ lastActiveDays: 7 });
+        break;
+      case 'waitingForSuggestion':
+        setFilters({ hasNoSuggestions: true, availabilityStatus: 'AVAILABLE', isProfileComplete: true });
+        break;
+      case 'incompleteProfile':
+        setFilters({ isProfileComplete: false });
+        break;
+      case 'activeToday':
+        setFilters({ lastActiveDays: 1 });
+        break;
+    }
+  }, [activeSmartSegment, resetFilters, setFilters]);
 
   // --- Pending AI Target (for confirmation dialog) ---
   const [pendingAiTarget, setPendingAiTarget] = useState<Candidate | null>(null);
@@ -614,6 +680,24 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
           </div>
         )}
 
+        {/* Quick Filter Bar */}
+        {isHeaderCompact && (
+          <QuickFilterBar
+            filters={filters}
+            onFiltersChange={setFilters}
+            onResetFilters={resetFilters}
+            onToggleFiltersPanel={() => setShowFiltersPanel(!showFiltersPanel)}
+            showFiltersPanel={showFiltersPanel}
+            totalCount={pagination.total || candidates.length}
+            filteredCount={displayCandidates.length}
+            activeFilterCount={activeFilterCount}
+            smartSegments={smartSegments}
+            onSmartSegmentClick={handleSmartSegmentClick}
+            activeSmartSegment={activeSmartSegment}
+            dict={matchmakerDict.candidatesManager.quickFilterBar}
+          />
+        )}
+
         {/* Similar filter active banner */}
         {similarCandidateIds && (
           <div className="bg-indigo-50 border-b border-indigo-200">
@@ -714,6 +798,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     isLoadingMore={isLoadingMore}
                     onShowSimilar={handleShowSimilar}
                     onTagsChanged={handleTagsChanged}
+                    activeFilterCount={activeFilterCount}
+                    onResetFilters={resetFilters}
+                    filterSuggestions={filterSuggestions}
                   />
                 </div>
               )}
@@ -745,6 +832,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
           onClearComparison={clearComparison}
           compareButtonLabel={
             matchmakerDict.candidatesManager.controls.compareButton
+          }
+          prepareSuggestionsLabel={
+            matchmakerDict.candidatesManager.controls.prepareSuggestionsButton
           }
           locale={locale}
         />

@@ -10,8 +10,10 @@ import {
   User,
   Telescope,
   MessageSquareQuote,
+  Fingerprint,
 } from 'lucide-react';
 import SectionCard from '../shared/SectionCard';
+import EmptyState from '../shared/EmptyState';
 import QuestionnaireItem from './QuestionnaireItem';
 import SoulFingerprintSection from './SoulFingerprintSection';
 import FriendTestimonials from '../content/FriendTestimonials';
@@ -29,6 +31,7 @@ const EssenceTab: React.FC = () => {
     WORLDS,
     personalityContent,
     sfAnswers,
+    isOwnProfile,
     characterTraitMap,
     hobbiesMap,
     renderMobileNav,
@@ -203,7 +206,7 @@ const EssenceTab: React.FC = () => {
             </SectionCard>
           </>
         )}
-        {sfAnswers && (
+        {sfAnswers ? (
           <>
             <SectionDivider />
             <SoulFingerprintSection
@@ -215,7 +218,16 @@ const EssenceTab: React.FC = () => {
               selfOnly
             />
           </>
-        )}
+        ) : isOwnProfile ? (
+          <>
+            <SectionDivider />
+            <EmptyState
+              icon={Fingerprint}
+              title={locale === 'he' ? 'טביעת הנשמה שלך עדיין לא הושלמה' : 'Your Soul Fingerprint is not yet complete'}
+              description={locale === 'he' ? 'השלם/י את טביעת הנשמה כדי להעשיר את הפרופיל ולשפר את איכות ההתאמות' : 'Complete your Soul Fingerprint to enrich your profile and improve match quality'}
+            />
+          </>
+        ) : null}
         {renderMobileNav()}
       </div>
     </TabsContent>

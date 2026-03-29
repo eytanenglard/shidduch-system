@@ -7,7 +7,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Loader2, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage, MessageReaction } from '@/hooks/useChatMessages';
 import { useSmartScroll } from '@/hooks/useSmartScroll';
@@ -77,7 +77,7 @@ export default function ChatArea({
   typingUser = null,
   isConnected = true,
   isPolling = false,
-  heightClass = 'h-[500px]',
+  heightClass = 'h-[min(500px,60vh)]',
   emptyTitle,
   emptySubtitle,
   chatType = 'direct',
@@ -134,23 +134,27 @@ export default function ChatArea({
         style={{ backgroundImage: CHAT_BG_PATTERN }}
       >
         {isLoading ? (
-          <div className="flex items-center justify-center h-full py-12">
-            <div className="text-center">
-              <Loader2
-                className="w-8 h-8 animate-spin text-teal-500 mx-auto mb-3"
-                aria-hidden="true"
-              />
-              <p className="text-sm text-gray-500" role="status">
-                {isHe ? 'טוען הודעות...' : 'Loading messages...'}
-              </p>
+          <div className="flex flex-col justify-end h-full py-4 px-2 gap-3" role="status" aria-label={isHe ? 'טוען הודעות...' : 'Loading messages...'}>
+            {/* Skeleton message bubbles */}
+            <div className="flex justify-start">
+              <div className="w-3/5 max-w-[240px] h-10 rounded-2xl rounded-bl-sm bg-white/70 animate-pulse" />
+            </div>
+            <div className="flex justify-end">
+              <div className="w-2/5 max-w-[180px] h-10 rounded-2xl rounded-br-sm bg-teal-100/70 animate-pulse" />
+            </div>
+            <div className="flex justify-start">
+              <div className="w-1/2 max-w-[200px] h-14 rounded-2xl rounded-bl-sm bg-white/70 animate-pulse" />
+            </div>
+            <div className="flex justify-end">
+              <div className="w-3/5 max-w-[240px] h-10 rounded-2xl rounded-br-sm bg-teal-100/70 animate-pulse" />
             </div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-            <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center mb-5">
-              <MessageCircle className="w-10 h-10 text-teal-400" aria-hidden="true" />
+          <div className="flex flex-col items-center justify-center h-full py-12 text-center animate-in fade-in-0 duration-500">
+            <div className="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center mb-4">
+              <MessageCircle className="w-8 h-8 text-teal-400" aria-hidden="true" />
             </div>
-            <h3 className="font-semibold text-gray-700 mb-2 text-lg">
+            <h3 className="font-semibold text-gray-700 mb-1.5 text-base">
               {emptyTitle || (isHe ? 'אין הודעות עדיין' : 'No messages yet')}
             </h3>
             <p className="text-sm text-gray-500 max-w-xs leading-relaxed">

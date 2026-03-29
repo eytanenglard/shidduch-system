@@ -47,6 +47,7 @@ export interface MainContentTabsProps {
   locale: string;
   THEME: ThemeType;
   effectiveViewMode: 'matchmaker' | 'candidate';
+  isOwnProfile: boolean;
   mobileViewLayout: 'focus' | 'detailed';
   contentScrollAreaRef: React.RefObject<HTMLDivElement | null>;
   personalityAnswers: FormattedAnswer[];
@@ -101,6 +102,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
   locale,
   THEME,
   effectiveViewMode,
+  isOwnProfile,
   mobileViewLayout,
   contentScrollAreaRef,
   personalityAnswers,
@@ -192,6 +194,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
       direction,
       locale,
       effectiveViewMode,
+      isOwnProfile,
       mobileViewLayout,
       profile,
       THEME,
@@ -229,6 +232,7 @@ const MainContentTabs: React.FC<MainContentTabsProps> = ({
       direction,
       locale,
       effectiveViewMode,
+      isOwnProfile,
       mobileViewLayout,
       profile,
       THEME,

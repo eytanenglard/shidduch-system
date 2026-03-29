@@ -78,6 +78,7 @@
     "saveError": "Save failed, will retry",
     "unansweredHint": "{{count}} required questions unanswered",
     "showUnanswered": "Show",
+    "showMoreOptions": "Show {{count}} more options",
     "done": "Continue",
     "resumeBanner": "Welcome back! You have {{count}} questions left — let's continue where you stopped"
   },
@@ -173,7 +174,7 @@
     },
     "s1_bt_path": {
       "text": "What led you to become observant?",
-      "subtitle": "Share comfortably — every path is unique and meaningful"
+      "subtitle": "You can select up to 3 — it's often a combination"
     },
     "s1_bt_time": {
       "text": "How long have you been on this journey?",
@@ -689,7 +690,8 @@
       "text": "What's important to you about growth in a partner?"
     },
     "p_davening_practice": {
-      "text": "What prayer practice would you prefer in a partner?"
+      "text": "What prayer practice would you prefer in a partner?",
+      "subtitle": "You can select up to 3 levels that work for you"
     },
     "p_datlash_partner": {
       "text": "What religious background is important to you in a partner?",
@@ -706,10 +708,12 @@
       "text": "How would you like your partner to prefer spending a free evening?"
     },
     "p_dress_code_f": {
-      "text": "What dress style would you prefer in a female partner?"
+      "text": "What dress style would you prefer in a female partner?",
+      "subtitle": "You can select up to 2 options"
     },
     "p_dress_code_m": {
-      "text": "What dress style would you prefer in a male partner?"
+      "text": "What dress style would you prefer in a male partner?",
+      "subtitle": "You can select up to 2 options"
     },
     "p_tech_relationship": {
       "text": "What relationship with technology would you prefer in a partner?"

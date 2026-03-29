@@ -27,7 +27,7 @@ export default function ScrollToBottom({
   const isHe = locale === 'he';
 
   return (
-    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 animate-fade-in">
+    <div className="absolute bottom-4 sm:bottom-20 left-1/2 -translate-x-1/2 z-10 animate-fade-in">
       <button
         onClick={onClick}
         className={cn(

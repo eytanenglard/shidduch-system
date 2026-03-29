@@ -31,6 +31,7 @@ import { useProfileCard } from './hooks/useProfileCard';
 
 // Extracted components
 import ProfileHeader from './components/header/ProfileHeader';
+import SfInsightsStrip from './components/header/SfInsightsStrip';
 import MobileImageGallery from './components/gallery/MobileImageGallery';
 import ImageDialog from './components/gallery/ImageDialog';
 import MobileHeader from './components/navigation/MobileHeader';
@@ -70,6 +71,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     profile,
     displayDict,
     effectiveViewMode,
+    isOwnProfile,
     THEME,
     WORLDS,
     isClient,
@@ -127,6 +129,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     locale,
     THEME,
     effectiveViewMode,
+    isOwnProfile,
     mobileViewLayout,
     contentScrollAreaRef,
     personalityAnswers,
@@ -364,6 +367,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               {profile.manualEntryText}
             </p>
           )}
+          {sfAnswers && (
+            <SfInsightsStrip
+              sfAnswers={sfAnswers}
+              gender={profile.gender}
+              locale={locale}
+              direction={direction}
+            />
+          )}
           <div className="px-6 pb-6 pt-2">
             <MainContentTabs isDesktop={true} {...mainContentTabsProps} />
           </div>
@@ -385,6 +396,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           dict={displayDict.gallery}
           direction={direction}
         />
+        {sfAnswers && (
+          <SfInsightsStrip
+            sfAnswers={sfAnswers}
+            gender={profile.gender}
+            locale={locale}
+            direction={direction}
+          />
+        )}
         <div className="p-3 sm:p-4 min-w-0 max-w-full bg-gray-50/50">
           <MainContentTabs isDesktop={false} {...mainContentTabsProps} />
         </div>

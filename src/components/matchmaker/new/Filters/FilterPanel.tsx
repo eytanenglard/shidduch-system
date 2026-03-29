@@ -487,6 +487,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                     )}
                   </FilterSection>
 
+                  {/* ── Category: Demographics ── */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{dict.sections.demographics}</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                  </div>
+
                   {/* Age */}
                   <FilterSection
                     title={dict.sections.age}
@@ -571,6 +578,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     </div>
                   </FilterSection>
+
+                  {/* ── Category: Religion & Values ── */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{dict.sections.religionValues}</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                  </div>
 
                   {/* Religious Level */}
                   <FilterSection
@@ -721,6 +735,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       </Select>
                     </div>
                   </FilterSection>
+
+                  {/* ── Category: Profile Status ── */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{dict.sections.status}</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                  </div>
 
                   {/* Status Toggles */}
                   <FilterSection
@@ -890,6 +911,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       dict={dict}
                     />
                   </FilterSection>
+
+                  {/* ── Category: Appearance ── */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{dict.sections.appearance}</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                  </div>
 
                   {/* Body Type */}
                   <FilterSection

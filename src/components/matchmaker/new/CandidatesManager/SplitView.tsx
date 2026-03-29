@@ -43,6 +43,7 @@ import type {
 } from '../types/shared';
 import { toBackgroundCompatibility } from '../types/shared';
 import type { FilterState } from '../types/filters';
+import type { FilterSuggestion } from '../shared/EmptyStates';
 import SearchBar from '../Filters/SearchBar';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -104,6 +105,12 @@ interface SplitViewProps {
   onShowSimilar?: (candidate: import('../types/candidates').Candidate, e: React.MouseEvent) => void;
   /** Callback when tags are changed on a candidate */
   onTagsChanged?: () => void;
+  /** Active filter count for empty state */
+  activeFilterCount?: number;
+  /** Reset all filters callback */
+  onResetFilters?: () => void;
+  /** Smart filter suggestions for empty state */
+  filterSuggestions?: FilterSuggestion[];
 }
 
 // ============================================================================
@@ -990,6 +997,9 @@ const SplitView: React.FC<SplitViewProps> = ({
     isLoadingMore,
     onShowSimilar,
     onTagsChanged,
+    activeFilterCount,
+    onResetFilters,
+    filterSuggestions,
   } = props;
 
   // 🆕 Use global context
@@ -1457,6 +1467,9 @@ const SplitView: React.FC<SplitViewProps> = ({
         isLoadingMore={isLoadingMore}
         onShowSimilar={onShowSimilar}
         onTagsChanged={onTagsChanged}
+        activeFilterCount={activeFilterCount}
+        onResetFilters={onResetFilters}
+        filterSuggestions={filterSuggestions}
       />
     );
   };
@@ -1611,6 +1624,9 @@ const SplitView: React.FC<SplitViewProps> = ({
                 locale={locale}
                 onEndReached={onEndReached}
                 onTagsChanged={onTagsChanged}
+                activeFilterCount={activeFilterCount}
+                onResetFilters={onResetFilters}
+                filterSuggestions={filterSuggestions}
               />
             </div>
           </div>
@@ -1662,6 +1678,9 @@ const SplitView: React.FC<SplitViewProps> = ({
                 locale={locale}
                 onEndReached={onEndReached}
                 onTagsChanged={onTagsChanged}
+                activeFilterCount={activeFilterCount}
+                onResetFilters={onResetFilters}
+                filterSuggestions={filterSuggestions}
               />
             </div>
           </div>

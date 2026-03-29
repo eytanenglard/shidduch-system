@@ -74,6 +74,7 @@ export function useProfileCard({
   const { data: session } = useSession();
   const isMatchmaker = session?.user?.role === 'ADMIN';
   const effectiveViewMode = isMatchmaker ? 'matchmaker' : viewMode;
+  const isOwnProfile = !!(session?.user?.id && session.user.id === profileData.user?.id);
 
   const contentScrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -394,6 +395,7 @@ export function useProfileCard({
     profile,
     displayDict,
     effectiveViewMode,
+    isOwnProfile,
     THEME,
     WORLDS,
     // State

@@ -82,10 +82,10 @@ const FilterChip: React.FC<FilterChipProps> = ({
   <button
     onClick={onClick}
     className={cn(
-      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap',
+      'relative inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200 border whitespace-nowrap',
       isActive
-        ? `${activeColors} shadow-sm`
-        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+        ? `${activeColors} shadow-md scale-[1.02]`
+        : 'bg-white/80 backdrop-blur-sm text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm hover:scale-[1.01]'
     )}
   >
     <Icon className="w-3.5 h-3.5" />
@@ -93,7 +93,7 @@ const FilterChip: React.FC<FilterChipProps> = ({
     {count > 0 && (
       <span
         className={cn(
-          'inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold',
+          'inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold transition-colors',
           isActive ? 'bg-white/30 text-current' : 'bg-gray-100 text-gray-600'
         )}
       >
@@ -102,6 +102,44 @@ const FilterChip: React.FC<FilterChipProps> = ({
     )}
   </button>
 );
+
+// --- Stats Summary ---
+interface StatsSummaryProps {
+  active: number;
+  interested: number;
+  pending: number;
+  history: number;
+  locale: 'he' | 'en';
+}
+
+const StatsSummary: React.FC<StatsSummaryProps> = ({
+  active, interested, pending, history, locale,
+}) => {
+  const stats = locale === 'he'
+    ? [
+      { label: 'פעילות', value: active, color: 'text-teal-600' },
+      { label: 'בהמתנה', value: interested, color: 'text-amber-600' },
+      { label: 'ממתינות', value: pending, color: 'text-blue-600' },
+      { label: 'היסטוריה', value: history, color: 'text-gray-500' },
+    ]
+    : [
+      { label: 'Active', value: active, color: 'text-teal-600' },
+      { label: 'Saved', value: interested, color: 'text-amber-600' },
+      { label: 'Pending', value: pending, color: 'text-blue-600' },
+      { label: 'History', value: history, color: 'text-gray-500' },
+    ];
+
+  return (
+    <div className="flex items-center gap-4 sm:gap-6">
+      {stats.map((stat) => (
+        <div key={stat.label} className="flex items-center gap-1.5">
+          <span className={cn('text-lg font-bold', stat.color)}>{stat.value}</span>
+          <span className="text-xs text-gray-400">{stat.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 // --- Props ---
 interface MatchSuggestionsContainerProps {
@@ -201,34 +239,57 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
   // --- Render ---
   return (
     <div
-      className={cn('min-h-screen bg-gray-50', className)}
+      className={cn('min-h-screen bg-gradient-to-b from-slate-50 via-gray-50 to-white', className)}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <div className="max-w-[900px] mx-auto px-4 py-6 space-y-6">
 
-        {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">
-            {suggestionsDict.container.main.title}
-          </h1>
-          <div className="flex items-center gap-2">
-            {suggestions.hasNewSuggestions && (
-              <Badge className="bg-amber-500 text-white border-0 text-xs animate-pulse">
-                <Bell className={cn('w-3 h-3', isRtl ? 'ml-1' : 'mr-1')} />
-                {suggestionsDict.container.main.newSuggestions}
-              </Badge>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={suggestions.handleRefresh}
-              disabled={suggestions.isRefreshing}
-              className="rounded-lg h-9 w-9 hover:bg-gray-200"
-              aria-label={suggestionsDict.container.main.refreshAriaLabel}
-            >
-              <RefreshCw className={cn('h-4 w-4 text-gray-600', suggestions.isRefreshing && 'animate-spin')} />
-            </Button>
+        {/* Page Header — hero style with gradient */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-teal-50/30 border border-gray-100/80 p-5 shadow-sm">
+          {/* Subtle background orbs */}
+          <div className="absolute -top-10 -end-10 w-40 h-40 rounded-full bg-teal-100/30 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-8 -start-8 w-32 h-32 rounded-full bg-amber-100/20 blur-2xl pointer-events-none" />
+
+          <div className="relative flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                {suggestionsDict.container.main.title}
+              </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {suggestions.hasNewSuggestions && (
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                >
+                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 text-xs shadow-md shadow-amber-500/25">
+                    <Bell className={cn('w-3 h-3', isRtl ? 'ml-1' : 'mr-1')} />
+                    {suggestionsDict.container.main.newSuggestions}
+                  </Badge>
+                </motion.div>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={suggestions.handleRefresh}
+                disabled={suggestions.isRefreshing}
+                className="rounded-xl h-9 w-9 hover:bg-white/80 backdrop-blur-sm"
+                aria-label={suggestionsDict.container.main.refreshAriaLabel}
+              >
+                <RefreshCw className={cn('h-4 w-4 text-gray-500', suggestions.isRefreshing && 'animate-spin')} />
+              </Button>
+            </div>
           </div>
+
+          {/* Stats summary bar */}
+          <StatsSummary
+            active={suggestions.activeProcessSuggestion ? 1 : 0}
+            interested={suggestions.interestedSuggestions.length}
+            pending={suggestions.sortedActiveSuggestions.length}
+            history={suggestions.matchmakerHistorySuggestions.length}
+            locale={locale}
+          />
         </div>
 
         {/* Auto-Suggestions Zone */}
@@ -260,27 +321,33 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
         {/* Date Feedback CTA */}
         {suggestions.datingSuggestion && (
-          <div className="flex items-center gap-3 p-4 bg-rose-50 rounded-xl border border-rose-200">
-            <div className="w-9 h-9 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
-              <Heart className="w-4 h-4 text-rose-600" />
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden flex items-center gap-3 p-4 rounded-2xl border border-rose-200/50 shadow-sm"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-rose-50 via-pink-50/50 to-white" />
+            <div className="absolute -top-6 -end-6 w-24 h-24 rounded-full bg-rose-100/40 blur-2xl pointer-events-none" />
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-rose-400/25">
+              <Heart className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-rose-800">
+            <div className="relative flex-1">
+              <h4 className="text-sm font-bold text-rose-800">
                 {suggestionsDict.container.dateFeedback.title}
               </h4>
-              <p className="text-xs text-rose-600">
+              <p className="text-xs text-rose-600/80">
                 {suggestionsDict.container.dateFeedback.description}
               </p>
             </div>
             <Button
               size="sm"
-              className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs px-4"
+              className="relative bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl text-xs px-4 shadow-md shadow-rose-500/25 hover:shadow-lg transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
               onClick={() => actions.setShowDateFeedbackDialog(true)}
             >
               <MessageCircle className={cn('w-3.5 h-3.5', isRtl ? 'ml-1.5' : 'mr-1.5')} />
               {suggestionsDict.container.dateFeedback.shareButton}
             </Button>
-          </div>
+          </motion.div>
         )}
 
         {/* Tabs */}
@@ -290,18 +357,18 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
           dir={isRtl ? 'rtl' : 'ltr'}
           className="space-y-4"
         >
-          <TabsList className="grid grid-cols-2 bg-gray-100 rounded-lg p-1 h-11 w-full">
+          <TabsList className="grid grid-cols-2 bg-white/80 backdrop-blur-sm rounded-xl p-1.5 h-12 w-full shadow-sm border border-gray-100/80">
             <TabsTrigger
               value="active"
-              className="flex items-center gap-2 px-4 py-2 rounded-md transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-sm"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-teal-500/25 font-medium text-sm"
             >
-              <Target className="w-4 h-4 text-teal-600" />
+              <Target className="w-4 h-4" />
               {suggestionsDict.container.main.tabs.active}
               {suggestions.matchmakerActiveSuggestions.length > 0 && (
                 <Badge
                   className={cn(
-                    'text-white border-0 px-1.5 py-0 text-[10px] font-bold rounded-full min-w-[20px] h-5',
-                    suggestions.urgentCount > 0 ? 'bg-amber-500' : 'bg-teal-600'
+                    'border-0 px-1.5 py-0 text-[10px] font-bold rounded-full min-w-[20px] h-5',
+                    suggestions.urgentCount > 0 ? 'bg-amber-500 text-white' : 'bg-white/30 text-current'
                   )}
                 >
                   {suggestions.matchmakerActiveSuggestions.length}
@@ -310,12 +377,12 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="flex items-center gap-2 px-4 py-2 rounded-md transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-sm"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-gray-600 data-[state=active]:to-gray-700 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-gray-500/25 font-medium text-sm"
             >
-              <History className="w-4 h-4 text-gray-500" />
+              <History className="w-4 h-4" />
               {suggestionsDict.container.main.tabs.history}
               {suggestions.matchmakerHistorySuggestions.length > 0 && (
-                <Badge className="bg-gray-500 text-white border-0 px-1.5 py-0 text-[10px] font-bold rounded-full min-w-[20px] h-5">
+                <Badge className="bg-white/30 text-current border-0 px-1.5 py-0 text-[10px] font-bold rounded-full min-w-[20px] h-5">
                   {suggestions.matchmakerHistorySuggestions.length}
                 </Badge>
               )}
@@ -481,8 +548,25 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
 
       {/* Confirmation Dialog */}
       <AlertDialog open={actions.showConfirmDialog} onOpenChange={actions.setShowConfirmDialog}>
-        <AlertDialogContent className="border border-gray-200 shadow-lg rounded-xl z-[9999]">
+        <AlertDialogContent className="border border-gray-100 shadow-2xl rounded-2xl z-[9999]">
           <AlertDialogHeader>
+            <div className="flex justify-center mb-3">
+              <div className={cn(
+                'w-14 h-14 rounded-2xl flex items-center justify-center shadow-md',
+                actions.actionType === 'approve'
+                  ? 'bg-gradient-to-br from-teal-400 to-emerald-400 shadow-teal-400/25'
+                  : actions.actionType === 'interested'
+                    ? 'bg-gradient-to-br from-amber-400 to-orange-400 shadow-amber-400/25'
+                    : 'bg-gradient-to-br from-rose-400 to-pink-400 shadow-rose-400/25'
+              )}>
+                {actions.actionType === 'approve'
+                  ? <CheckCircle className="w-7 h-7 text-white" />
+                  : actions.actionType === 'interested'
+                    ? <Bookmark className="w-7 h-7 text-white" />
+                    : <XCircle className="w-7 h-7 text-white" />
+                }
+              </div>
+            </div>
             <AlertDialogTitle className="text-xl font-bold text-center">
               {actions.actionType === 'approve'
                 ? suggestionsDict.container.dialogs.approveTitle
@@ -490,7 +574,7 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   ? suggestionsDict.container.dialogs.interestedTitle
                   : suggestionsDict.container.dialogs.declineTitle}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-gray-600 leading-relaxed">
+            <AlertDialogDescription className="text-center text-gray-500 leading-relaxed">
               {actions.actionType === 'approve'
                 ? suggestionsDict.container.dialogs.approveDescription
                 : actions.actionType === 'interested'
@@ -498,19 +582,19 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
                   : suggestionsDict.container.dialogs.declineDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel className="rounded-xl">
+          <AlertDialogFooter className="gap-3 mt-2">
+            <AlertDialogCancel className="rounded-xl border-gray-200 hover:bg-gray-50">
               {suggestionsDict.container.dialogs.cancel}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={actions.handleConfirmAction}
               className={cn(
-                'rounded-lg font-medium transition-all',
+                'rounded-xl font-semibold transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]',
                 actions.actionType === 'approve'
-                  ? 'bg-teal-600 hover:bg-teal-700'
+                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-teal-500/25'
                   : actions.actionType === 'interested'
-                    ? 'bg-amber-500 hover:bg-amber-600'
-                    : 'bg-rose-600 hover:bg-rose-700'
+                    ? 'bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 shadow-amber-400/25'
+                    : 'bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 shadow-rose-500/25'
               )}
             >
               {actions.actionType === 'approve' ? (
@@ -559,21 +643,28 @@ const MatchSuggestionsContainer: React.FC<MatchSuggestionsContainerProps> = ({
       />
 
       {/* Floating AI Chat FAB */}
-      {showChatFab && (
-        <button
-          onClick={handleOpenChat}
-          className={cn(
-            'fixed bottom-6 z-50 w-12 h-12 rounded-full bg-violet-600 text-white shadow-lg',
-            'hover:bg-violet-700 hover:shadow-xl hover:scale-105',
-            'transition-all duration-200 flex items-center justify-center',
-            'animate-in fade-in-0 slide-in-from-bottom-4 duration-300',
-            isRtl ? 'left-6' : 'right-6',
-          )}
-          aria-label={suggestionsDict.container.chatFab.ariaLabel}
-        >
-          <Sparkles className="w-5 h-5" />
-        </button>
-      )}
+      <AnimatePresence>
+        {showChatFab && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            onClick={handleOpenChat}
+            className={cn(
+              'fixed bottom-6 z-50 w-14 h-14 rounded-2xl',
+              'bg-gradient-to-br from-violet-500 to-purple-600 text-white',
+              'shadow-xl shadow-violet-500/30',
+              'hover:shadow-2xl hover:shadow-violet-500/40 hover:scale-110',
+              'transition-all duration-200 flex items-center justify-center',
+              isRtl ? 'left-6' : 'right-6',
+            )}
+            aria-label={suggestionsDict.container.chatFab.ariaLabel}
+          >
+            <Sparkles className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

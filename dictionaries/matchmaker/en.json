@@ -37,6 +37,7 @@
       "disableQuickViewTooltip": "Turn off the hover-to-view feature",
       "enableQuickViewTooltip": "Turn on the hover-to-view feature",
       "compareButton": "Compare ({{count}})",
+      "prepareSuggestionsButton": "Prepare Suggestions",
       "mobile": {
         "split": "Split",
         "singleCol": "Single Col",
@@ -483,6 +484,30 @@
         "avgCriteria": "Avg. Criteria"
       }
     },
+    "quickFilterBar": {
+      "showingResults": "Showing {{filtered}} of {{total}}",
+      "filtersActive": "{{count}} filters",
+      "clearAll": "Clear all",
+      "moreFilters": "More Filters",
+      "gender": "Gender",
+      "age": "Age",
+      "city": "City",
+      "religiousLevel": "Religious",
+      "status": "Status",
+      "all": "All",
+      "male": "Men",
+      "female": "Women",
+      "available": "Available only",
+      "active7Days": "Active (7 days)",
+      "verified": "Verified",
+      "selectCity": "Select city",
+      "segments": {
+        "newThisWeek": "New this week",
+        "waitingForSuggestion": "Waiting for suggestion",
+        "incompleteProfile": "Incomplete profile",
+        "activeToday": "Active today"
+      }
+    },
     "filterPanel": {
       "header": {
         "title": "Advanced Candidate Filtering",
@@ -571,7 +596,10 @@
         "status": "Status & Verification",
         "bodyType": "Body Type",
         "appearanceTone": "Appearance Tone",
-        "ethnicBackground": "Ethnic Background"
+        "ethnicBackground": "Ethnic Background",
+        "demographics": "Demographics",
+        "religionValues": "Religion & Values",
+        "appearance": "Appearance"
       },
       "buttons": {
         "male": "Men",

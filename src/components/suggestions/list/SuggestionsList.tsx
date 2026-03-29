@@ -283,8 +283,8 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
           locale={locale}
         />
       ) : (
-        <div className="space-y-2">
-          {filteredSuggestions.map((suggestion) => (
+        <div className="space-y-3">
+          {filteredSuggestions.map((suggestion, index) => (
             <SuggestionRow
               key={suggestion.id}
               suggestion={suggestion}
@@ -298,6 +298,7 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
               isUserInActiveProcess={isUserInActiveProcess}
               dict={suggestionsDict.card}
               timelineDict={suggestionsDict.timeline}
+              index={index}
             />
           ))}
         </div>

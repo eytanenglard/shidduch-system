@@ -33,9 +33,15 @@ interface NoSearchResultsProps extends EmptyStateVariantProps {
   onClearSearch?: () => void;
 }
 
+export interface FilterSuggestion {
+  label: string;
+  onRemove: () => void;
+}
+
 interface NoFilterResultsProps extends EmptyStateVariantProps {
   activeFilterCount: number;
   onResetFilters?: () => void;
+  filterSuggestions?: FilterSuggestion[];
 }
 
 interface NoMatchesProps extends EmptyStateVariantProps {
@@ -153,27 +159,62 @@ export const NoSearchResultsEmpty: React.FC<NoSearchResultsProps> = ({
 export const NoFilterResultsEmpty: React.FC<NoFilterResultsProps> = ({
   activeFilterCount,
   onResetFilters,
+  filterSuggestions,
   className,
 }) => (
-  <EmptyStateLayout
-    icon={<Filter className="w-10 h-10 text-white" />}
-    iconGradient="from-amber-400 to-orange-500"
-    title="אין מועמדים שתואמים את הפילטרים"
-    description={`${activeFilterCount} פילטרים פעילים. נסה להרחיב את הקריטריונים או לאפס את הפילטרים.`}
-    action={
-      onResetFilters && (
-        <Button
-          onClick={onResetFilters}
-          variant="outline"
-          className="border-2 border-amber-200 text-amber-600 hover:bg-amber-50 rounded-xl"
-        >
-          <SlidersHorizontal className="w-4 h-4 mr-2" />
-          אפס פילטרים
-        </Button>
-      )
-    }
-    className={className}
-  />
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4 }}
+    className={cn(
+      'flex flex-col items-center justify-center text-center py-12 px-8',
+      'bg-gradient-to-br from-white via-amber-50/30 to-white',
+      'rounded-2xl border border-dashed border-amber-200/80',
+      className
+    )}
+  >
+    <div className="w-16 h-16 rounded-full flex items-center justify-center mb-5 bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg">
+      <Filter className="w-8 h-8 text-white" />
+    </div>
+    <h3 className="text-lg font-bold text-gray-800 mb-1">
+      אין מועמדים שתואמים את הפילטרים
+    </h3>
+    <p className="text-sm text-gray-500 mb-5">
+      {activeFilterCount} פילטרים פעילים מצמצמים את התוצאות.
+    </p>
+
+    {/* Smart Suggestions */}
+    {filterSuggestions && filterSuggestions.length > 0 && (
+      <div className="w-full max-w-sm mb-5 space-y-2">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+          נסי להסיר:
+        </p>
+        {filterSuggestions.map((suggestion, i) => (
+          <button
+            key={i}
+            onClick={suggestion.onRemove}
+            className="flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-all text-sm group"
+          >
+            <span className="text-gray-700">{suggestion.label}</span>
+            <span className="text-amber-500 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              הסר פילטר →
+            </span>
+          </button>
+        ))}
+      </div>
+    )}
+
+    {onResetFilters && (
+      <Button
+        onClick={onResetFilters}
+        variant="outline"
+        className="border-2 border-amber-200 text-amber-600 hover:bg-amber-50 rounded-xl"
+      >
+        <SlidersHorizontal className="w-4 h-4 mr-2" />
+        אפס את כל הפילטרים
+      </Button>
+    )}
+  </motion.div>
 );
 
 /**

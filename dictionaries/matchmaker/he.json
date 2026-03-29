@@ -317,6 +317,7 @@
       "disableQuickViewTooltip": "כבה את התצוגה המהירה בריחוף",
       "enableQuickViewTooltip": "הפעל את התצוגה המהירה בריחוף",
       "compareButton": "בצע השוואה ({{count}})",
+      "prepareSuggestionsButton": "הכן הצעות",
       "mobile": {
         "split": "מפוצל",
         "singleCol": "טור אחד",
@@ -417,6 +418,30 @@
         "mediumPriority": "{{count}} בינוניים"
       }
     },
+    "quickFilterBar": {
+      "showingResults": "מציג {{filtered}} מתוך {{total}}",
+      "filtersActive": "{{count}} פילטרים",
+      "clearAll": "נקה הכל",
+      "moreFilters": "עוד פילטרים",
+      "gender": "מגדר",
+      "age": "גיל",
+      "city": "עיר",
+      "religiousLevel": "דתיות",
+      "status": "סטטוס",
+      "all": "הכל",
+      "male": "גברים",
+      "female": "נשים",
+      "available": "פנויים בלבד",
+      "active7Days": "פעילים (7 ימים)",
+      "verified": "מאומתים",
+      "selectCity": "בחר עיר",
+      "segments": {
+        "newThisWeek": "חדשים השבוע",
+        "waitingForSuggestion": "ממתינים להצעה",
+        "incompleteProfile": "פרופיל חלקי",
+        "activeToday": "פעילים היום"
+      }
+    },
     "filterPanel": {
   "header": {
     "title": "סינון מועמדים מתקדם",
@@ -504,7 +529,10 @@
     "status": "סטטוס ואימות",
     "bodyType": "גזרה",
     "appearanceTone": "גוון מראה",
-    "ethnicBackground": "רקע עדתי"
+    "ethnicBackground": "רקע עדתי",
+    "demographics": "דמוגרפי",
+    "religionValues": "דת וערכים",
+    "appearance": "מראה"
   },
   "buttons": {
     "male": "גברים",

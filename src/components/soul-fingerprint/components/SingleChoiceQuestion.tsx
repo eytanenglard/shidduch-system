@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 import type { SFQuestion } from '../types';
 
 interface Props {
@@ -15,56 +17,130 @@ interface Props {
 
 export default function SingleChoiceQuestion({ question, value, onChange, customValue, onCustomChange, t, isRTL }: Props) {
   const [localCustom, setLocalCustom] = useState(customValue || '');
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const wasManuallyExpanded = useRef(false);
+  const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevQuestionId = useRef(question.id);
 
   useEffect(() => {
     setLocalCustom(customValue || '');
   }, [customValue]);
 
-  const selectedOption = question.options?.find(opt => opt.value === value);
+  // Reset collapse state when question changes
+  useEffect(() => {
+    if (prevQuestionId.current !== question.id) {
+      setIsCollapsed(false);
+      wasManuallyExpanded.current = false;
+      prevQuestionId.current = question.id;
+    }
+  }, [question.id]);
+
+  const allOptions = question.options || [];
+
+  const shouldAutoCollapse = useMemo(() => {
+    if (!value) return false;
+    // Only collapse if there are enough options to hide (at least 3 hidden)
+    return allOptions.length - 1 >= 3;
+  }, [value, allOptions.length]);
+
+  // Auto-collapse after selection
+  useEffect(() => {
+    if (collapseTimer.current) clearTimeout(collapseTimer.current);
+
+    if (shouldAutoCollapse && !wasManuallyExpanded.current) {
+      collapseTimer.current = setTimeout(() => setIsCollapsed(true), 700);
+    } else if (!shouldAutoCollapse) {
+      setIsCollapsed(false);
+    }
+
+    return () => {
+      if (collapseTimer.current) clearTimeout(collapseTimer.current);
+    };
+  }, [shouldAutoCollapse]);
+
+  const handleExpand = () => {
+    setIsCollapsed(false);
+    wasManuallyExpanded.current = true;
+  };
+
+  const visibleOptions = isCollapsed
+    ? allOptions.filter(opt => opt.value === value)
+    : allOptions;
+
+  const hiddenCount = allOptions.length - visibleOptions.length;
+
+  const selectedOption = allOptions.find(opt => opt.value === value);
   const showCustomInput = selectedOption?.isCustomInput;
 
   return (
     <div className="space-y-2">
-      {question.options?.map((opt) => {
-        const isSelected = value === opt.value;
-        return (
-          <button
-            key={opt.value}
-            onClick={() => onChange(opt.value)}
-            className={`
-              w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all duration-200
-              ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}
-              ${
-                isSelected
-                  ? 'border-teal-500 bg-teal-50 shadow-sm'
-                  : 'border-gray-200 hover:border-teal-200 hover:bg-gray-50'
-              }
-            `}
-          >
-            {opt.icon && <span className="text-xl flex-shrink-0">{opt.icon}</span>}
-            <div className="flex-1 min-w-0">
-              <span className={`block text-sm font-medium ${isSelected ? 'text-teal-700' : 'text-gray-700'}`}>
-                {t(opt.labelKey)}
-              </span>
-              {opt.subtitleKey && (
-                <span className="block text-xs text-gray-500 mt-0.5">{t(opt.subtitleKey)}</span>
-              )}
-            </div>
-            <div
-              className={`
-                w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                ${isSelected ? 'border-teal-500 bg-teal-500' : 'border-gray-300'}
-              `}
+      <AnimatePresence mode="popLayout">
+        {visibleOptions.map((opt) => {
+          const isSelected = value === opt.value;
+          return (
+            <motion.div
+              key={opt.value}
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
             >
-              {isSelected && (
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 12 12">
-                  <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
-                </svg>
-              )}
-            </div>
-          </button>
-        );
-      })}
+              <button
+                onClick={() => {
+                  onChange(opt.value);
+                  wasManuallyExpanded.current = false;
+                }}
+                className={`
+                  w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all duration-200
+                  ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}
+                  ${
+                    isSelected
+                      ? 'border-teal-500 bg-teal-50 shadow-sm'
+                      : 'border-gray-200 hover:border-teal-200 hover:bg-gray-50'
+                  }
+                `}
+              >
+                {opt.icon && <span className="text-xl flex-shrink-0">{opt.icon}</span>}
+                <div className="flex-1 min-w-0">
+                  <span className={`block text-sm font-medium ${isSelected ? 'text-teal-700' : 'text-gray-700'}`}>
+                    {t(opt.labelKey)}
+                  </span>
+                  {opt.subtitleKey && (
+                    <span className="block text-xs text-gray-500 mt-0.5">{t(opt.subtitleKey)}</span>
+                  )}
+                </div>
+                <div
+                  className={`
+                    w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
+                    ${isSelected ? 'border-teal-500 bg-teal-500' : 'border-gray-300'}
+                  `}
+                >
+                  {isSelected && (
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 12 12">
+                      <path d="M10.28 2.28L3.989 8.575 1.695 6.28A1 1 0 00.28 7.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28 2.28z" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+
+      {/* Show more button when collapsed */}
+      {isCollapsed && hiddenCount > 0 && (
+        <motion.button
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
+          onClick={handleExpand}
+          className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-xl transition-colors"
+        >
+          <span>{t('labels.showMoreOptions').replace('{{count}}', String(hiddenCount))}</span>
+          <ChevronDown className="w-4 h-4" />
+        </motion.button>
+      )}
 
       {/* Custom text input for "other" options */}
       {showCustomInput && (

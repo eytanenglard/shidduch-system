@@ -100,7 +100,7 @@ export default function SuggestionChat({
     await sendMessage(content);
   }, [newMessage, sendMessage]);
 
-  const containerHeight = heightClass || (compact ? 'h-[420px]' : 'h-[500px]');
+  const containerHeight = heightClass || (compact ? 'h-[min(420px,55vh)]' : 'h-[min(500px,60vh)]');
 
   return (
     <div

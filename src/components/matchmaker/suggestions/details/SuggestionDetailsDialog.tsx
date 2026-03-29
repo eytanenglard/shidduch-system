@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNotifications } from '@/app/[locale]/contexts/NotificationContext';
 import SuggestionChatTab from './SuggestionChatTab';
+import SfSliderComparison from './SfSliderComparison';
 import AiChatInsightsPanel from '../AiChatInsightsPanel';
 
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -1117,6 +1118,19 @@ const SuggestionDetailsDialog: React.FC<SuggestionDetailsDialogProps> = ({
                 onShowStatusChange={() => setShowStatusChange(true)}
                 userId={userId}
               />
+              {firstPartySfAnswers && secondPartySfAnswers && (
+                <div className="px-4 sm:px-6 pb-6">
+                  <SfSliderComparison
+                    sfAnswersA={firstPartySfAnswers}
+                    sfAnswersB={secondPartySfAnswers}
+                    genderA={suggestion.firstParty.profile?.gender || null}
+                    genderB={suggestion.secondParty.profile?.gender || null}
+                    nameA={suggestion.firstParty.firstName}
+                    nameB={suggestion.secondParty.firstName}
+                    locale={locale}
+                  />
+                </div>
+              )}
             </TabsContent>
 
             {/* First Party Profile */}

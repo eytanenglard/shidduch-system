@@ -15,6 +15,7 @@ interface ComparisonFloatingBarProps {
   onOpenBulkSuggestions: () => void;
   onClearComparison: () => void;
   compareButtonLabel: string;
+  prepareSuggestionsLabel?: string;
   locale: string;
 }
 
@@ -25,6 +26,7 @@ const ComparisonFloatingBar: React.FC<ComparisonFloatingBarProps> = ({
   onOpenBulkSuggestions,
   onClearComparison,
   compareButtonLabel,
+  prepareSuggestionsLabel = 'הכן הצעות',
   locale,
 }) => {
   const comparisonCount = Object.keys(comparisonSelection).length;
@@ -87,7 +89,7 @@ const ComparisonFloatingBar: React.FC<ComparisonFloatingBarProps> = ({
               <Layers
                 className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
               />
-              הכן הצעות
+              {prepareSuggestionsLabel}
             </Button>
 
             <Button

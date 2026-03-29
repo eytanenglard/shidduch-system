@@ -541,8 +541,9 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
   // תוקן: באג של about כפול
   // ============================================
   const completionPercentage = useMemo(() => {
-    const QUESTIONNAIRE_WEIGHT = 20;
-    const OTHER_TASKS_WEIGHT = 80;
+    const QUESTIONNAIRE_WEIGHT = 15;
+    const SF_WEIGHT = 10;
+    const OTHER_TASKS_WEIGHT = 75;
 
     const totalQuestions = Object.values(QUESTION_COUNTS).reduce(
       (sum, count) => sum + count,
@@ -696,9 +697,6 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
       otherTasksStatus.push(...Array(40).fill(false));
     }
 
-    // Soul Fingerprint
-    otherTasksStatus.push(sfCompleted);
-
     const totalOtherTasks = otherTasksStatus.length;
     const completedOtherTasks = otherTasksStatus.filter(Boolean).length;
 
@@ -707,8 +705,15 @@ export const ProfileChecklist: React.FC<ProfileChecklistProps> = ({
         ? (completedOtherTasks / totalOtherTasks) * OTHER_TASKS_WEIGHT
         : 0;
 
-    return Math.round(questionnaireContribution + otherTasksContribution);
-  }, [user, questionnaireProgress, isReligious, sfCompleted]);
+    // Soul Fingerprint — proportional based on answered questions
+    const sfContribution = sfCompleted
+      ? SF_WEIGHT
+      : sfProgress
+        ? (sfProgress.answered / sfProgress.total) * SF_WEIGHT
+        : 0;
+
+    return Math.round(questionnaireContribution + otherTasksContribution + sfContribution);
+  }, [user, questionnaireProgress, isReligious, sfCompleted, sfProgress]);
 
   const isAllComplete = completionPercentage >= 100;
 
