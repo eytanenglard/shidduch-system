@@ -1376,13 +1376,13 @@ export class DailySuggestionOrchestrator {
         lastName: true,
         status: true,
         isPhoneVerified: true,
+        isProfileComplete: true,
         engagementEmailsConsent: true,
         source: true,
         role: true,
         profile: {
           select: {
             gender: true,
-            isProfileComplete: true,
             isProfileVisible: true,
             availabilityStatus: true,
           },
@@ -1407,7 +1407,7 @@ export class DailySuggestionOrchestrator {
     });
 
     // 3. Profile complete
-    const profileComplete = user.profile?.isProfileComplete === true;
+    const profileComplete = user.isProfileComplete === true;
     checks.push({
       name: 'profile_complete',
       label: 'פרופיל מלא',
