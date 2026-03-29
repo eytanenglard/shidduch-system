@@ -324,6 +324,7 @@ export class StatusTransitionService {
       ],
       FIRST_PARTY_DECLINED: [
         MatchSuggestionStatus.CLOSED,
+        MatchSuggestionStatus.PENDING_FIRST_PARTY,  // undo decline (30s grace period)
       ],
       PENDING_SECOND_PARTY: [
         MatchSuggestionStatus.SECOND_PARTY_APPROVED,

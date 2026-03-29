@@ -1,6 +1,6 @@
 // src/components/suggestions/cards/CompactCardActions.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   XCircle,
   Heart,
@@ -11,6 +11,16 @@ import {
   Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type { SuggestionsCardDict } from '@/types/dictionary';
@@ -54,94 +64,78 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
 }) => {
   const isRtl = locale === 'he';
   const iconCn = cn('w-3.5 h-3.5', isRtl ? 'ml-1' : 'mr-1');
+  const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
+
+  const handleDeclineClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeclineConfirm(true);
+  };
+
+  const confirmDecline = () => {
+    onDecline?.(suggestion);
+    setShowDeclineConfirm(false);
+  };
+
+  const declineDialog = (
+    <AlertDialog open={showDeclineConfirm} onOpenChange={setShowDeclineConfirm}>
+      <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {isRtl ? 'דחיית הצעה' : 'Decline Suggestion'}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {isRtl
+              ? 'האם את/ה בטוח/ה שברצונך לדחות את ההצעה? לא ניתן לבטל פעולה זו.'
+              : 'Are you sure you want to decline this suggestion? This action cannot be undone.'}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{isRtl ? 'ביטול' : 'Cancel'}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmDecline}
+            className="bg-rose-500 hover:bg-rose-600 text-white"
+          >
+            {isRtl ? 'דחה/י' : 'Decline'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 
   // CASE: First party PENDING
   if (suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty) {
     if (isUserInActiveProcess) {
       return (
-        <div className="flex items-center gap-2 w-full">
-          <Button
-            size="sm"
-            className={interestedBtn}
-            disabled={!!isLoading}
-            onClick={(e) => { e.stopPropagation(); onInterested?.(suggestion); }}
-          >
-            {isLoading === 'interested' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Bookmark className={iconCn} />}
-            {dict.buttons.interested}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className={declineBtn}
-            disabled={!!isLoading}
-            onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
-          >
-            {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <XCircle className={iconCn} />}
-            {dict.buttons.decline}
-          </Button>
-        </div>
+        <>
+          <div className="flex items-center gap-2 w-full">
+            <Button
+              size="sm"
+              className={interestedBtn}
+              disabled={!!isLoading}
+              onClick={(e) => { e.stopPropagation(); onInterested?.(suggestion); }}
+            >
+              {isLoading === 'interested' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Bookmark className={iconCn} />}
+              {dict.buttons.interested}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className={declineBtn}
+              disabled={!!isLoading}
+              onClick={handleDeclineClick}
+            >
+              {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <XCircle className={iconCn} />}
+              {dict.buttons.decline}
+            </Button>
+          </div>
+          {declineDialog}
+        </>
       );
     }
 
     return (
-      <div className="flex items-center gap-2 w-full">
-        <Button
-          size="sm"
-          className={cn(approveBtn, 'group/approve')}
-          disabled={!!isLoading}
-          onClick={(e) => { e.stopPropagation(); onApprove?.(suggestion); }}
-        >
-          <ShimmerOverlay />
-          {isLoading === 'approve' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Heart className={iconCn} />}
-          {dict.buttons.approve}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className={declineBtn}
-          disabled={!!isLoading}
-          onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
-        >
-          {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <XCircle className={iconCn} />}
-          {dict.buttons.decline}
-        </Button>
-      </div>
-    );
-  }
-
-  // CASE: Second party PENDING
-  if (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) {
-    return (
-      <div className="flex items-center gap-2 w-full">
-        <Button
-          size="sm"
-          className={cn(approveBtn, 'group/approve')}
-          disabled={!!isLoading}
-          onClick={(e) => { e.stopPropagation(); onApprove?.(suggestion); }}
-        >
-          <ShimmerOverlay />
-          {isLoading === 'approve' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Heart className={iconCn} />}
-          {dict.buttons.approve}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className={declineBtn}
-          disabled={!!isLoading}
-          onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
-        >
-          {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <XCircle className={iconCn} />}
-          {dict.buttons.decline}
-        </Button>
-      </div>
-    );
-  }
-
-  // CASE: INTERESTED
-  if (suggestion.status === 'FIRST_PARTY_INTERESTED' && isFirstParty) {
-    return (
-      <div className="flex items-center gap-2 w-full">
-        {!isUserInActiveProcess && (
+      <>
+        <div className="flex items-center gap-2 w-full">
           <Button
             size="sm"
             className={cn(approveBtn, 'group/approve')}
@@ -150,48 +144,116 @@ const CompactCardActions: React.FC<CompactCardActionsProps> = ({
           >
             <ShimmerOverlay />
             {isLoading === 'approve' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Heart className={iconCn} />}
-            {dict.buttons.activateNow}
+            {dict.buttons.approve}
           </Button>
-        )}
-        <Button
-          size="sm"
-          variant="ghost"
-          className={removeBtn}
-          disabled={!!isLoading}
-          onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
-        >
-          {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Trash2 className={iconCn} />}
-          {dict.buttons.removeFromList}
-        </Button>
-      </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={declineBtn}
+            disabled={!!isLoading}
+            onClick={handleDeclineClick}
+          >
+            {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <XCircle className={iconCn} />}
+            {dict.buttons.decline}
+          </Button>
+        </div>
+        {declineDialog}
+      </>
+    );
+  }
+
+  // CASE: Second party PENDING
+  if (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) {
+    return (
+      <>
+        <div className="flex items-center gap-2 w-full">
+          <Button
+            size="sm"
+            className={cn(approveBtn, 'group/approve')}
+            disabled={!!isLoading}
+            onClick={(e) => { e.stopPropagation(); onApprove?.(suggestion); }}
+          >
+            <ShimmerOverlay />
+            {isLoading === 'approve' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Heart className={iconCn} />}
+            {dict.buttons.approve}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={declineBtn}
+            disabled={!!isLoading}
+            onClick={handleDeclineClick}
+          >
+            {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <XCircle className={iconCn} />}
+            {dict.buttons.decline}
+          </Button>
+        </div>
+        {declineDialog}
+      </>
+    );
+  }
+
+  // CASE: INTERESTED
+  if (suggestion.status === 'FIRST_PARTY_INTERESTED' && isFirstParty) {
+    return (
+      <>
+        <div className="flex items-center gap-2 w-full">
+          {!isUserInActiveProcess && (
+            <Button
+              size="sm"
+              className={cn(approveBtn, 'group/approve')}
+              disabled={!!isLoading}
+              onClick={(e) => { e.stopPropagation(); onApprove?.(suggestion); }}
+            >
+              <ShimmerOverlay />
+              {isLoading === 'approve' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Heart className={iconCn} />}
+              {dict.buttons.activateNow}
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className={removeBtn}
+            disabled={!!isLoading}
+            onClick={handleDeclineClick}
+          >
+            {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Trash2 className={iconCn} />}
+            {dict.buttons.removeFromList}
+          </Button>
+        </div>
+        {declineDialog}
+      </>
     );
   }
 
   // CASE: Re-offered to first party
   if (suggestion.status === 'RE_OFFERED_TO_FIRST_PARTY' && isFirstParty) {
     return (
-      <div className="flex items-center gap-2 w-full">
-        <Button
-          size="sm"
-          className={cn(approveBtn, 'group/approve')}
-          disabled={!!isLoading}
-          onClick={(e) => { e.stopPropagation(); onApprove?.(suggestion); }}
-        >
-          <ShimmerOverlay />
-          {isLoading === 'approve' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Heart className={iconCn} />}
-          {dict.buttons.approve}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className={declineBtn}
-          disabled={!!isLoading}
-          onClick={(e) => { e.stopPropagation(); onDecline?.(suggestion); }}
-        >
-          {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <XCircle className={iconCn} />}
-          {dict.buttons.decline}
-        </Button>
-      </div>
+      <>
+        <div className="flex items-center gap-2 w-full">
+          <Button
+            size="sm"
+            className={cn(approveBtn, 'group/approve')}
+            disabled={!!isLoading}
+            onClick={(e) => { e.stopPropagation(); onApprove?.(suggestion); }}
+          >
+            <ShimmerOverlay />
+            {isLoading === 'approve' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <Heart className={iconCn} />}
+            {dict.buttons.approve}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={declineBtn}
+            disabled={!!isLoading}
+            onClick={handleDeclineClick}
+          >
+            {isLoading === 'decline' ? <Loader2 className={cn(iconCn, 'animate-spin')} /> : <XCircle className={iconCn} />}
+            {dict.buttons.decline}
+          </Button>
+        </div>
+        {declineDialog}
+      </>
     );
   }
 

@@ -6,8 +6,6 @@ import {
   LayoutGrid,
   List,
   ArrowUpDown,
-  Eye,
-  EyeOff,
   UserCircle,
   View,
   Columns,
@@ -73,10 +71,6 @@ interface ControlsBarProps {
   onMobileViewChange: (mode: MobileView) => void;
   isMobile: boolean;
 
-  // QuickView
-  isQuickViewEnabled: boolean;
-  onToggleQuickView: () => void;
-
   // Virtual search
   onOpenSavedVirtualProfiles: () => void;
 
@@ -119,8 +113,6 @@ const ControlsBar: React.FC<ControlsBarProps> = ({
   mobileView,
   onMobileViewChange,
   isMobile,
-  isQuickViewEnabled,
-  onToggleQuickView,
   onOpenSavedVirtualProfiles,
   showFiltersPanel,
   onToggleFiltersPanel,
@@ -190,33 +182,6 @@ const ControlsBar: React.FC<ControlsBarProps> = ({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* QuickView toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onToggleQuickView}
-              className="bg-white/90 shadow-sm border border-gray-200"
-            >
-              {isQuickViewEnabled ? (
-                <EyeOff
-                  className={cn(
-                    'w-4 h-4',
-                    locale === 'he' ? 'ml-1' : 'mr-1'
-                  )}
-                />
-              ) : (
-                <Eye
-                  className={cn(
-                    'w-4 h-4',
-                    locale === 'he' ? 'ml-1' : 'mr-1'
-                  )}
-                />
-              )}
-              {isQuickViewEnabled
-                ? cmDict.controls.disableQuickView
-                : cmDict.controls.enableQuickView}
-            </Button>
 
             {/* Quick filter: No suggestions */}
             <Button

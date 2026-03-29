@@ -304,10 +304,10 @@ const SuggestionDetailsModal: React.FC<SuggestionDetailsModalProps> = (props) =>
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
-              <AnimatePresence mode="wait" initial={false} custom={tabDirection}>
+              <AnimatePresence mode="wait" initial={false} custom={locale === 'he' ? -tabDirection : tabDirection}>
                 <motion.div
                   key={activeTab}
-                  custom={tabDirection}
+                  custom={locale === 'he' ? -tabDirection : tabDirection}
                   variants={tabAnimationVariants}
                   initial="enter"
                   animate="center"

@@ -7,7 +7,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import prisma from '@/lib/prisma';
 import { AutoSuggestionFeedbackService } from './autoSuggestionFeedbackService';
-import type { PotentialMatchStatus, MatchSuggestionStatus } from '@prisma/client';
+import type { PotentialMatchStatus, MatchSuggestionStatus, Gender } from '@prisma/client';
+import questionsHe from '@/../dictionaries/questionnaire/questions.he.json';
+import questionsEn from '@/../dictionaries/questionnaire/questions.en.json';
 
 // =============================================================================
 // CONSTANTS
@@ -68,7 +70,63 @@ export interface ChatAction {
 // SERVICE
 // =============================================================================
 
+// Summary cache TTL: 6 hours
+const SUMMARY_CACHE_TTL_SECONDS = 6 * 60 * 60;
+
+let redis: InstanceType<typeof import('@upstash/redis').Redis> | null = null;
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  import('@upstash/redis').then(({ Redis: R }) => {
+    redis = new R({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+  });
+}
+
 export class AiChatService {
+
+  // ========== Summary Cache ==========
+
+  /**
+   * Get a cached AI profile summary for a suggestion.
+   * Returns the cached summary string, or null if not cached/expired.
+   */
+  static async getCachedSummary(suggestionId: string, userId: string): Promise<string | null> {
+    if (!redis) return null;
+    try {
+      const key = `ai-summary:${suggestionId}:${userId}`;
+      const cached = await redis.get<string>(key);
+      return cached || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Cache an AI profile summary for a suggestion.
+   */
+  static async cacheSummary(suggestionId: string, userId: string, summary: string): Promise<void> {
+    if (!redis) return;
+    try {
+      const key = `ai-summary:${suggestionId}:${userId}`;
+      await redis.set(key, summary, { ex: SUMMARY_CACHE_TTL_SECONDS });
+    } catch {
+      // Cache failure is non-critical
+    }
+  }
+
+  /**
+   * Invalidate cached summary (e.g., when profile changes).
+   */
+  static async invalidateSummaryCache(suggestionId: string, userId: string): Promise<void> {
+    if (!redis) return;
+    try {
+      const key = `ai-summary:${suggestionId}:${userId}`;
+      await redis.del(key);
+    } catch {
+      // Non-critical
+    }
+  }
 
   // ========== Conversation Management ==========
 
@@ -247,6 +305,122 @@ export class AiChatService {
     return parts.join('\n');
   }
 
+  // ========== Question Dictionary Helpers ==========
+
+  /**
+   * Get question text from the i18n dictionary by questionId, with gender awareness.
+   */
+  private static getQuestionText(
+    worldId: string,
+    questionId: string,
+    gender: 'MALE' | 'FEMALE',
+    locale: 'he' | 'en',
+  ): string | null {
+    const dict = locale === 'he' ? questionsHe : questionsEn;
+    const world = (dict as Record<string, any>)[worldId];
+    if (!world) return null;
+    const q = world[questionId];
+    if (!q?.question) return null;
+    if (typeof q.question === 'string') return q.question;
+    return gender === 'MALE' ? q.question.male : q.question.female;
+  }
+
+  /**
+   * Get readable label for a category/option value from the dictionary.
+   */
+  private static getOptionLabel(
+    worldId: string,
+    questionId: string,
+    optionKey: string,
+    gender: 'MALE' | 'FEMALE',
+    locale: 'he' | 'en',
+    fieldName: 'categories' | 'options' = 'options',
+  ): string {
+    const dict = locale === 'he' ? questionsHe : questionsEn;
+    const world = (dict as Record<string, any>)[worldId];
+    if (!world) return optionKey;
+    const q = world[questionId];
+    if (!q?.[fieldName]) return optionKey;
+    const opt = q[fieldName][optionKey];
+    if (!opt) return optionKey;
+    if (typeof opt === 'string') return opt;
+    if (opt.text) return opt.text;
+    if (opt.male || opt.female) return gender === 'MALE' ? opt.male : opt.female;
+    return optionKey;
+  }
+
+  /**
+   * Format questionnaire answers for AI consumption with readable question text,
+   * separated into openText (quotable) and structured answers.
+   */
+  private static formatAnswersForAI(
+    answers: unknown,
+    worldId: string,
+    gender: 'MALE' | 'FEMALE',
+    locale: 'he' | 'en',
+  ): { openText: string[]; structured: string[] } {
+    const isHe = locale === 'he';
+    const openText: string[] = [];
+    const structured: string[] = [];
+
+    if (!answers || !Array.isArray(answers)) return { openText, structured };
+
+    for (const a of answers as any[]) {
+      if (!a?.questionId || a?.value === undefined || a?.value === null || a?.value === '') continue;
+
+      const questionText = this.getQuestionText(worldId, a.questionId, gender, locale) || a.questionId;
+      const val = a.value;
+
+      // Detect openText: string value that's long enough to be a meaningful answer
+      if (typeof val === 'string' && val.length > 20) {
+        openText.push(`${isHe ? 'שאלה' : 'Q'}: "${questionText}"\n${isHe ? 'תשובה' : 'A'}: "${val}"`);
+        continue;
+      }
+
+      // Budget allocation (object with numeric values)
+      if (typeof val === 'object' && !Array.isArray(val) && val !== null) {
+        const entries = Object.entries(val as Record<string, number>)
+          .filter(([, v]) => typeof v === 'number' && v > 0)
+          .sort(([, a], [, b]) => b - a);
+        if (entries.length > 0) {
+          const formattedEntries = entries.map(([key, num]) => {
+            const label = this.getOptionLabel(worldId, a.questionId, key, gender, locale, 'categories');
+            return `${label}: ${num}%`;
+          });
+          structured.push(`${isHe ? 'שאלה' : 'Q'}: "${questionText}"\n${isHe ? 'חלוקה' : 'Allocation'}: ${formattedEntries.join(', ')}`);
+          continue;
+        }
+      }
+
+      // Array value (multi-select)
+      if (Array.isArray(val)) {
+        const labels = val.map((v: string) =>
+          this.getOptionLabel(worldId, a.questionId, String(v), gender, locale)
+        );
+        structured.push(`${isHe ? 'שאלה' : 'Q'}: "${questionText}"\n${isHe ? 'תשובה' : 'A'}: ${labels.join(', ')}`);
+        continue;
+      }
+
+      // Scale (numeric)
+      if (typeof val === 'number') {
+        structured.push(`${isHe ? 'שאלה' : 'Q'}: "${questionText}"\n${isHe ? 'תשובה' : 'A'}: ${val}/10`);
+        continue;
+      }
+
+      // Single choice (string, short)
+      if (typeof val === 'string') {
+        const label = this.getOptionLabel(worldId, a.questionId, val, gender, locale);
+        structured.push(`${isHe ? 'שאלה' : 'Q'}: "${questionText}"\n${isHe ? 'תשובה' : 'A'}: ${label}`);
+        continue;
+      }
+
+      // Fallback
+      structured.push(`${isHe ? 'שאלה' : 'Q'}: "${questionText}"\n${isHe ? 'תשובה' : 'A'}: ${JSON.stringify(val)}`);
+    }
+
+    return { openText, structured };
+  }
+
   // ========== Deep Profile Context (for user-facing AI summary) ==========
 
   static async buildDeepProfileContext(
@@ -271,7 +445,7 @@ export class AiChatService {
     const isFirstParty = suggestion.firstPartyId === userId;
     const targetUserId = isFirstParty ? suggestion.secondPartyId : suggestion.firstPartyId;
 
-    const [targetUser, targetTags, targetMetrics, targetQuestionnaire] = await Promise.all([
+    const [targetUser, targetTags, targetMetrics, targetQuestionnaire, requestingUser] = await Promise.all([
       prisma.user.findUnique({
         where: { id: targetUserId },
         select: {
@@ -354,6 +528,25 @@ export class AiChatService {
           religionAnswers: true,
         },
       }),
+      // Fetch requesting user's profile for comparative context
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          firstName: true,
+          profile: {
+            select: {
+              gender: true,
+              city: true,
+              religiousLevel: true,
+              occupation: true,
+              education: true,
+              about: true,
+              profileCharacterTraits: true,
+              profileHobbies: true,
+            },
+          },
+        },
+      }),
     ]);
 
     if (!targetUser?.profile) return null;
@@ -427,45 +620,45 @@ export class AiChatService {
       sections.push(`### ${isHe ? 'מה מחפש/ת' : 'Looking For'}\n${lookingLines.join('\n')}`);
     }
 
-    // Questionnaire answers (5 worlds)
+    // Questionnaire answers (5 worlds) — with readable question text and openText separation
     if (targetQuestionnaire) {
-      const worldNames = isHe
-        ? { values: 'ערכים', personality: 'אישיות', relationship: 'זוגיות', partner: 'בן/בת זוג', religion: 'דת ורוחניות' }
-        : { values: 'Values', personality: 'Personality', relationship: 'Relationship', partner: 'Partner', religion: 'Religion' };
+      const gender = (p.gender as 'MALE' | 'FEMALE') || 'MALE';
+      const worldEntries: { worldId: string; name: string; answers: unknown }[] = isHe
+        ? [
+            { worldId: 'PERSONALITY', name: 'אישיות', answers: targetQuestionnaire.personalityAnswers },
+            { worldId: 'VALUES', name: 'ערכים', answers: targetQuestionnaire.valuesAnswers },
+            { worldId: 'RELATIONSHIP', name: 'זוגיות', answers: targetQuestionnaire.relationshipAnswers },
+            { worldId: 'PARTNER', name: 'בן/בת זוג', answers: targetQuestionnaire.partnerAnswers },
+            { worldId: 'RELIGION', name: 'דת ורוחניות', answers: targetQuestionnaire.religionAnswers },
+          ]
+        : [
+            { worldId: 'PERSONALITY', name: 'Personality', answers: targetQuestionnaire.personalityAnswers },
+            { worldId: 'VALUES', name: 'Values', answers: targetQuestionnaire.valuesAnswers },
+            { worldId: 'RELATIONSHIP', name: 'Relationship', answers: targetQuestionnaire.relationshipAnswers },
+            { worldId: 'PARTNER', name: 'Partner', answers: targetQuestionnaire.partnerAnswers },
+            { worldId: 'RELIGION', name: 'Religion', answers: targetQuestionnaire.religionAnswers },
+          ];
 
-      const formatAnswers = (answers: unknown): string => {
-        if (!answers) return '';
-        if (Array.isArray(answers)) {
-          return answers
-            .filter((a: any) => a?.value !== undefined && a?.value !== null && a?.value !== '')
-            .map((a: any) => {
-              const val = Array.isArray(a.value) ? a.value.join(', ') : (typeof a.value === 'object' ? JSON.stringify(a.value) : String(a.value));
-              return `- [${a.questionId || '?'}]: ${val}`;
-            })
-            .join('\n');
-        }
-        return typeof answers === 'object' ? Object.entries(answers as Record<string, any>)
-          .map(([k, v]) => `- ${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
-          .join('\n') : String(answers);
-      };
-
+      const allOpenText: string[] = [];
       const qParts: string[] = [];
-      const worldEntries: [string, unknown][] = [
-        [worldNames.personality, targetQuestionnaire.personalityAnswers],
-        [worldNames.values, targetQuestionnaire.valuesAnswers],
-        [worldNames.relationship, targetQuestionnaire.relationshipAnswers],
-        [worldNames.partner, targetQuestionnaire.partnerAnswers],
-        [worldNames.religion, targetQuestionnaire.religionAnswers],
-      ];
 
-      for (const [name, answers] of worldEntries) {
-        const formatted = formatAnswers(answers);
-        if (formatted) {
-          qParts.push(`#### ${isHe ? 'עולם' : 'World'}: ${name}\n${formatted}`);
+      for (const { worldId, name, answers } of worldEntries) {
+        const { openText, structured } = this.formatAnswersForAI(answers, worldId, gender, locale);
+        allOpenText.push(...openText);
+        const allFormatted = [...structured];
+        if (allFormatted.length > 0) {
+          qParts.push(`#### ${isHe ? 'עולם' : 'World'}: ${name}\n${allFormatted.join('\n\n')}`);
         }
       }
+
+      // Open text answers (personal voice — ideal for quoting)
+      if (allOpenText.length > 0) {
+        sections.push(`### ${isHe ? '💬 תשובות אישיות בטקסט חופשי (קול אישי — מתאים לציטוט)' : '💬 Personal Open Text Answers (personal voice — ideal for quoting)'}\n${allOpenText.join('\n\n')}`);
+      }
+
+      // Structured answers per world
       if (qParts.length > 0) {
-        sections.push(`### ${isHe ? 'שאלון 5 העולמות (טביעת הנשמה)' : 'Five Worlds Questionnaire (Soul Fingerprint)'}\n${qParts.join('\n\n')}`);
+        sections.push(`### ${isHe ? 'שאלון 5 העולמות (טביעת הנשמה) — תשובות מובנות' : 'Five Worlds Questionnaire (Soul Fingerprint) — Structured Answers'}\n${qParts.join('\n\n')}`);
       }
     }
 
@@ -559,6 +752,46 @@ export class AiChatService {
       sections.push(`### ${isHe ? 'סיבת ההתאמה של השדכנ/ית' : 'Matchmaker Reason'}\n${suggestion.matchingReason}`);
     }
 
+    // Comparative context — what the requesting user has in common with the target
+    if (requestingUser?.profile) {
+      const rp = requestingUser.profile;
+      const comparisonPoints: string[] = [];
+
+      // Shared hobbies
+      if (rp.profileHobbies?.length && p.profileHobbies?.length) {
+        const shared = (rp.profileHobbies as string[]).filter((h: string) =>
+          (p.profileHobbies as string[]).some((th: string) => th.toLowerCase() === h.toLowerCase())
+        );
+        if (shared.length > 0) {
+          comparisonPoints.push(`${isHe ? 'תחביבים משותפים' : 'Shared hobbies'}: ${shared.join(', ')}`);
+        }
+      }
+
+      // Shared traits
+      if (rp.profileCharacterTraits?.length && p.profileCharacterTraits?.length) {
+        const shared = (rp.profileCharacterTraits as string[]).filter((t: string) =>
+          (p.profileCharacterTraits as string[]).some((tt: string) => tt.toLowerCase() === t.toLowerCase())
+        );
+        if (shared.length > 0) {
+          comparisonPoints.push(`${isHe ? 'תכונות אופי משותפות' : 'Shared character traits'}: ${shared.join(', ')}`);
+        }
+      }
+
+      // Same city
+      if (rp.city && p.city && rp.city.toLowerCase() === p.city.toLowerCase()) {
+        comparisonPoints.push(isHe ? `שניהם גרים ב${rp.city}` : `Both live in ${rp.city}`);
+      }
+
+      // Same religious level
+      if (rp.religiousLevel && p.religiousLevel && rp.religiousLevel === p.religiousLevel) {
+        comparisonPoints.push(`${isHe ? 'רמה דתית זהה' : 'Same religious level'}: ${rp.religiousLevel}`);
+      }
+
+      if (comparisonPoints.length > 0) {
+        sections.push(`### ${isHe ? '🔗 נקודות חיבור בין שני הצדדים' : '🔗 Connection Points Between Both Parties'}\n${comparisonPoints.join('\n')}\n${isHe ? '(השתמש/י במידע זה כדי להדגיש למה ההתאמה הגיונית)' : '(Use this to highlight why the match makes sense)'}`);
+      }
+    }
+
     // --- Summary prompt instructions ---
     sections.push(isHe
       ? `## הנחיות לסיכום הפרופיל
@@ -567,48 +800,70 @@ export class AiChatService {
 **עקרונות מנחים:**
 1. **כנות מלאה** — אל תייפה ואל תזלזל. תן תמונה אמיתית ומאוזנת
 2. **מבוסס נתונים** — כל אמירה חייבת להתבסס על מידע שקיבלת. אל תמציא ואל תשער
-3. **5 העולמות** — סקור את האישיות, הערכים, חזון הזוגיות, מה שמחפש/ת, והזהות הדתית-רוחנית
-4. **שם מלא** — השתמש בשם ${targetUser.firstName} בטבעיות לאורך הסיכום
-5. **טון אישי וחם** — כתוב כאילו אתה חבר טוב שמכיר את האדם ומספר עליו בכנות
-6. **נקודות חוזק ואתגרים** — ציין מה בולט לטובה, ואם יש דברים שכדאי לשים לב אליהם
-7. **רלוונטיות** — התמקד במה שחשוב לבחירת בן/בת זוג
+3. **ציטוטים ישירים** — שלב ציטוטים ישירים מתוך תשובות השאלון, הטקסט החופשי והתיאור העצמי. למשל: "${targetUser.firstName} כותב/ת: '...'" או "במילים שלו/ה: '...'". ציטוטים מדויקים מהנתונים נותנים תחושה אותנטית ומאפשרים להכיר את האדם דרך הקול שלו/ה
+4. **5 העולמות לעומק** — הקדש/י פסקה נפרדת לכל עולם:
+   - **אישיות:** מי האדם ביום יום? איך מתפקד/ת חברתית? מופנם/ת או מוחצנ/ת? רגיש/ה או רציונלי/ת? איך מתמודד/ת עם לחץ?
+   - **ערכים:** מה באמת חשוב ל${targetUser.firstName}? איך מחלק/ת את סדר העדיפויות בין משפחה, קריירה, צמיחה, רוחניות? ציין/י מספרים ספציפיים אם יש (למשל הקצאת תקציב נקודות)
+   - **זוגיות:** מה החזון הזוגי? איך רואה את חלוקת התפקידים? מה סגנון התקשורת? איך מתמודד/ת עם קונפליקט?
+   - **בן/בת זוג:** מה הדמות שמחפש/ת? מה הקווים האדומים? מה הדברים שהכי חשובים ומה פחות?
+   - **דת ורוחניות:** לא רק "דתי/חילוני" — אלא: איך מתבטאת האמונה בחיי היום יום? מה היחס לתפילה, שבת, חגים? מה החזון החינוכי לילדים?
+5. **מסלול חיים ורקע** — ספר/י על הרקע של ${targetUser.firstName}: מה למד/ה? איפה עובד/ת? מה מניע אותו/ה מקצועית? מאיפה הגיע/ה לאן? שלב/י פרטים על לימודים, קריירה, מוצא, שינויים משמעותיים בחיים אם יש
+6. **שם** — השתמש בשם ${targetUser.firstName} בטבעיות לאורך הסיכום
+7. **טון אישי וחם** — כתוב כאילו אתה חבר טוב שמכיר את האדם ומספר עליו בכנות ובאהבה
+8. **נקודות חוזק ואתגרים** — ציין מה בולט לטובה, ואם יש דברים שכדאי לשים לב אליהם (נקודות שהאדם עצמו ציין כאתגר)
+9. **המלצות חברים** — אם יש המלצות/עדויות מחברים, שלב/י אותן עם ציטוט
 
 **מבנה מומלץ:**
-- פתיחה: מי ${targetUser.firstName}? (תמונה כללית ב-2-3 משפטים)
-- אישיות וסגנון חיים
-- ערכים ועולם רוחני
-- חזון הזוגיות ומה מחפש/ת בבן/בת זוג
-- נקודות שכדאי לשים לב אליהן
-- סיכום: מה הסוג של בן אדם שבדרך כלל מתאים ל${targetUser.firstName}
+- פתיחה: מי ${targetUser.firstName}? (תמונה כללית ב-2-3 משפטים שמעבירים את האסנס של האדם)
+- רקע ומסלול חיים (לימודים, קריירה, מוצא, מסע אישי)
+- אישיות וסגנון חיים (עם ציטוטים מהשאלון)
+- ערכים ועולם רוחני (עם מספרים ספציפיים מהקצאת התקציב אם קיימים)
+- דת ורוחניות (ברזולוציה גבוהה — לא רק תווית)
+- חזון הזוגיות ומה מחפש/ת בבן/בת זוג (עם ציטוטים)
+- נקודות שכדאי לשים לב אליהן (דברים שהאדם עצמו ציין כחולשות/אתגרים)
+- סיכום: מה הסוג של בן אדם שבדרך כלל מתאים ל${targetUser.firstName}, ולמה
 
 **אסור:**
 - לא לחשוף מידע רפואי, הערות פנימיות של שדכנים, או פרטי קשר
 - לא להמציא מידע שלא קיים בנתונים
-- לא להיות שיפוטי או פוגעני`
+- לא להיות שיפוטי או פוגעני
+- לא לכתוב כותרות עם סימני ## (השתמש ב-**כותרת:** במקום)
+- לא לקצר — הסיכום צריך להיות מעמיק ומקיף, לא תמצות יבש`
       : `## Profile Summary Instructions
 Generate a **comprehensive, honest, and deep profile summary** of ${targetUser.firstName} for the user who received this suggestion.
 
 **Guiding principles:**
 1. **Full honesty** — don't embellish or dismiss. Give a balanced, real picture
 2. **Data-based** — every statement must be based on the data provided. Don't invent or assume
-3. **Five Worlds** — cover personality, values, relationship vision, what they seek, and religious/spiritual identity
-4. **Use name** — use ${targetUser.firstName}'s name naturally throughout
-5. **Warm personal tone** — write as if you're a good friend who knows this person and describes them honestly
-6. **Strengths and challenges** — note what stands out positively, and things worth being aware of
-7. **Relevance** — focus on what matters for choosing a partner
+3. **Direct quotes** — weave in direct quotes from questionnaire answers, free text, and self-descriptions. For example: "${targetUser.firstName} writes: '...'" or "In their own words: '...'". Exact quotes from the data create an authentic feel and let the reader hear the person's own voice
+4. **Five Worlds in depth** — dedicate a paragraph to each world:
+   - **Personality:** Who are they day-to-day? Social style? Introvert or extrovert? Sensitive or rational? How do they handle stress?
+   - **Values:** What truly matters to ${targetUser.firstName}? How do they prioritize family, career, growth, spirituality? Mention specific numbers if available (e.g., budget point allocation)
+   - **Relationship:** What's their relationship vision? How do they see role division? Communication style? Conflict resolution?
+   - **Partner:** What kind of person are they looking for? Red lines? Must-haves vs. nice-to-haves?
+   - **Religion & Spirituality:** Not just a label — how does faith manifest daily? Attitude toward prayer, Shabbat, holidays? Educational vision for children?
+5. **Life path & background** — describe ${targetUser.firstName}'s background: education, career, what drives them professionally, where they came from and where they're headed. Include details on studies, career, origin, significant life changes if available
+6. **Use name** — use ${targetUser.firstName}'s name naturally throughout
+7. **Warm personal tone** — write as if you're a good friend who knows this person and describes them honestly and lovingly
+8. **Strengths and challenges** — note what stands out positively, and things worth being aware of (especially things the person themselves mentioned as challenges)
+9. **Friend testimonials** — if friend recommendations/testimonials exist, include them with quotes
 
 **Recommended structure:**
-- Opening: Who is ${targetUser.firstName}? (general picture in 2-3 sentences)
-- Personality and lifestyle
-- Values and spiritual world
-- Relationship vision and what they seek in a partner
-- Things worth noting
-- Summary: what type of person typically suits ${targetUser.firstName}
+- Opening: Who is ${targetUser.firstName}? (general picture in 2-3 sentences capturing their essence)
+- Background and life path (education, career, origin, personal journey)
+- Personality and lifestyle (with questionnaire quotes)
+- Values and spiritual world (with specific numbers from budget allocation if available)
+- Religion and spirituality (high-resolution — not just a label)
+- Relationship vision and what they seek in a partner (with quotes)
+- Things worth noting (things the person themselves flagged as weaknesses/challenges)
+- Summary: what type of person typically suits ${targetUser.firstName}, and why
 
 **Forbidden:**
 - Do not reveal medical info, internal matchmaker notes, or contact details
 - Do not invent information not present in the data
-- Do not be judgmental or offensive`
+- Do not be judgmental or offensive
+- Do not use ## heading syntax (use **Heading:** format instead)
+- Do not keep it short — the summary should be deep and comprehensive, not a dry abstract`
     );
 
     return sections.join('\n\n');
@@ -2204,6 +2459,69 @@ ${conversationText}
     });
 
     return result;
+  }
+
+  // ========== Smart Assistant: Generate Deep Dive Explanation ==========
+
+  /**
+   * Generate a warm, detailed AI explanation about why a candidate matches the user.
+   * Used when user clicks "Tell me more" on a presented candidate.
+   */
+  static async generateCandidateDeepDive(
+    userId: string,
+    candidateUserId: string,
+    conversationId: string,
+  ): Promise<string | null> {
+    const candidateContext = await this.buildCandidateContext(candidateUserId, userId, 'he');
+    if (!candidateContext) return null;
+
+    // Get user's own profile for comparison
+    const userProfile = await prisma.profile.findUnique({
+      where: { userId },
+      select: {
+        religiousLevel: true, occupation: true, city: true,
+        about: true, profileCharacterTraits: true,
+      },
+    });
+
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) return null;
+
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: GEMINI_MODEL,
+      generationConfig: { temperature: 0.7, maxOutputTokens: 600 },
+    });
+
+    const prompt = `את שדכנית של NeshamaTech. המשתמש/ת ביקש/ה לשמוע עוד על מועמד/ת שהוצג/ה לו/ה.
+
+## מידע על המועמד/ת
+${candidateContext}
+
+## מידע על המשתמש/ת
+${userProfile?.religiousLevel ? `רמה דתית: ${userProfile.religiousLevel}` : ''}
+${userProfile?.occupation ? `מקצוע: ${userProfile.occupation}` : ''}
+${userProfile?.city ? `עיר: ${userProfile.city}` : ''}
+${userProfile?.about ? `על עצמם: ${userProfile.about.slice(0, 200)}` : ''}
+
+## הנחיות
+כתבי ניתוח חם ואישי (4-6 משפטים) שמסביר:
+1. מה הנקודות המשותפות ביניהם (ערכים, אורח חיים, חזון)
+2. מה מיוחד במועמד/ת הזה/זו
+3. מה יכול להיות מעניין בחיבור הזה
+
+אל תחזרי על נתונים בסיסיים (שם, גיל, עיר) — הם כבר רואים את הכרטיס.
+דברי בלשון נקבה על עצמך ובגוף שני למשתמש/ת.
+אל תוסיפי [SUGGESTIONS: ...] — זה יתווסף בנפרד.`;
+
+    try {
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    } catch (err) {
+      console.error('[AiChat] Deep dive generation error:', err);
+      return null;
+    }
   }
 
   // ========== Smart Assistant: Build Candidate Context for AI ==========

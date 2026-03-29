@@ -75,6 +75,38 @@ export function useSuggestionActions({
           description = suggestionsDict.container.toasts.approvedSecondPartyDesc;
         } else if (newStatus.includes('DECLINED')) {
           description = suggestionsDict.container.toasts.declinedDesc;
+
+          // Undo decline: show toast with undo action for 30 seconds
+          const undoLabel = (suggestionsDict.container.toasts as Record<string, string>).undoDecline || (isRtl ? 'ביטול דחייה' : 'Undo');
+          const undoSuccessLabel = (suggestionsDict.container.toasts as Record<string, string>).undoDeclineSuccess || (isRtl ? 'הדחייה בוטלה' : 'Decline undone');
+          const restoreStatus = newStatus === 'FIRST_PARTY_DECLINED' ? 'PENDING_FIRST_PARTY' : 'PENDING_SECOND_PARTY';
+
+          toast.success(
+            statusMessages[newStatus] || suggestionsDict.container.toasts.statusUpdateSuccess,
+            {
+              description,
+              duration: 30000,
+              action: {
+                label: undoLabel,
+                onClick: async () => {
+                  try {
+                    const undoRes = await fetch(`/api/suggestions/${suggestionId}/status`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ status: restoreStatus }),
+                    });
+                    if (undoRes.ok) {
+                      await fetchSuggestions(false);
+                      toast.success(undoSuccessLabel);
+                    }
+                  } catch {
+                    // Silently fail — undo is best-effort
+                  }
+                },
+              },
+            }
+          );
+          return; // Skip the default toast below
         } else if (newStatus === 'FIRST_PARTY_INTERESTED') {
           description = isRtl
             ? 'ההצעה נשמרה ברשימת ההמתנה שלך'

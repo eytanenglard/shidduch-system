@@ -8,6 +8,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -201,11 +202,13 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
 
   return (
     <div className="mb-6">
-      <Card className="border-0 shadow-sm bg-violet-50 overflow-hidden">
-        <CardContent className="p-4 sm:p-5">
+      <Card className="border border-violet-200/60 shadow-sm bg-gradient-to-br from-violet-50 via-purple-50/30 to-white overflow-hidden relative">
+        {/* Decorative floating orb */}
+        <div className="absolute -top-8 -end-8 w-32 h-32 rounded-full bg-violet-400/10 blur-3xl pointer-events-none" />
+        <CardContent className="p-4 sm:p-5 relative">
           {/* Header */}
           <div className="flex items-center gap-3 mb-3" dir={isRtl ? 'rtl' : 'ltr'}>
-            <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center shadow-sm flex-shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/25 flex-shrink-0">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -214,14 +217,14 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
               </h3>
               <p className="text-xs text-gray-500 leading-tight">{dict.subtitle}</p>
             </div>
-            <Badge className="bg-violet-600 text-white border-0 text-[10px] px-2 py-0.5 flex-shrink-0">
+            <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-[10px] px-2.5 py-0.5 flex-shrink-0 shadow-sm shadow-violet-500/20">
               AI
             </Badge>
           </div>
 
           {/* Schedule info banner */}
           <div
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-violet-100 mb-3"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/80 backdrop-blur-sm border border-violet-100/60 mb-3"
             dir={isRtl ? 'rtl' : 'ltr'}
           >
             <Calendar className="w-3.5 h-3.5 text-violet-500 flex-shrink-0" />
@@ -230,8 +233,11 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
 
           {/* Active auto-suggestion card */}
           {activeSuggestion && (
-            <div
-              className="rounded-2xl bg-white border border-violet-100 overflow-hidden"
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="rounded-2xl bg-white/90 backdrop-blur-sm border border-violet-100/60 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
               dir={isRtl ? 'rtl' : 'ltr'}
             >
               {/* Card with image */}
@@ -253,7 +259,7 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
                           sizes="(max-width: 640px) 112px, 128px"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-violet-100 to-violet-200 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-violet-100 to-purple-200 flex items-center justify-center">
                           <span className="text-3xl font-bold text-violet-400">
                             {otherParty?.firstName?.[0] || '?'}
                           </span>
@@ -275,7 +281,7 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
 
                     {/* Matching reason */}
                     {activeSuggestion.matchingReason && (
-                      <p className="mt-2 text-xs text-violet-700 leading-relaxed bg-violet-50 rounded-lg px-2.5 py-1.5 line-clamp-2">
+                      <p className="mt-2 text-xs text-violet-700 leading-relaxed bg-gradient-to-r from-violet-50 to-purple-50/50 rounded-lg px-2.5 py-1.5 line-clamp-2 border border-violet-100/40">
                         {activeSuggestion.matchingReason}
                       </p>
                     )}
@@ -298,35 +304,35 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
               </button>
 
               {/* Action buttons */}
-              <div className="grid grid-cols-3 gap-2 px-3.5 py-2.5 border-t border-violet-100 bg-violet-50/30">
+              <div className="grid grid-cols-3 gap-2 px-3.5 py-2.5 border-t border-violet-100/60 bg-gradient-to-r from-violet-50/30 to-purple-50/20">
                 <Button
                   size="sm"
                   onClick={() => handleAction('APPROVED')}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg"
+                  className="group/approve relative overflow-hidden bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-xs rounded-xl shadow-md shadow-teal-500/25 hover:shadow-lg hover:shadow-teal-500/30 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
                 >
+                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover/approve:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
                   <Check className={cn('w-3.5 h-3.5', isRtl ? 'ml-1' : 'mr-1')} />
                   {dict.approve}
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
                   onClick={() => handleAction('INTERESTED')}
-                  className="border-amber-300 text-amber-700 hover:bg-amber-50 text-xs rounded-lg"
+                  className="bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-xs rounded-xl shadow-md shadow-amber-400/25 hover:shadow-lg hover:shadow-amber-400/30 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] border-0"
                 >
                   <Bookmark className={cn('w-3.5 h-3.5', isRtl ? 'ml-1' : 'mr-1')} />
                   {dict.saveForLater}
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => handleAction('DECLINED')}
-                  className="border-rose-200 text-rose-600 hover:bg-rose-50 text-xs rounded-lg"
+                  className="text-gray-400 hover:text-rose-500 hover:bg-rose-50 text-xs rounded-xl transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]"
                 >
                   <X className={cn('w-3.5 h-3.5', isRtl ? 'ml-1' : 'mr-1')} />
                   {dict.decline}
                 </Button>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* History section (collapsible) */}
@@ -334,55 +340,70 @@ const AutoSuggestionsZone: React.FC<AutoSuggestionsZoneProps> = ({
             <div className="mt-3">
               <button
                 onClick={() => setShowHistory(!showHistory)}
-                className="flex items-center gap-2 w-full text-xs text-violet-600 hover:text-violet-700 font-medium py-1"
+                className="flex items-center gap-2 w-full text-xs text-violet-600 hover:text-violet-700 font-medium py-1.5 px-2 rounded-lg hover:bg-violet-100/50 transition-colors"
                 dir={isRtl ? 'rtl' : 'ltr'}
               >
                 <History className="w-3.5 h-3.5" />
                 <span>{dict.history.title} ({historySuggestions.length})</span>
-                {showHistory ? (
-                  <ChevronUp className="w-3.5 h-3.5 mr-auto" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5 mr-auto" />
-                )}
+                <motion.div
+                  animate={{ rotate: showHistory ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="mr-auto"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </motion.div>
               </button>
 
-              {showHistory && (
-                <div className="mt-2 space-y-1.5 max-h-48 overflow-y-auto">
-                  {historySuggestions.map((s) => {
-                    const isFirstParty = s.firstPartyId === userId;
-                    const party = isFirstParty ? s.secondParty : s.firstParty;
-                    const age = calculateAge(party?.profile?.birthDate);
-                    const badge = getHistoryStatusBadge(s.status, dict.history);
+              <AnimatePresence>
+                {showHistory && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-2 space-y-1.5 max-h-48 overflow-y-auto">
+                      {historySuggestions.map((s, idx) => {
+                        const isFirstParty = s.firstPartyId === userId;
+                        const party = isFirstParty ? s.secondParty : s.firstParty;
+                        const age = calculateAge(party?.profile?.birthDate);
+                        const badge = getHistoryStatusBadge(s.status, dict.history);
 
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => onViewDetails(s)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white hover:bg-violet-50 border border-violet-100 transition-colors text-start"
-                        dir={isRtl ? 'rtl' : 'ltr'}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-600 flex-shrink-0">
-                          {party?.firstName?.[0] || '?'}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-700 truncate">
-                            {party?.firstName}{age ? ` (${age})` : ''}
-                          </p>
-                          <p className="text-[10px] text-gray-400">
-                            {new Date(s.createdAt).toLocaleDateString(
-                              isRtl ? 'he-IL' : 'en-US',
-                              { day: 'numeric', month: 'short' }
-                            )}
-                          </p>
-                        </div>
-                        <Badge className={cn('text-[10px] px-1.5 py-0 border-0', badge.className)}>
-                          {badge.label}
-                        </Badge>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                        return (
+                          <motion.button
+                            key={s.id}
+                            initial={{ opacity: 0, x: isRtl ? 12 : -12 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: idx * 0.06 }}
+                            onClick={() => onViewDetails(s)}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-white/80 backdrop-blur-sm hover:bg-violet-50 border border-violet-100/60 transition-all duration-200 text-start hover:shadow-sm hover:scale-[1.01]"
+                            dir={isRtl ? 'rtl' : 'ltr'}
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center text-sm font-bold text-violet-600 flex-shrink-0">
+                              {party?.firstName?.[0] || '?'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-700 truncate">
+                                {party?.firstName}{age ? ` (${age})` : ''}
+                              </p>
+                              <p className="text-[10px] text-gray-400">
+                                {new Date(s.createdAt).toLocaleDateString(
+                                  isRtl ? 'he-IL' : 'en-US',
+                                  { day: 'numeric', month: 'short' }
+                                )}
+                              </p>
+                            </div>
+                            <Badge className={cn('text-[10px] px-1.5 py-0 border-0 rounded-md', badge.className)}>
+                              {badge.label}
+                            </Badge>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </CardContent>

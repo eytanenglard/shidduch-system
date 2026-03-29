@@ -1,6 +1,7 @@
 // src/components/suggestions/timeline/SuggestionTimeline.tsx
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { format, differenceInCalendarDays } from 'date-fns';
 import { he, enUS } from 'date-fns/locale';
 import {
@@ -100,38 +101,59 @@ const TimelineNode: React.FC<{
   isLatest: boolean;
   isLast: boolean;
   category: string;
-}> = ({ IconComponent, isLatest, isLast, category }) => {
-  // Updated Gradient Map to match Hero Palette
+  index: number;
+}> = ({ IconComponent, isLatest, isLast, category, index }) => {
   const gradientMap: { [key: string]: string } = {
-    pending: 'bg-gradient-to-br from-orange-400 to-amber-500', // Orange/Amber
-    approved: 'bg-gradient-to-br from-teal-400 to-emerald-500', // Teal/Emerald
-    progress: 'bg-gradient-to-br from-blue-400 to-teal-500', // Blue/Teal
-    completed: 'bg-gradient-to-br from-amber-400 to-yellow-500', // Amber/Gold
-    declined: 'bg-gradient-to-br from-rose-400 to-red-500', // Rose/Red
+    pending: 'bg-gradient-to-br from-orange-400 to-amber-500',
+    approved: 'bg-gradient-to-br from-teal-400 to-emerald-500',
+    progress: 'bg-gradient-to-br from-blue-400 to-teal-500',
+    completed: 'bg-gradient-to-br from-amber-400 to-yellow-500',
+    declined: 'bg-gradient-to-br from-rose-400 to-red-500',
     default: 'bg-gradient-to-br from-gray-400 to-gray-500',
+  };
+
+  const shadowMap: { [key: string]: string } = {
+    pending: 'shadow-orange-400/30',
+    approved: 'shadow-teal-400/30',
+    progress: 'shadow-blue-400/30',
+    completed: 'shadow-amber-400/30',
+    declined: 'shadow-rose-400/30',
+    default: 'shadow-gray-400/30',
   };
 
   return (
     <div className="relative flex items-center">
       {!isLast && (
-        <div
+        <motion.div
+          initial={{ scaleY: 0 }}
+          animate={{ scaleY: 1 }}
+          transition={{ duration: 0.4, delay: index * 0.1 + 0.2 }}
+          style={{ transformOrigin: 'top' }}
           className={cn(
             'absolute top-12 right-6 w-0.5 h-16 bg-gradient-to-b rounded-full',
-            // Connecting Line: Teal for active, Gray for past
             isLatest ? 'from-teal-300 to-teal-100' : 'from-gray-300 to-gray-100'
           )}
         />
       )}
-      <div
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.35, delay: index * 0.1, type: 'spring', stiffness: 200, damping: 15 }}
         className={cn(
           'relative z-10 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white',
           gradientMap[category],
-          // Active Ring: Teal
+          shadowMap[category],
           isLatest && 'ring-4 ring-teal-200 animate-pulse-subtle'
         )}
       >
         <IconComponent className="w-6 h-6" />
-      </div>
+        {isLatest && (
+          <div className={cn(
+            'absolute inset-0 rounded-full opacity-40 blur-md -z-10',
+            gradientMap[category]
+          )} />
+        )}
+      </motion.div>
     </div>
   );
 };

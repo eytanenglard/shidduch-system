@@ -32,10 +32,6 @@
       "sortBy": "Sort by",
       "filters": "Filters",
       "hideFilters": "Hide",
-      "disableQuickView": "Disable Quick View",
-      "enableQuickView": "Enable Quick View",
-      "disableQuickViewTooltip": "Turn off the hover-to-view feature",
-      "enableQuickViewTooltip": "Turn on the hover-to-view feature",
       "compareButton": "Compare ({{count}})",
       "prepareSuggestionsButton": "Prepare Suggestions",
       "mobile": {
@@ -599,7 +595,28 @@
         "ethnicBackground": "Ethnic Background",
         "demographics": "Demographics",
         "religionValues": "Religion & Values",
-        "appearance": "Appearance"
+        "appearance": "Appearance",
+        "profileReadiness": "Readiness & Profile",
+        "readinessLevel": "Readiness Level",
+        "profileCompleteness": "Profile Completeness (min %)",
+        "hasChildren": "Children from Previous Marriage",
+        "smoking": "Smoking",
+        "headCovering": "Head Covering",
+        "kippahType": "Kippah Type",
+        "engagement": "Engagement & Matching",
+        "suggestionsReceived": "Suggestions Sent",
+        "impressionScore": "Matchmaker Impression Score",
+        "difficultyScore": "Difficulty Score",
+        "lastScanned": "Last Scanned/Suggested (days)",
+        "lastScannedLabel": "Scanned",
+        "lastSuggestedLabel": "Suggested",
+        "advancedSearch": "Advanced Search",
+        "textSearch": "Free Text Search",
+        "textSearchPlaceholder": "Search for words in text fields...",
+        "textSearchHint": "If no scope is selected, searches all text fields",
+        "searchInAbout": "Search in \"About Me\"",
+        "searchInPartnerPrefs": "Search in partner preferences",
+        "searchInNotes": "Search in matchmaker notes"
       },
       "buttons": {
         "male": "Men",
@@ -615,7 +632,6 @@
       }
     },
     "list": {
-      "quickViewTooltip": "Quick View",
       "editProfileTooltip": "Edit Profile",
       "emptyState": {
         "title": "No Candidates Found",
@@ -711,58 +727,6 @@
         "scoreBreakdown": "Score Breakdown",
         "similarityScore": "Semantic Similarity Score",
         "backgroundMultiplier": "Background Multiplier"
-      },
-      "quickView": {
-        "availability": {
-          "AVAILABLE": "Available",
-          "DATING": "Dating",
-          "UNAVAILABLE": "Unavailable",
-          "UNKNOWN": "Unknown"
-        },
-        "availabilityDescription": {
-          "AVAILABLE": "Available for new meetings",
-          "DATING": "Currently in a dating process",
-          "UNAVAILABLE": "Currently unavailable",
-          "UNKNOWN": "Status unknown"
-        },
-        "manualEntry": "Manual Entry",
-        "tooltips": {
-          "setAsAiTarget": "Set as AI Search Target",
-          "clearAiTarget": "Clear AI Target"
-        },
-        "details": {
-          "years": "Years",
-          "heightUnit": "cm",
-          "maritalStatus": "Marital Status",
-          "religiousLevel": "Religious Level",
-          "manualDescription": "Matchmaker's Manual Description",
-          "moreInfo": "More Information",
-          "education": "Education",
-          "occupation": "Occupation",
-          "location": "Location",
-          "about": "About"
-        },
-        "qualityScore": "Profile Quality: {{score}}%",
-        "actions": {
-          "view": "Full View",
-          "suggest": "Suggest Match",
-          "invite": "Send Invite",
-          "contact": "Check Availability",
-          "edit": "Edit"
-        },
-        "actionsDescription": {
-          "view": "Open full profile",
-          "suggest": "Create a new suggestion",
-          "invite": "Invite to the system",
-          "contact": "Coordinate a meeting",
-          "edit": "Edit profile"
-        },
-        "stats": {
-          "rating": "Rating",
-          "match": "Match",
-          "response": "Response",
-          "quick": "Quick"
-        }
       }
     },
     "splitView": {
@@ -974,6 +938,21 @@
           "profileCompletion": "Profile Completions"
         }
       }
+    },
+    "toasts": {
+      "candidateAdded": "New candidate added successfully!",
+      "similarFound": "Found {{count}} similar candidates to {{name}}",
+      "noSimilarFound": "No similar candidates found (no vector available)",
+      "similarError": "Error searching for similar candidates",
+      "filterSaved": "Filter saved successfully",
+      "filterSaveError": "Error saving filter",
+      "aiTargetCleared": "AI target candidate selection cleared.",
+      "aiTargetSet": "AI target selected: {{name}}.",
+      "aiTargetChanged": "AI target changed to: {{name}}.",
+      "virtualProfileLoaded": "Virtual profile loaded! You can now run AI search.",
+      "bulkUpdateSuccess": "Bulk update completed successfully!",
+      "bulkUpdateError": "Error during update process. Please try again later.",
+      "importSuccess": "Import completed successfully!"
     }
   },
   "statusBadges": {

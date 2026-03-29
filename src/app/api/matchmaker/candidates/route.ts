@@ -186,6 +186,42 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy');
     const sortDirection = searchParams.get('sortDirection');
 
+    // Advanced search params
+    const advancedSearchQuery = searchParams.get('advancedSearchQuery');
+    const searchInAbout = searchParams.get('searchInAbout') === 'true';
+    const searchInPartnerPrefs = searchParams.get('searchInPartnerPrefs') === 'true';
+    const searchInMatchmakerNotes = searchParams.get('searchInMatchmakerNotes') === 'true';
+
+    // New profile filters
+    const readinessLevel = searchParams.get('readinessLevel');
+    const profileCompletenessMin = searchParams.get('profileCompletenessMin')
+      ? parseFloat(searchParams.get('profileCompletenessMin')!)
+      : null;
+    const smokingStatus = searchParams.get('smokingStatus');
+    const headCovering = searchParams.get('headCovering');
+    const kippahType = searchParams.get('kippahType');
+    const hasChildrenFromPrevious = searchParams.get('hasChildrenFromPrevious');
+
+    // Engagement filters
+    const suggestionsReceivedMin = searchParams.get('suggestionsReceivedMin')
+      ? parseInt(searchParams.get('suggestionsReceivedMin')!, 10) : null;
+    const suggestionsReceivedMax = searchParams.get('suggestionsReceivedMax')
+      ? parseInt(searchParams.get('suggestionsReceivedMax')!, 10) : null;
+    const suggestionsAcceptedMin = searchParams.get('suggestionsAcceptedMin')
+      ? parseInt(searchParams.get('suggestionsAcceptedMin')!, 10) : null;
+    const lastScannedDays = searchParams.get('lastScannedDays')
+      ? parseInt(searchParams.get('lastScannedDays')!, 10) : null;
+    const lastSuggestedDays = searchParams.get('lastSuggestedDays')
+      ? parseInt(searchParams.get('lastSuggestedDays')!, 10) : null;
+    const impressionScoreMin = searchParams.get('impressionScoreMin')
+      ? parseInt(searchParams.get('impressionScoreMin')!, 10) : null;
+    const impressionScoreMax = searchParams.get('impressionScoreMax')
+      ? parseInt(searchParams.get('impressionScoreMax')!, 10) : null;
+    const difficultyScoreMin = searchParams.get('difficultyScoreMin')
+      ? parseInt(searchParams.get('difficultyScoreMin')!, 10) : null;
+    const difficultyScoreMax = searchParams.get('difficultyScoreMax')
+      ? parseInt(searchParams.get('difficultyScoreMax')!, 10) : null;
+
     // Pagination
     const rawPage = parseInt(searchParams.get('page') || '1', 10);
     const rawPageSize = parseInt(
@@ -379,6 +415,59 @@ export async function GET(request: NextRequest) {
       profileWhere.lastActive = { gte: cutoff };
     }
 
+    // ─── New Profile Filters ──────────────────────────────────────────────
+    if (readinessLevel) {
+      profileWhere.readinessLevel = readinessLevel as Prisma.EnumReadinessLevelFilter;
+    }
+    if (profileCompletenessMin !== null) {
+      profileWhere.profileCompletenessScore = { gte: profileCompletenessMin };
+    }
+    if (smokingStatus) {
+      profileWhere.smokingStatus = smokingStatus;
+    }
+    if (headCovering) {
+      profileWhere.headCovering = headCovering as Prisma.EnumHeadCoveringTypeNullableFilter;
+    }
+    if (kippahType) {
+      profileWhere.kippahType = kippahType as Prisma.EnumKippahTypeNullableFilter;
+    }
+    if (hasChildrenFromPrevious !== null) {
+      profileWhere.hasChildrenFromPrevious = hasChildrenFromPrevious === 'true';
+    }
+
+    // ─── Engagement Filters ──────────────────────────────────────────────
+    if (suggestionsReceivedMin !== null) {
+      profileWhere.suggestionsReceived = { ...(profileWhere.suggestionsReceived as object || {}), gte: suggestionsReceivedMin };
+    }
+    if (suggestionsReceivedMax !== null) {
+      profileWhere.suggestionsReceived = { ...(profileWhere.suggestionsReceived as object || {}), lte: suggestionsReceivedMax };
+    }
+    if (suggestionsAcceptedMin !== null) {
+      profileWhere.suggestionsAccepted = { gte: suggestionsAcceptedMin };
+    }
+    if (lastScannedDays !== null && lastScannedDays > 0) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - lastScannedDays);
+      profileWhere.lastScannedAt = { gte: cutoff };
+    }
+    if (lastSuggestedDays !== null && lastSuggestedDays > 0) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - lastSuggestedDays);
+      profileWhere.lastSuggestedAt = { gte: cutoff };
+    }
+    if (impressionScoreMin !== null || impressionScoreMax !== null) {
+      profileWhere.impressionScore = {
+        ...(impressionScoreMin !== null ? { gte: impressionScoreMin } : {}),
+        ...(impressionScoreMax !== null ? { lte: impressionScoreMax } : {}),
+      };
+    }
+    if (difficultyScoreMin !== null || difficultyScoreMax !== null) {
+      profileWhere.difficultyScore = {
+        ...(difficultyScoreMin !== null ? { gte: difficultyScoreMin } : {}),
+        ...(difficultyScoreMax !== null ? { lte: difficultyScoreMax } : {}),
+      };
+    }
+
     // Attach profile conditions to user where
     if (Object.keys(profileWhere).length > 0) {
       // Use `is` to combine the "profile exists" check with field filters
@@ -415,6 +504,56 @@ export async function GET(request: NextRequest) {
       userWhere.AND = [
         ...(Array.isArray(userWhere.AND) ? userWhere.AND : []),
         ...wordConditions,
+      ];
+    }
+
+    // ─── Advanced Search (about, partner preferences, matchmaker notes) ──
+    if (advancedSearchQuery && advancedSearchQuery.trim()) {
+      const advWords = advancedSearchQuery.trim().split(/\s+/).filter(Boolean);
+
+      const advWordConditions: Prisma.UserWhereInput[] = advWords.map((word) => {
+        const orConditions: Prisma.UserWhereInput[] = [];
+
+        if (searchInAbout) {
+          orConditions.push({
+            profile: { about: { contains: word, mode: 'insensitive' } },
+          });
+        }
+        if (searchInPartnerPrefs) {
+          orConditions.push(
+            { profile: { preferredCharacterTraits: { has: word } } },
+            { profile: { preferredHobbies: { has: word } } },
+            { profile: { matchingNotes: { contains: word, mode: 'insensitive' } } },
+          );
+        }
+        if (searchInMatchmakerNotes) {
+          orConditions.push(
+            { profile: { matchmakerImpression: { contains: word, mode: 'insensitive' } } },
+            { profile: { internalMatchmakerNotes: { contains: word, mode: 'insensitive' } } },
+          );
+          // Also search in redFlags/greenFlags arrays
+          orConditions.push(
+            { profile: { redFlags: { has: word } } },
+            { profile: { greenFlags: { has: word } } },
+          );
+        }
+
+        // If no specific scope selected, search in all text fields
+        if (!searchInAbout && !searchInPartnerPrefs && !searchInMatchmakerNotes) {
+          orConditions.push(
+            { profile: { about: { contains: word, mode: 'insensitive' } } },
+            { profile: { matchingNotes: { contains: word, mode: 'insensitive' } } },
+            { profile: { matchmakerImpression: { contains: word, mode: 'insensitive' } } },
+            { profile: { internalMatchmakerNotes: { contains: word, mode: 'insensitive' } } },
+          );
+        }
+
+        return { OR: orConditions };
+      });
+
+      userWhere.AND = [
+        ...(Array.isArray(userWhere.AND) ? userWhere.AND : []),
+        ...advWordConditions,
       ];
     }
 
@@ -458,6 +597,9 @@ export async function GET(request: NextRequest) {
                 },
               },
             },
+          },
+          profileTags: {
+            select: { completedAt: true, updatedAt: true },
           },
           _count: {
             select: { notesAboutUser: true },
@@ -634,6 +776,8 @@ export async function GET(request: NextRequest) {
         notesCount: (user as any)._count?.notesAboutUser ?? 0,
         customTags: candidateTagsMap.get(user.id) ?? [],
         recentSuggestions: recentSuggestionsMap.get(user.id) ?? [],
+        sfCompleted: !!(user as any).profileTags?.completedAt,
+        sfUpdatedAt: (user as any).profileTags?.updatedAt?.toISOString?.() ?? (user as any).profileTags?.updatedAt ?? null,
         suggestionStatus: suggestionInfo,
         profile: profile
           ? {

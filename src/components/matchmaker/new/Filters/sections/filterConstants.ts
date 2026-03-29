@@ -39,3 +39,41 @@ export const MARITAL_STATUS_OPTIONS = [
   { value: 'divorced_with_children', label: 'גרוש/ה עם ילדים' },
   { value: 'widowed_with_children', label: 'אלמן/ה עם ילדים' },
 ];
+
+export const READINESS_OPTIONS = [
+  { value: 'VERY_READY', label: 'מוכן/ה מאוד' },
+  { value: 'READY', label: 'מוכן/ה' },
+  { value: 'SOMEWHAT_READY', label: 'מוכן/ה חלקית' },
+  { value: 'UNCERTAIN', label: 'לא בטוח/ה' },
+  { value: 'NOT_READY', label: 'לא מוכן/ה' },
+];
+
+export const SMOKING_OPTIONS = [
+  { value: 'never', label: 'לא מעשן/ת' },
+  { value: 'occasionally', label: 'לפעמים' },
+  { value: 'regularly', label: 'מעשן/ת באופן קבוע' },
+  { value: 'trying_to_quit', label: 'מנסה להפסיק' },
+];
+
+export const HEAD_COVERING_OPTIONS = [
+  { value: 'NONE', label: 'ללא כיסוי' },
+  { value: 'SOMETIMES', label: 'לפעמים' },
+  { value: 'MITPACHAT', label: 'מטפחת' },
+  { value: 'WIG', label: 'פאה' },
+  { value: 'BOTH', label: 'מטפחת ופאה' },
+  { value: 'FULL_COVERAGE', label: 'כיסוי מלא' },
+  { value: 'PARTIAL_COVERAGE', label: 'כיסוי חלקי' },
+  { value: 'OTHER', label: 'אחר' },
+];
+
+export const KIPPAH_OPTIONS = [
+  { value: 'NONE', label: 'ללא כיפה' },
+  { value: 'SOMETIMES', label: 'לפעמים' },
+  { value: 'SRUGA', label: 'כיפה סרוגה' },
+  { value: 'BLACK', label: 'כיפה שחורה' },
+  { value: 'BLACK_VELVET', label: 'כיפת קטיפה שחורה' },
+  { value: 'KNITTED_SMALL', label: 'סרוגה קטנה' },
+  { value: 'KNITTED_LARGE', label: 'סרוגה גדולה' },
+  { value: 'LARGE', label: 'כיפה גדולה' },
+  { value: 'OTHER', label: 'אחר' },
+];

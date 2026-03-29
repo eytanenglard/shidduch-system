@@ -146,7 +146,7 @@ const SuggestionRow: React.FC<SuggestionRowProps> = ({
                 {!isViewed && !isHistory && (
                   <div className="absolute top-2 end-2">
                     <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+                      <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
                       <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500 ring-2 ring-white" />
                     </span>
                   </div>

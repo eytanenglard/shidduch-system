@@ -227,8 +227,11 @@ export function deriveTagsFromAnswers(answers: SFAnswers): SFTagResult {
   if (familyAtm) result.backgroundTags.push(familyAtm);
 
   // Personality tags
-  const character = answers['s3_character_primary'] as string;
-  if (character) result.personalityTags.push(character);
+  const character = answers['s3_character_primary'];
+  if (character) {
+    const charArr = Array.isArray(character) ? character : [character as string];
+    charArr.forEach(v => result.personalityTags.push(v));
+  }
   const tempo = answers['s3_life_tempo'] as string;
   if (tempo) result.personalityTags.push(tempo);
   const spontaneity = answers['s3_spontaneity'] as string;
@@ -415,8 +418,11 @@ export function deriveTagsFromAnswers(answers: SFAnswers): SFTagResult {
   if (urbanId) result.lifestyleTags.push(`urban_${urbanId}`);
 
   // New: Vacation style (lifestyle)
-  const vacationStyle = answers['s5_vacation_style'] as string;
-  if (vacationStyle) result.lifestyleTags.push(`vacation_${vacationStyle}`);
+  const vacationStyle = answers['s5_vacation_style'];
+  if (vacationStyle) {
+    const vacArr = Array.isArray(vacationStyle) ? vacationStyle : [vacationStyle as string];
+    vacArr.forEach(v => result.lifestyleTags.push(`vacation_${v}`));
+  }
 
   // New: English comfort (lifestyle/diaspora)
   const englishComfort = answers['s5_english_comfort'] as string;

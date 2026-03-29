@@ -181,9 +181,38 @@ export async function POST(req: NextRequest) {
     if (data.actionType === 'tell_me_more') {
       await AiChatService.updateConversationPhase(data.conversationId, 'discussing');
 
+      // Generate AI deep explanation about the candidate
+      const candidateUserId = conversation.currentCandidateUserId;
+      let aiExplanation: string | null = null;
+
+      if (candidateUserId) {
+        try {
+          aiExplanation = await AiChatService.generateCandidateDeepDive(
+            userId, candidateUserId, data.conversationId,
+          );
+        } catch (err) {
+          console.error('[AiChat Action] Deep dive error:', err);
+        }
+      }
+
+      if (aiExplanation) {
+        await AiChatService.saveMessage(
+          data.conversationId,
+          'assistant',
+          aiExplanation,
+          { type: 'text' },
+        );
+      }
+
       return NextResponse.json({
         success: true,
         phase: 'discussing',
+        aiExplanation,
+        actionButtons: [
+          { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
+          { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
+          { type: 'next_candidate', label: { he: 'הבא/ה', en: 'Next' } },
+        ],
       });
     }
 
@@ -239,10 +268,15 @@ async function handleGetNextCandidate(userId: string, conversationId: string, in
       nextCandidate.candidateUserId,
     );
 
+    // Build intro text with match reasoning
+    const cardIntro = nextCandidate.shortReasoning
+      ? `${introMessage} ${nextCandidate.shortReasoning}`
+      : introMessage;
+
     await AiChatService.saveMessage(
       conversationId,
       'assistant',
-      introMessage,
+      cardIntro,
       { type: 'profile_card', candidateUserId: nextCandidate.candidateUserId },
     );
 

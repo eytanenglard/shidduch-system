@@ -142,16 +142,17 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
             onClick={() => setIsOpen(true)}
             className={cn(
               'w-full rounded-xl p-4',
-              'bg-violet-50',
+              'bg-gradient-to-r from-violet-50 via-purple-50/50 to-violet-50',
               'border border-violet-200/50 hover:border-violet-300',
-              'flex items-center gap-3 transition-all hover:shadow-sm',
-              'group cursor-pointer'
+              'flex items-center gap-3 transition-all duration-200 hover:shadow-md hover:scale-[1.01]',
+              'group cursor-pointer relative overflow-hidden'
             )}
           >
-            <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+            <div className="absolute -top-6 -end-6 w-24 h-24 rounded-full bg-violet-400/10 blur-2xl pointer-events-none" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/25 group-hover:scale-105 transition-transform">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <div className={cn('flex-1', isHebrew ? 'text-right' : 'text-left')}>
+            <div className={cn('flex-1 relative', isHebrew ? 'text-right' : 'text-left')}>
               <h3 className="text-sm font-semibold text-violet-800">
                 {isHebrew ? 'נשמה' : 'Neshama'}
               </h3>
@@ -159,7 +160,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                 {panelSubtitle}
               </p>
             </div>
-            <MessageCircle className="w-5 h-5 text-violet-400 group-hover:text-violet-600 transition-colors" />
+            <MessageCircle className="w-5 h-5 text-violet-400 group-hover:text-violet-600 transition-colors relative" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -176,30 +177,32 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
           >
             <div
               className={cn(
-                'rounded-xl border border-violet-200 bg-gray-50 overflow-hidden',
-                'shadow-sm',
+                'rounded-xl border border-violet-200/60 bg-gray-50 overflow-hidden',
+                'shadow-md',
               )}
             >
               {/* Header */}
-              <div className="bg-violet-600 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-violet-600 px-4 py-3 flex items-center justify-between overflow-hidden">
+                {/* Subtle animated shimmer in header */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 animate-shimmer pointer-events-none" />
+                <div className="flex items-center gap-2 relative">
                   <Sparkles className="w-4 h-4 text-white/90" />
                   <h3 className="text-sm font-semibold text-white">
                     {panelTitle}
                   </h3>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20 text-white/90">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20 text-white/90 backdrop-blur-sm">
                     AI
                   </span>
                   {phaseLabel && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/20">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80 border border-white/20 backdrop-blur-sm">
                       {phaseLabel}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 relative">
                   {/* Weekly usage badge */}
                   {isGeneralChat && weeklyUsage && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90 font-medium">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/15 text-white/90 font-medium backdrop-blur-sm">
                       {weeklyUsage.used}/{weeklyUsage.limit} {isHebrew ? 'השבוע' : 'this week'}
                     </span>
                   )}
@@ -237,7 +240,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
               )}
 
               {/* Messages Area */}
-              <div className={cn('flex flex-col', isGeneralChat ? 'h-[550px]' : 'h-[450px]')}>
+              <div className={cn('flex flex-col', isGeneralChat ? 'h-[min(550px,65vh)]' : 'h-[min(450px,55vh)]')}>
                 <AiChatMessages
                   messages={messages}
                   isStreaming={isStreaming}
@@ -280,7 +283,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
 
                 {/* Starter question chips — shown before any messages */}
                 {starterQuestions && starterQuestions.length > 0 && messages.length === 0 && !isStreaming && !isLoading && (
-                  <div className="px-4 py-2 border-t border-gray-100">
+                  <div className="px-4 py-2.5 border-t border-gray-100 bg-gradient-to-b from-white to-violet-50/30">
                     <p className="text-[10px] font-medium text-violet-500 mb-1.5 uppercase tracking-wider">
                       {isHebrew ? 'שאלות לדוגמה' : 'Try asking'}
                     </p>
@@ -289,7 +292,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
                         <button
                           key={q}
                           onClick={() => sendMessage(q)}
-                          className="text-xs px-3 py-1.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 hover:border-violet-300 transition-colors text-start"
+                          className="text-xs px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-sm text-violet-700 border border-violet-200/60 hover:bg-violet-100 hover:border-violet-300 hover:shadow-sm hover:scale-[1.03] transition-all duration-200 text-start"
                         >
                           {q}
                         </button>
@@ -315,11 +318,11 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
 
               {/* Escalation button (only for suggestion-specific chats) */}
               {suggestionId && !escalated && messages.length >= 2 && (
-                <div className="px-4 py-2 border-t border-gray-200">
+                <div className="px-4 py-2 border-t border-gray-200/60">
                   <button
                     onClick={handleEscalate}
                     disabled={isEscalating}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-violet-700 bg-violet-50/80 hover:bg-violet-100 border border-violet-200/60 transition-all duration-200 disabled:opacity-50 hover:scale-[1.01] active:scale-[0.99]"
                   >
                     <UserCheck className="w-3.5 h-3.5" />
                     {isEscalating
@@ -330,7 +333,7 @@ export default function AiChatPanel({ locale, suggestionId, proactiveMessage, in
               )}
 
               {/* Privacy notice */}
-              <div className="px-4 py-1.5 bg-gray-100 border-t border-gray-200">
+              <div className="px-4 py-1.5 bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 border-t border-gray-200/60">
                 <p className="text-[10px] text-gray-400 text-center">
                   {isHebrew
                     ? '🔒 השיחות נשמרות ומשמשות לשיפור ההצעות שלך. פרטיות מלאה.'

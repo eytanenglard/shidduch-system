@@ -364,6 +364,54 @@ export const useFilterLogic = ({
       });
     }
 
+    // מוכנות
+    if (filters.readinessLevel) {
+      active.push({ key: 'readinessLevel', value: filters.readinessLevel, label: `מוכנות: ${filters.readinessLevel}`, category: 'פרופיל' });
+    }
+    if (filters.profileCompletenessMin) {
+      active.push({ key: 'profileCompletenessMin', value: filters.profileCompletenessMin, label: `שלמות פרופיל: ≥${filters.profileCompletenessMin}%`, category: 'פרופיל' });
+    }
+    if (filters.smokingStatus) {
+      active.push({ key: 'smokingStatus', value: filters.smokingStatus, label: `עישון: ${filters.smokingStatus}`, category: 'פרופיל' });
+    }
+    if (filters.headCovering) {
+      active.push({ key: 'headCovering', value: filters.headCovering, label: `כיסוי ראש: ${filters.headCovering}`, category: 'מראה' });
+    }
+    if (filters.kippahType) {
+      active.push({ key: 'kippahType', value: filters.kippahType, label: `כיפה: ${filters.kippahType}`, category: 'מראה' });
+    }
+    if (filters.hasChildrenFromPrevious !== undefined) {
+      active.push({ key: 'hasChildrenFromPrevious', value: filters.hasChildrenFromPrevious, label: `ילדים מנישואים קודמים: ${filters.hasChildrenFromPrevious ? 'כן' : 'לא'}`, category: 'משפחה' });
+    }
+
+    // Engagement
+    if (filters.suggestionsReceivedMin != null || filters.suggestionsReceivedMax != null) {
+      const min = filters.suggestionsReceivedMin ?? 0;
+      const max = filters.suggestionsReceivedMax ?? '∞';
+      active.push({ key: 'suggestionsReceivedMin', value: min, label: `הצעות: ${min}–${max}`, category: 'מעורבות' });
+    }
+    if (filters.impressionScoreMin != null || filters.impressionScoreMax != null) {
+      const min = filters.impressionScoreMin ?? 0;
+      const max = filters.impressionScoreMax ?? 100;
+      active.push({ key: 'impressionScoreMin', value: min, label: `ציון רושם: ${min}–${max}`, category: 'מעורבות' });
+    }
+    if (filters.difficultyScoreMin != null || filters.difficultyScoreMax != null) {
+      const min = filters.difficultyScoreMin ?? 1;
+      const max = filters.difficultyScoreMax ?? 10;
+      active.push({ key: 'difficultyScoreMin', value: min, label: `רמת קושי: ${min}–${max}`, category: 'מעורבות' });
+    }
+    if (filters.lastScannedDays) {
+      active.push({ key: 'lastScannedDays', value: filters.lastScannedDays, label: `נסרק ב-${filters.lastScannedDays} ימים`, category: 'מעורבות' });
+    }
+    if (filters.lastSuggestedDays) {
+      active.push({ key: 'lastSuggestedDays', value: filters.lastSuggestedDays, label: `הוצע ב-${filters.lastSuggestedDays} ימים`, category: 'מעורבות' });
+    }
+
+    // חיפוש מתקדם
+    if (filters.advancedSearchQuery) {
+      active.push({ key: 'advancedSearchQuery', value: filters.advancedSearchQuery, label: `חיפוש: "${filters.advancedSearchQuery}"`, category: 'חיפוש מתקדם' });
+    }
+
     return active;
   }, [filters]);
 

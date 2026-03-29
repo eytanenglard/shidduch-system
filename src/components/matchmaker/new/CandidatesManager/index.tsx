@@ -69,8 +69,6 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     setIsMobile,
     isHeaderCompact,
     toggleHeaderCompact,
-    isQuickViewEnabled,
-    toggleQuickView,
     showFiltersPanel,
     setShowFiltersPanel,
     showFiltersMobile,
@@ -107,6 +105,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     clearComparison,
     setExistingSuggestions,
   } = useAiMatchingStore();
+
+  const t = matchmakerDict.candidatesManager.toasts;
 
   // --- Session & Permissions ---
   const { data: session } = useSession();
@@ -342,8 +342,8 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   // --- Event Handlers ---
   const handleCandidateAdded = useCallback(() => {
     refresh();
-    toast.success('מועמד חדש נוסף בהצלחה!');
-  }, [refresh]);
+    toast.success(t.candidateAdded);
+  }, [refresh, t]);
 
   const handleSearch = useCallback(
     (value: string) => {
@@ -378,7 +378,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         const data = await res.json();
         if (data.success && data.similarIds?.length > 0) {
           setSimilarCandidateIds(new Set(data.similarIds));
-          toast.success(`נמצאו ${data.similarIds.length} מועמדים דומים ל${candidate.firstName}`, {
+          toast.success(t.similarFound.replace('{{count}}', String(data.similarIds.length)).replace('{{name}}', candidate.firstName), {
             id: toastId,
             duration: 4000,
             action: {
@@ -387,13 +387,13 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             },
           });
         } else {
-          toast.info('לא נמצאו מועמדים דומים (אין וקטור זמין)', { id: toastId });
+          toast.info(t.noSimilarFound, { id: toastId });
         }
       } catch {
-        toast.error('שגיאה בחיפוש מועמדים דומים', { id: toastId });
+        toast.error(t.similarError, { id: toastId });
       }
     },
-    []
+    [t]
   );
 
   // Apply similar filter to candidates
@@ -416,12 +416,12 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     async (name: string) => {
       try {
         await saveFilter(name, filters);
-        toast.success('הפילטר נשמר בהצלחה');
+        toast.success(t.filterSaved);
       } catch {
-        toast.error('שגיאה בשמירת הפילטר');
+        toast.error(t.filterSaveError);
       }
     },
-    [filters, saveFilter]
+    [filters, saveFilter, t]
   );
 
   const handleSetAiTarget = useCallback(
@@ -429,7 +429,7 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       e.stopPropagation();
       if (aiTargetCandidate?.id === candidate.id) {
         clearAiTarget();
-        toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' });
+        toast.info(t.aiTargetCleared, { position: 'bottom-center' });
         return;
       }
       // If there's already a target, ask for confirmation before replacing
@@ -438,30 +438,30 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         return;
       }
       setAiTarget(candidate);
-      toast.info(`מועמד מטרה נבחר: ${candidate.firstName}.`, {
+      toast.info(t.aiTargetSet.replace('{{name}}', candidate.firstName), {
         position: 'bottom-center',
       });
     },
-    [aiTargetCandidate, clearAiTarget, setAiTarget]
+    [aiTargetCandidate, clearAiTarget, setAiTarget, t]
   );
 
   const handleConfirmAiTargetSwitch = useCallback(() => {
     if (pendingAiTarget) {
       setAiTarget(pendingAiTarget);
-      toast.info(`מועמד מטרה הוחלף ל: ${pendingAiTarget.firstName}.`, {
+      toast.info(t.aiTargetChanged.replace('{{name}}', pendingAiTarget.firstName), {
         position: 'bottom-center',
       });
       setPendingAiTarget(null);
     }
-  }, [pendingAiTarget, setAiTarget]);
+  }, [pendingAiTarget, setAiTarget, t]);
 
   const handleClearAiTarget = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       clearAiTarget();
-      toast.info('בחירת מועמד מטרה בוטלה.', { position: 'bottom-center' });
+      toast.info(t.aiTargetCleared, { position: 'bottom-center' });
     },
-    [clearAiTarget]
+    [clearAiTarget, t]
   );
 
   const handleToggleComparison = useCallback(
@@ -506,9 +506,9 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
       } as unknown as Candidate;
 
       setAiTarget(mockCandidate);
-      toast.success('פרופיל וירטואלי נטען! כעת ניתן לבצע חיפוש AI.');
+      toast.success(t.virtualProfileLoaded);
     },
-    [setAiTarget]
+    [setAiTarget, t]
   );
 
   const handleUpdateAllProfiles = useCallback(async () => {
@@ -566,13 +566,13 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
         }
       }
 
-      toast.success('העדכון הכללי הושלם בהצלחה!', {
+      toast.success(t.bulkUpdateSuccess, {
         id: toastId,
         duration: 4000,
       });
       refresh();
     } catch {
-      toast.error('שגיאה בתהליך העדכון. נסה שוב מאוחר יותר.', {
+      toast.error(t.bulkUpdateError, {
         id: toastId,
         duration: 4000,
       });
@@ -631,8 +631,6 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
             mobileView={mobileView}
             onMobileViewChange={setMobileView}
             isMobile={isMobile}
-            isQuickViewEnabled={isQuickViewEnabled}
-            onToggleQuickView={toggleQuickView}
             onOpenSavedVirtualProfiles={() => openDialog('savedVirtualProfiles')}
             showFiltersPanel={showFiltersPanel}
             onToggleFiltersPanel={() => setShowFiltersPanel(!showFiltersPanel)}
@@ -792,7 +790,6 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
                     onFemaleSearchChange={updateFemaleSearchQuery}
                     dict={matchmakerDict}
                     profileDict={profileDict}
-                    isQuickViewEnabled={isQuickViewEnabled}
                     locale={locale}
                     onEndReached={loadMore}
                     isLoadingMore={isLoadingMore}
@@ -870,13 +867,13 @@ const CandidatesManager: React.FC<CandidatesManagerProps> = ({
           onCloseBulkImport={() => closeDialog('bulkImport')}
           onImportComplete={() => {
             refresh();
-            toast.success('הייבוא הושלם בהצלחה!');
+            toast.success(t.importSuccess);
           }}
           showCardImportDialog={showCardImportDialog}
           onCloseCardImport={() => closeDialog('cardImport')}
           onCardImportComplete={() => {
             refresh();
-            toast.success('הייבוא הושלם בהצלחה!');
+            toast.success(t.importSuccess);
           }}
           analyzedCandidate={analyzedCandidate}
           onCloseAiAnalysis={() => setAnalyzedCandidate(null)}

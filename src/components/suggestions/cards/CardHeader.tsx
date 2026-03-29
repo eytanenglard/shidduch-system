@@ -7,6 +7,7 @@ import {
   Sparkles,
   Zap,
   AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -133,7 +134,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
             className={cn(
               'flex items-center gap-1.5 border shadow-sm font-semibold text-xs',
               statusInfo.className,
-              statusInfo.pulse && 'animate-pulse'
+              statusInfo.pulse && 'animate-pulse motion-reduce:animate-none'
             )}
           >
             <statusInfo.icon className="w-3 h-3" aria-hidden="true" />
@@ -164,9 +165,19 @@ const CardHeader: React.FC<CardHeaderProps> = ({
       {/* Urgent Badge */}
       {isUrgent && !isDaily && (
         <div className="absolute top-2 left-2">
-          <Badge className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg animate-pulse">
+          <Badge className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg animate-pulse motion-reduce:animate-none">
             <AlertTriangle className="w-3 h-3" />
             <span className="font-semibold text-xs">{dict.urgent}</span>
+          </Badge>
+        </div>
+      )}
+
+      {/* RE_OFFERED comeback badge */}
+      {suggestion.status === 'RE_OFFERED_TO_FIRST_PARTY' && (
+        <div className={cn('absolute top-2', locale === 'he' ? 'left-2' : 'right-2')}>
+          <Badge className="flex items-center gap-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 text-white border-0 shadow-lg shadow-blue-500/30 animate-bounce motion-reduce:animate-pulse text-xs font-bold">
+            <RotateCcw className="w-3 h-3" />
+            {locale === 'he' ? 'חזר/ה ואישר/ה!' : 'They\'re back!'}
           </Badge>
         </div>
       )}

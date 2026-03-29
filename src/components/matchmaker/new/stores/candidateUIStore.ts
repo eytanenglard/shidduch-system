@@ -1,4 +1,4 @@
-// Store for UI state: view modes, dialog visibility, header, selection, QuickView
+// Store for UI state: view modes, dialog visibility, header, selection
 import { create } from 'zustand';
 import type { ViewMode, MobileView, Candidate } from '../types/candidates';
 
@@ -8,7 +8,6 @@ interface CandidateUIState {
   mobileView: MobileView;
   isMobile: boolean;
   isHeaderCompact: boolean;
-  isQuickViewEnabled: boolean;
 
   // Filter panel visibility
   showFiltersPanel: boolean;
@@ -36,7 +35,6 @@ interface CandidateUIActions {
   setMobileView: (mode: MobileView) => void;
   setIsMobile: (isMobile: boolean) => void;
   toggleHeaderCompact: () => void;
-  toggleQuickView: () => void;
   setShowFiltersPanel: (show: boolean) => void;
   setShowFiltersMobile: (show: boolean) => void;
 
@@ -77,7 +75,6 @@ export const useCandidateUIStore = create<CandidateUIState & CandidateUIActions>
     mobileView: 'double',
     isMobile: false,
     isHeaderCompact: true,
-    isQuickViewEnabled: false,
     showFiltersPanel: false,
     showFiltersMobile: false,
     showManualAddDialog: false,
@@ -97,8 +94,6 @@ export const useCandidateUIStore = create<CandidateUIState & CandidateUIActions>
     setIsMobile: (isMobile) => set({ isMobile }),
     toggleHeaderCompact: () =>
       set((s) => ({ isHeaderCompact: !s.isHeaderCompact })),
-    toggleQuickView: () =>
-      set((s) => ({ isQuickViewEnabled: !s.isQuickViewEnabled })),
     setShowFiltersPanel: (show) => set({ showFiltersPanel: show }),
     setShowFiltersMobile: (show) => set({ showFiltersMobile: show }),
 

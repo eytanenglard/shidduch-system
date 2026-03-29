@@ -149,9 +149,9 @@ export default function AiChatMessages({
       {isStreaming && !streamingContent && (
         <div className="flex items-center gap-2 text-gray-400 pr-2">
           <div className="flex gap-1">
-            <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-            <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-            <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce motion-reduce:animate-none" style={{ animationDelay: '0ms' }} />
+            <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce motion-reduce:animate-none" style={{ animationDelay: '150ms' }} />
+            <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce motion-reduce:animate-none" style={{ animationDelay: '300ms' }} />
           </div>
           <span className="text-xs">
             {isHebrew ? 'חושב/ת...' : 'Thinking...'}

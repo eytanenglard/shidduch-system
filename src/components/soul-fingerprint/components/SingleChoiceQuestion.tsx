@@ -1,9 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Undo2 } from 'lucide-react';
 import type { SFQuestion } from '../types';
+
+// Haptic feedback for mobile web
+function triggerHaptic() {
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    navigator.vibrate(10);
+  }
+}
 
 interface Props {
   question: SFQuestion;
@@ -18,20 +25,25 @@ interface Props {
 export default function SingleChoiceQuestion({ question, value, onChange, customValue, onCustomChange, t, isRTL }: Props) {
   const [localCustom, setLocalCustom] = useState(customValue || '');
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showUndo, setShowUndo] = useState(false);
   const wasManuallyExpanded = useRef(false);
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevQuestionId = useRef(question.id);
+  const prevValue = useRef<string | null>(null);
 
   useEffect(() => {
     setLocalCustom(customValue || '');
   }, [customValue]);
 
-  // Reset collapse state when question changes
+  // Reset state when question changes
   useEffect(() => {
     if (prevQuestionId.current !== question.id) {
       setIsCollapsed(false);
+      setShowUndo(false);
       wasManuallyExpanded.current = false;
       prevQuestionId.current = question.id;
+      prevValue.current = null;
     }
   }, [question.id]);
 
@@ -39,7 +51,6 @@ export default function SingleChoiceQuestion({ question, value, onChange, custom
 
   const shouldAutoCollapse = useMemo(() => {
     if (!value) return false;
-    // Only collapse if there are enough options to hide (at least 3 hidden)
     return allOptions.length - 1 >= 3;
   }, [value, allOptions.length]);
 
@@ -48,9 +59,16 @@ export default function SingleChoiceQuestion({ question, value, onChange, custom
     if (collapseTimer.current) clearTimeout(collapseTimer.current);
 
     if (shouldAutoCollapse && !wasManuallyExpanded.current) {
-      collapseTimer.current = setTimeout(() => setIsCollapsed(true), 700);
+      collapseTimer.current = setTimeout(() => {
+        setIsCollapsed(true);
+        // Show undo toast
+        setShowUndo(true);
+        if (undoTimer.current) clearTimeout(undoTimer.current);
+        undoTimer.current = setTimeout(() => setShowUndo(false), 3000);
+      }, 700);
     } else if (!shouldAutoCollapse) {
       setIsCollapsed(false);
+      setShowUndo(false);
     }
 
     return () => {
@@ -58,10 +76,18 @@ export default function SingleChoiceQuestion({ question, value, onChange, custom
     };
   }, [shouldAutoCollapse]);
 
-  const handleExpand = () => {
+  // Cleanup undo timer
+  useEffect(() => {
+    return () => {
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+    };
+  }, []);
+
+  const handleExpand = useCallback(() => {
     setIsCollapsed(false);
+    setShowUndo(false);
     wasManuallyExpanded.current = true;
-  };
+  }, []);
 
   const visibleOptions = isCollapsed
     ? allOptions.filter(opt => opt.value === value)
@@ -88,6 +114,8 @@ export default function SingleChoiceQuestion({ question, value, onChange, custom
             >
               <button
                 onClick={() => {
+                  prevValue.current = value;
+                  triggerHaptic();
                   onChange(opt.value);
                   wasManuallyExpanded.current = false;
                 }}
@@ -128,8 +156,32 @@ export default function SingleChoiceQuestion({ question, value, onChange, custom
         })}
       </AnimatePresence>
 
-      {/* Show more button when collapsed */}
-      {isCollapsed && hiddenCount > 0 && (
+      {/* Undo / change bar — appears briefly after collapse */}
+      <AnimatePresence>
+        {isCollapsed && showUndo && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2 }}
+            className={`flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 ${isRTL ? 'flex-row-reverse' : ''}`}
+          >
+            <span className="text-xs text-amber-700">
+              {isRTL ? 'רוצה לשנות?' : 'Want to change?'}
+            </span>
+            <button
+              onClick={handleExpand}
+              className={`flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-800 transition-colors ${isRTL ? 'flex-row-reverse' : ''}`}
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+              {isRTL ? 'שנה בחירה' : 'Change'}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Show more button when collapsed (after undo disappears) */}
+      {isCollapsed && !showUndo && hiddenCount > 0 && (
         <motion.button
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}

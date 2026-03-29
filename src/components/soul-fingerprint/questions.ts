@@ -1012,11 +1012,13 @@ export const PERSONALITY_QUESTIONS: SFQuestion[] = [
   },
   {
     id: 's3_character_primary',
-    type: 'singleChoice',
+    type: 'multiSelect',
     textKey: 'questions.s3_character_primary.text',
+    subtitleKey: 'questions.s3_character_primary.subtitle',
     category: 'personality',
     forSelf: true,
     forPartner: false,
+    maxSelections: 3,
     allowCustom: true,
     options: [
       { value: 'humorous', labelKey: 'options.s3_character_primary.humorous', icon: '😄' },
@@ -2177,12 +2179,14 @@ export const LIFESTYLE_QUESTIONS: SFQuestion[] = [
   // === NEW: Vacation style ===
   {
     id: 's5_vacation_style',
-    type: 'singleChoice',
+    type: 'multiSelect',
     textKey: 'questions.s5_vacation_style.text',
+    subtitleKey: 'questions.s5_vacation_style.subtitle',
     category: 'lifestyle',
     forSelf: true,
     forPartner: false,
     isOptional: true,
+    maxSelections: 3,
     options: [
       { value: 'backpacking', labelKey: 'options.s5_vacation_style.backpacking', icon: '🎒' },
       { value: 'resort', labelKey: 'options.s5_vacation_style.resort', icon: '🏖️' },
@@ -3021,11 +3025,13 @@ export const FAMILY_EXTRA_QUESTIONS: SFQuestion[] = [
   // Partner: parenting style
   {
     id: 'p_parenting_style',
-    type: 'singleChoice',
+    type: 'multiSelect',
     textKey: 'questions.p_parenting_style.text',
+    subtitleKey: 'questions.p_parenting_style.subtitle',
     category: 'family',
     forSelf: false,
     forPartner: true,
+    maxSelections: 2,
     options: [
       { value: 'very_involved', labelKey: 'options.s6_parenting_style.very_involved' },
       { value: 'supportive', labelKey: 'options.s6_parenting_style.supportive' },
@@ -3542,11 +3548,13 @@ export const RELATIONSHIP_EXTRA_QUESTIONS: SFQuestion[] = [
   // Partner: argument style preference
   {
     id: 'p_argument_style',
-    type: 'singleChoice',
+    type: 'multiSelect',
     textKey: 'questions.p_argument_style.text',
+    subtitleKey: 'questions.p_argument_style.subtitle',
     category: 'relationship',
     forSelf: false,
     forPartner: true,
+    maxSelections: 2,
     options: [
       { value: 'expressive_heated', labelKey: 'options.s7_argument_style.expressive_heated', icon: '🔥' },
       { value: 'need_time', labelKey: 'options.s7_argument_style.need_time', icon: '🕐' },

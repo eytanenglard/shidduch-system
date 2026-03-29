@@ -10,7 +10,6 @@ import React, {
 import { UserX, Edit, X, ChevronsDownUp, ChevronsUpDown, Loader2 } from 'lucide-react';
 import { VirtuosoGrid, Virtuoso } from 'react-virtuoso';
 import MinimalCard from '../CandidateCard/MinimalCard';
-import QuickView from '../CandidateCard/QuickView';
 import { ProfileCard } from '@/components/profile';
 import type {
   Candidate,
@@ -25,10 +24,6 @@ import {
   DialogContent,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Sheet,
-  SheetContent,
-} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -44,6 +39,7 @@ import NewSuggestionForm from '../../suggestions/NewSuggestionForm';
 import MatchmakerEditProfile from '../MatchmakerEditProfile';
 import { cn } from '@/lib/utils';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
+import { useScrollPosition } from '../hooks/useScrollPosition';
 import {
   NoCandidatesEmpty,
   NoSearchResultsEmpty,
@@ -92,8 +88,6 @@ interface CandidatesListProps {
   comparisonSelection: Record<string, Candidate>;
   onToggleComparison: (candidate: Candidate, e: React.MouseEvent) => void;
   existingSuggestions: Record<string, { status: string; createdAt: string }>;
-  quickViewSide?: 'left' | 'right' | 'center';
-  isQuickViewEnabled: boolean;
   locale: string;
   dict: MatchmakerPageDictionary;
   profileDict: ProfilePageDictionary;
@@ -125,7 +119,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   locale,
   onCandidateClick,
   onCandidateAction,
-  isQuickViewEnabled,
   onOpenAiAnalysis,
   onSendProfileFeedback,
   viewMode,
@@ -138,7 +131,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   comparisonSelection,
   onToggleComparison,
   existingSuggestions,
-  quickViewSide = 'center',
   dict,
   profileDict,
   hasActiveSearch,
@@ -161,13 +153,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
   const [sfAnswers, setSfAnswers] = useState<Record<string, unknown> | null>(null);
   const [isSfLoading, setIsSfLoading] = useState(false);
   const [isMatchmaker, setIsMatchmaker] = useState(true);
-  // QuickView Sheet state (replaces hover-based QuickView)
-  const [quickViewCandidate, setQuickViewCandidate] =
-    useState<CandidateWithAiData | null>(null);
-
-  // Store scroll position before opening dialogs
-  const scrollPositionRef = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { saveScrollPosition, restoreScrollPosition } = useScrollPosition(containerRef);
 
   // Dynamic Virtuoso height — measure available space via ResizeObserver
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -222,9 +209,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       }
     },
     onEscape: () => {
-      if (quickViewCandidate) {
-        setQuickViewCandidate(null);
-      }
+      // no-op
     },
     onSuggest: (index) => {
       if (candidates[index]) {
@@ -289,7 +274,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
 
   // Action handlers
 
-  const handleInvite = async (candidate: Candidate, email: string) => {
+  const handleInvite = useCallback(async (candidate: Candidate, email: string) => {
     try {
       const response = await fetch(
         `/api/matchmaker/candidates/${candidate.id}/invite-setup`,
@@ -308,9 +293,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       }
       throw error;
     }
-  };
+  }, [onCandidateAction]);
 
-  const handleAvailabilityCheck = async (candidate: Candidate) => {
+  const handleAvailabilityCheck = useCallback(async (candidate: Candidate) => {
     try {
       const response = await fetch('/api/availability/check', {
         method: 'POST',
@@ -326,9 +311,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       }
       throw error;
     }
-  };
+  }, [onCandidateAction]);
 
-  const handleCreateSuggestion = async (data: CreateSuggestionData) => {
+  const handleCreateSuggestion = useCallback(async (data: CreateSuggestionData) => {
     try {
       const response = await fetch(
         `/api/matchmaker/suggestions?locale=${locale}`,
@@ -347,36 +332,19 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       }
       throw error;
     }
-  };
+  }, [locale, onCandidateAction, dialogCandidate]);
 
   const handleEditProfile = useCallback((candidate: Candidate) => {
-    const scrollContainer = containerRef.current?.closest(
-      '.overflow-y-auto, [data-radix-scroll-area-viewport]'
-    );
-    if (scrollContainer) {
-      scrollPositionRef.current = scrollContainer.scrollTop;
-    } else {
-      scrollPositionRef.current = window.scrollY;
-    }
+    saveScrollPosition();
     setDialogCandidate(candidate);
     setShowEditProfileDialog(true);
-  }, []);
+  }, [saveScrollPosition]);
 
   // Restore scroll position when edit dialog closes
   const handleCloseEditProfile = useCallback(() => {
     setShowEditProfileDialog(false);
-
-    requestAnimationFrame(() => {
-      const scrollContainer = containerRef.current?.closest(
-        '.overflow-y-auto, [data-radix-scroll-area-viewport]'
-      );
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollPositionRef.current;
-      } else {
-        window.scrollTo(0, scrollPositionRef.current);
-      }
-    });
-  }, []);
+    restoreScrollPosition();
+  }, [restoreScrollPosition]);
 
   const handleAction = useCallback(
     (
@@ -384,7 +352,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       candidate: Candidate
     ) => {
       setDialogCandidate(candidate);
-      setQuickViewCandidate(null);
       switch (action) {
         case 'invite':
           setShowInviteDialog(true);
@@ -396,14 +363,7 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           setShowSuggestDialog(true);
           break;
         case 'view': {
-          const scrollContainer = containerRef.current?.closest(
-            '.overflow-y-auto, [data-radix-scroll-area-viewport]'
-          );
-          if (scrollContainer) {
-            scrollPositionRef.current = scrollContainer.scrollTop;
-          } else {
-            scrollPositionRef.current = window.scrollY;
-          }
+          saveScrollPosition();
           setSelectedCandidate(candidate);
           onCandidateClick?.(candidate);
           break;
@@ -429,17 +389,8 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
       onOpenAiAnalysis,
       onSendProfileFeedback,
       handleEditProfile,
+      saveScrollPosition,
     ]
-  );
-
-  // Handle QuickView via Sheet (replaces hover-based positioning)
-  const handleCardRightClick = useCallback(
-    (candidate: CandidateWithAiData, e: React.MouseEvent) => {
-      if (!isQuickViewEnabled || isMobile) return;
-      e.preventDefault();
-      setQuickViewCandidate(candidate);
-    },
-    [isQuickViewEnabled, isMobile]
   );
 
   // Handle profile dialog close with scroll restoration
@@ -447,19 +398,9 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     if (!open) {
       setSelectedCandidate(null);
       setQuestionnaireResponse(null);
-
-      requestAnimationFrame(() => {
-        const scrollContainer = containerRef.current?.closest(
-          '.overflow-y-auto, [data-radix-scroll-area-viewport]'
-        );
-        if (scrollContainer) {
-          scrollContainer.scrollTop = scrollPositionRef.current;
-        } else {
-          window.scrollTo(0, scrollPositionRef.current);
-        }
-      });
+      restoreScrollPosition();
     }
-  }, []);
+  }, [restoreScrollPosition]);
 
   const gridLayoutClass = useMemo(() => {
     if (isMobile) {
@@ -520,7 +461,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
             'relative',
             focused && 'ring-2 ring-primary/50 rounded-xl'
           )}
-          onContextMenu={(e) => handleCardRightClick(candidate, e)}
         >
           <MinimalCard
             candidate={candidate}
@@ -559,7 +499,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
     [
       getItemProps,
       isFocused,
-      handleCardRightClick,
       handleAnalyze,
       handleSendFeedback,
       handleEditAction,
@@ -736,33 +675,6 @@ const CandidatesList: React.FC<CandidatesListProps> = ({
           )}
         </div>
       </div>
-
-      {/* QuickView as Sheet drawer (replaces hover-positioned absolute div) */}
-      <Sheet
-        open={!!quickViewCandidate}
-        onOpenChange={(open) => {
-          if (!open) setQuickViewCandidate(null);
-        }}
-      >
-        <SheetContent
-          side={locale === 'he' ? 'left' : 'right'}
-          className="w-[450px] sm:max-w-[450px] p-0 overflow-y-auto"
-        >
-          {quickViewCandidate && (
-            <QuickView
-              candidate={quickViewCandidate}
-              onAction={(action) => handleAction(action, quickViewCandidate)}
-              onSetAiTarget={(c, e) => onSetAiTarget(c, e)}
-              isAiTarget={aiTargetCandidate?.id === quickViewCandidate.id}
-              dict={dict.candidatesManager.list.quickView}
-              aiScore={quickViewCandidate.aiScore}
-              aiReasoning={quickViewCandidate.aiReasoning}
-              aiRank={quickViewCandidate.aiRank}
-              aiSimilarity={quickViewCandidate.aiSimilarity}
-            />
-          )}
-        </SheetContent>
-      </Sheet>
 
       {/* --- Main Profile Dialog --- */}
       <Dialog

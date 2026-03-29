@@ -111,7 +111,7 @@ export default function MiniTimeline({
               ) && (
                 <div
                   className={cn(
-                    'absolute inset-0 w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full animate-ping opacity-40',
+                    'absolute inset-0 w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full animate-ping motion-reduce:animate-none opacity-40',
                     getCategoryDot(latestStatus.status)
                   )}
                 />

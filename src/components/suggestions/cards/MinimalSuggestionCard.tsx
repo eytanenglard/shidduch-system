@@ -107,6 +107,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
         'group w-full rounded-2xl overflow-hidden shadow-lg border-0 bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-1',
         isUrgent && !isDaily && 'ring-2 ring-orange-400 ring-opacity-60',
         isDaily && 'ring-2 ring-violet-400 ring-opacity-60',
+        suggestion.status === 'RE_OFFERED_TO_FIRST_PARTY' && 'ring-2 ring-blue-400 ring-opacity-80 shadow-blue-100/50',
         // Unread indicator: subtle glow effect
         !isViewed && !isHistory && 'ring-2 ring-teal-400 ring-opacity-80 shadow-teal-100/50',
         className
@@ -116,7 +117,7 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
       {!isViewed && !isHistory && (
         <div className="absolute top-3 left-3 z-10">
           <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+            <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500" />
           </span>
         </div>
@@ -205,6 +206,9 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
               </div>
             </div>
           )}
+
+          {/* Progress Steps */}
+          <SuggestionProgress status={suggestion.status} locale={locale} />
 
           {/* "Why You'd Connect" - Expanded matching reasons */}
           <div
@@ -326,6 +330,86 @@ const MinimalSuggestionCard: React.FC<MinimalSuggestionCardProps> = ({
     </Card>
   );
 };
+
+// =============================================================================
+// Helper: Suggestion progress steps
+// =============================================================================
+
+const PROGRESS_STEPS = [
+  'suggestion',  // Received
+  'approved',    // You approved
+  'sent',        // Sent to other side
+  'mutual',      // Mutual match / contact shared
+  'dating',      // Dating
+] as const;
+
+const STATUS_TO_STEP: Record<string, number> = {
+  PENDING_FIRST_PARTY: 0,
+  FIRST_PARTY_INTERESTED: 0,
+  RE_OFFERED_TO_FIRST_PARTY: 0,
+  FIRST_PARTY_APPROVED: 1,
+  PENDING_SECOND_PARTY: 2,
+  SECOND_PARTY_NOT_AVAILABLE: 2,
+  FIRST_PARTY_NOT_AVAILABLE: 2,
+  SECOND_PARTY_APPROVED: 3,
+  CONTACT_DETAILS_SHARED: 3,
+  AWAITING_FIRST_DATE_FEEDBACK: 4,
+  MEETING_PENDING: 4,
+  MEETING_SCHEDULED: 4,
+  PROCEEDING_TO_SECOND_DATE: 4,
+  DATING: 4,
+  ENGAGED: 4,
+  MARRIED: 4,
+};
+
+// Terminal/negative statuses — don't show progress
+const TERMINAL_STATUSES = new Set([
+  'FIRST_PARTY_DECLINED', 'SECOND_PARTY_DECLINED',
+  'CANCELLED', 'CLOSED', 'EXPIRED', 'ENDED_AFTER_FIRST_DATE',
+]);
+
+function SuggestionProgress({ status, locale }: { status: string; locale: 'he' | 'en' }) {
+  if (TERMINAL_STATUSES.has(status)) return null;
+  const currentStep = STATUS_TO_STEP[status] ?? -1;
+  if (currentStep < 0) return null;
+
+  const labels = locale === 'he'
+    ? ['הצעה', 'אישור', 'נשלח', 'התאמה', 'יוצאים']
+    : ['Sent', 'Approved', 'Forwarded', 'Matched', 'Dating'];
+
+  return (
+    <div className="flex items-center gap-1 w-full px-1">
+      {PROGRESS_STEPS.map((_, i) => (
+        <React.Fragment key={i}>
+          <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+            <div
+              className={cn(
+                'w-2 h-2 rounded-full transition-all',
+                i <= currentStep
+                  ? i === currentStep ? 'bg-teal-500 ring-2 ring-teal-200' : 'bg-teal-400'
+                  : 'bg-gray-200'
+              )}
+            />
+            <span className={cn(
+              'text-[9px] leading-none font-medium',
+              i <= currentStep ? 'text-teal-700' : 'text-gray-400'
+            )}>
+              {labels[i]}
+            </span>
+          </div>
+          {i < PROGRESS_STEPS.length - 1 && (
+            <div
+              className={cn(
+                'flex-1 h-[1.5px] rounded-full -mt-3',
+                i < currentStep ? 'bg-teal-400' : 'bg-gray-200'
+              )}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
 
 // =============================================================================
 // Helper: Build matching reasons from suggestion data

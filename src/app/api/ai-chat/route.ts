@@ -97,13 +97,20 @@ export async function POST(req: NextRequest) {
     let searchContext: string | undefined;
     let searchResults: Awaited<ReturnType<typeof AiChatService.searchMatches>> = [];
 
+    // Check for cached summary before expensive AI call
+    let cachedSummary: string | null = null;
+
     if (effectiveSuggestionId) {
       // Deep profile summary mode — load comprehensive profile data
       if (requestType === 'profile_summary') {
-        suggestionContext = (await AiChatService.buildDeepProfileContext(effectiveSuggestionId, userId, locale)) || undefined;
+        // Try cache first
+        cachedSummary = await AiChatService.getCachedSummary(effectiveSuggestionId, userId);
+        if (!cachedSummary) {
+          suggestionContext = (await AiChatService.buildDeepProfileContext(effectiveSuggestionId, userId, locale)) || undefined;
+        }
       }
       // Fallback to standard suggestion context
-      if (!suggestionContext) {
+      if (!suggestionContext && !cachedSummary) {
         suggestionContext = (await AiChatService.getSuggestionContext(effectiveSuggestionId, userId, locale)) || undefined;
       }
     } else if (conversationPhase === 'presenting' || conversationPhase === 'discussing') {
@@ -137,9 +144,54 @@ export async function POST(req: NextRequest) {
       AiChatService.getWatchlistNames(userId),
     ]);
 
+    // If we have a cached summary, serve it directly without AI call
+    if (cachedSummary) {
+      const encoder = new TextEncoder();
+      const cachedStream = new ReadableStream({
+        async start(controller) {
+          try {
+            // Save as assistant message
+            await AiChatService.saveMessage(conversation.id, 'assistant', cachedSummary!);
+
+            // Stream the cached response in a single chunk
+            const data = JSON.stringify({ type: 'chunk', content: cachedSummary });
+            controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+
+            // Quick replies for cached response
+            const quickReplies = locale === 'he'
+              ? ['מה המשותף בינינו?', 'ספר/י לי עוד', 'יש לי שאלות']
+              : ['What do we have in common?', 'Tell me more', 'I have questions'];
+
+            const doneData = JSON.stringify({
+              type: 'done',
+              conversationId: conversation.id,
+              suggestionId: effectiveSuggestionId || undefined,
+              quickReplies,
+            });
+            controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));
+          } catch (err) {
+            console.error('[AiChat] Cache stream error:', err);
+            const errorData = JSON.stringify({ type: 'error', error: 'Failed to serve cached response' });
+            controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
+          } finally {
+            controller.close();
+          }
+        },
+      });
+
+      return new Response(cachedStream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
+
     // Stream response
     const encoder = new TextEncoder();
     let fullResponse = '';
+    const isProfileSummaryRequest = requestType === 'profile_summary';
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -179,6 +231,11 @@ export async function POST(req: NextRequest) {
             Object.keys(msgMetadata).length > 0 ? msgMetadata : undefined,
           );
 
+          // Cache profile summary for future requests
+          if (isProfileSummaryRequest && effectiveSuggestionId && fullResponse.length > 100) {
+            void AiChatService.cacheSummary(effectiveSuggestionId, userId, fullResponse);
+          }
+
           // Handle escalation: create suggestion message for matchmaker
           let escalated = false;
           if (isEscalationRequest && effectiveSuggestionId) {
@@ -212,11 +269,17 @@ export async function POST(req: NextRequest) {
                 nextCandidate.candidateUserId,
               );
 
-              // Save a profile_card message
+              // Save a profile_card message with match reasoning as intro text
+              const introText = nextCandidate.shortReasoning
+                ? (locale === 'he'
+                  ? `מצאתי מישהו/י שיכול/ה להתאים לך — ${nextCandidate.shortReasoning}`
+                  : `I found someone who could be a great match — ${nextCandidate.shortReasoning}`)
+                : (locale === 'he' ? 'מצאתי מישהו/י שיכול/ה להתאים לך:' : 'I found someone who could be a great match:');
+
               await AiChatService.saveMessage(
                 conversation.id,
                 'assistant',
-                '', // Empty content — the frontend renders the ProfileCard
+                introText,
                 {
                   type: 'profile_card',
                   candidateUserId: nextCandidate.candidateUserId,
@@ -263,6 +326,7 @@ export async function POST(req: NextRequest) {
               { type: 'interested', label: { he: 'מעוניין/ת', en: 'Interested' } },
               { type: 'not_for_me', label: { he: 'לא מתאים', en: 'Not for me' } },
               { type: 'tell_me_more', label: { he: 'ספר/י לי עוד', en: 'Tell me more' } },
+              { type: 'next_candidate', label: { he: 'הבא/ה', en: 'Next' } },
             ] : undefined,
           });
           controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));

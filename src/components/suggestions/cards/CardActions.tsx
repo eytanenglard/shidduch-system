@@ -1,6 +1,6 @@
 // src/components/suggestions/cards/CardActions.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   XCircle,
   Heart,
@@ -12,6 +12,16 @@ import {
   Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import type { ExtendedMatchSuggestion } from '../../../types/suggestions';
 import type { SuggestionsCardDict } from '@/types/dictionary';
@@ -41,156 +51,97 @@ const CardActions: React.FC<CardActionsProps> = ({
   dict,
   locale,
 }) => {
+  const isRtl = locale === 'he';
+  const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
+
+  const handleDeclineClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeclineConfirm(true);
+  };
+
+  const confirmDecline = () => {
+    onDecline?.(suggestion);
+    setShowDeclineConfirm(false);
+  };
+
+  const declineDialog = (
+    <AlertDialog open={showDeclineConfirm} onOpenChange={setShowDeclineConfirm}>
+      <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {isRtl ? 'דחיית הצעה' : 'Decline Suggestion'}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {isRtl
+              ? 'האם את/ה בטוח/ה שברצונך לדחות את ההצעה? לא ניתן לבטל פעולה זו.'
+              : 'Are you sure you want to decline this suggestion? This action cannot be undone.'}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{isRtl ? 'ביטול' : 'Cancel'}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={confirmDecline}
+            className="bg-rose-500 hover:bg-rose-600 text-white"
+          >
+            {isRtl ? 'דחה/י' : 'Decline'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
   // CASE: First party PENDING
   if (suggestion.status === 'PENDING_FIRST_PARTY' && isFirstParty) {
     if (isUserInActiveProcess) {
       return (
-        <div className="w-full space-y-2">
-          <Button
-            size="sm"
-            variant="default"
-            className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium h-10"
-            onClick={(e) => {
-              e.stopPropagation();
-              onInterested?.(suggestion);
-            }}
-          >
-            <Bookmark
-              className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-            />
-            {dict.buttons.interested ||
-              (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
-          </Button>
+        <>
+          <div className="w-full space-y-2">
+            <Button
+              size="sm"
+              variant="default"
+              className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium h-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                onInterested?.(suggestion);
+              }}
+            >
+              <Bookmark
+                className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+              />
+              {dict.buttons.interested ||
+                (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
+            </Button>
 
-          <div className="flex items-start gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
-            <Info className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-slate-600 leading-relaxed">
-              {dict.activeProcessExplanation ||
-                (locale === 'he'
-                  ? 'יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים.'
-                  : 'You already have an active suggestion. This one will be saved to your waitlist and you can approve it when the current process ends.')}
-            </p>
+            <div className="flex items-start gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
+              <Info className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {dict.activeProcessExplanation ||
+                  (locale === 'he'
+                    ? 'יש לך כבר הצעה בתהליך פעיל. ההצעה הזו תישמר ברשימת ההמתנה שלך ותוכל/י לאשר אותה כשהתהליך הנוכחי יסתיים.'
+                    : 'You already have an active suggestion. This one will be saved to your waitlist and you can approve it when the current process ends.')}
+              </p>
+            </div>
+
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 h-9"
+              onClick={handleDeclineClick}
+            >
+              <XCircle
+                className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+              />
+              {dict.buttons.decline}
+            </Button>
           </div>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 h-9"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDecline?.(suggestion);
-            }}
-          >
-            <XCircle
-              className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-            />
-            {dict.buttons.decline}
-          </Button>
-        </div>
+          {declineDialog}
+        </>
       );
     }
 
     return (
-      <div className="w-full space-y-2">
-        <Button
-          size="sm"
-          variant="default"
-          className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium h-10"
-          onClick={(e) => {
-            e.stopPropagation();
-            onApprove?.(suggestion);
-          }}
-        >
-          <Heart
-            className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-          />
-          {dict.buttons.approve}
-        </Button>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full text-teal-700 hover:text-teal-800 hover:bg-teal-50 border-teal-200 hover:border-teal-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
-            onClick={(e) => {
-              e.stopPropagation();
-              onInterested?.(suggestion);
-            }}
-          >
-            <Bookmark
-              className={cn(
-                'w-3.5 h-3.5',
-                locale === 'he' ? 'ml-1.5' : 'mr-1.5'
-              )}
-            />
-            {dict.buttons.interested ||
-              (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 text-xs h-9"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDecline?.(suggestion);
-            }}
-          >
-            <XCircle
-              className={cn(
-                'w-3.5 h-3.5',
-                locale === 'he' ? 'ml-1.5' : 'mr-1.5'
-              )}
-            />
-            {dict.buttons.decline}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // CASE: Second party PENDING
-  if (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) {
-    return (
-      <div className="grid grid-cols-2 gap-3 w-full">
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDecline?.(suggestion);
-          }}
-        >
-          <XCircle
-            className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-          />
-          {dict.buttons.decline}
-        </Button>
-
-        <Button
-          size="sm"
-          variant="default"
-          className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium"
-          onClick={(e) => {
-            e.stopPropagation();
-            onApprove?.(suggestion);
-          }}
-        >
-          <Heart
-            className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-          />
-          {dict.buttons.approve}
-        </Button>
-      </div>
-    );
-  }
-
-  // CASE: INTERESTED
-  if (suggestion.status === 'FIRST_PARTY_INTERESTED' && isFirstParty) {
-    return (
-      <div className="w-full space-y-2">
-        {!isUserInActiveProcess && (
+      <>
+        <div className="w-full space-y-2">
           <Button
             size="sm"
             variant="default"
@@ -203,38 +154,136 @@ const CardActions: React.FC<CardActionsProps> = ({
             <Heart
               className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
             />
-            {dict.buttons.activateNow ||
-              (locale === 'he' ? 'אשר/י עכשיו' : 'Approve now')}
+            {dict.buttons.approve}
           </Button>
-        )}
 
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 h-9"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDecline?.(suggestion);
-          }}
-        >
-          <Trash2
-            className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-          />
-          {dict.buttons.removeFromList ||
-            (locale === 'he' ? 'הסר מהרשימה' : 'Remove')}
-        </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-teal-700 hover:text-teal-800 hover:bg-teal-50 border-teal-200 hover:border-teal-300 rounded-xl font-medium transition-all duration-300 text-xs h-9"
+              onClick={(e) => {
+                e.stopPropagation();
+                onInterested?.(suggestion);
+              }}
+            >
+              <Bookmark
+                className={cn(
+                  'w-3.5 h-3.5',
+                  locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                )}
+              />
+              {dict.buttons.interested ||
+                (locale === 'he' ? 'שומר/ת לגיבוי' : 'Save for later')}
+            </Button>
 
-        {isUserInActiveProcess && (
-          <div className="flex items-start gap-2 px-3 py-2 bg-gray-50 rounded-lg">
-            <Info className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-gray-500 leading-relaxed">
-              {locale === 'he'
-                ? 'יש לך הצעה פעילה. כשתסתיים, תוכל/י לאשר מהרשימה.'
-                : 'You have an active suggestion. Once it ends, you can approve from the waitlist.'}
-            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 text-xs h-9"
+              onClick={handleDeclineClick}
+            >
+              <XCircle
+                className={cn(
+                  'w-3.5 h-3.5',
+                  locale === 'he' ? 'ml-1.5' : 'mr-1.5'
+                )}
+              />
+              {dict.buttons.decline}
+            </Button>
           </div>
-        )}
-      </div>
+        </div>
+        {declineDialog}
+      </>
+    );
+  }
+
+  // CASE: Second party PENDING
+  if (suggestion.status === 'PENDING_SECOND_PARTY' && !isFirstParty) {
+    return (
+      <>
+        <div className="grid grid-cols-2 gap-3 w-full">
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300"
+            onClick={handleDeclineClick}
+          >
+            <XCircle
+              className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+            />
+            {dict.buttons.decline}
+          </Button>
+
+          <Button
+            size="sm"
+            variant="default"
+            className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium"
+            onClick={(e) => {
+              e.stopPropagation();
+              onApprove?.(suggestion);
+            }}
+          >
+            <Heart
+              className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+            />
+            {dict.buttons.approve}
+          </Button>
+        </div>
+        {declineDialog}
+      </>
+    );
+  }
+
+  // CASE: INTERESTED
+  if (suggestion.status === 'FIRST_PARTY_INTERESTED' && isFirstParty) {
+    return (
+      <>
+        <div className="w-full space-y-2">
+          {!isUserInActiveProcess && (
+            <Button
+              size="sm"
+              variant="default"
+              className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-300 rounded-xl font-medium h-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                onApprove?.(suggestion);
+              }}
+            >
+              <Heart
+                className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+              />
+              {dict.buttons.activateNow ||
+                (locale === 'he' ? 'אשר/י עכשיו' : 'Approve now')}
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium transition-all duration-300 h-9"
+            onClick={handleDeclineClick}
+          >
+            <Trash2
+              className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+            />
+            {dict.buttons.removeFromList ||
+              (locale === 'he' ? 'הסר מהרשימה' : 'Remove')}
+          </Button>
+
+          {isUserInActiveProcess && (
+            <div className="flex items-start gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+              <Info className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {locale === 'he'
+                  ? 'יש לך הצעה פעילה. כשתסתיים, תוכל/י לאשר מהרשימה.'
+                  : 'You have an active suggestion. Once it ends, you can approve from the waitlist.'}
+              </p>
+            </div>
+          )}
+        </div>
+        {declineDialog}
+      </>
     );
   }
 
@@ -291,46 +340,46 @@ const CardActions: React.FC<CardActionsProps> = ({
   // CASE: Re-offered to first party
   if (suggestion.status === 'RE_OFFERED_TO_FIRST_PARTY' && isFirstParty) {
     return (
-      <div className="w-full space-y-2">
-        <div className="flex items-start gap-2 px-3 py-2 bg-blue-50 rounded-lg">
-          <Info className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-blue-700">
-            {locale === 'he'
-              ? 'הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין רלוונטית עבורך?'
-              : 'The other side is now available and approved! Is this still relevant for you?'}
-          </p>
+      <>
+        <div className="w-full space-y-2">
+          <div className="flex items-start gap-2 px-3 py-2 bg-blue-50 rounded-lg">
+            <Info className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-blue-700">
+              {locale === 'he'
+                ? 'הצד השני חזר להיות זמין ואישר! האם ההצעה עדיין רלוונטית עבורך?'
+                : 'The other side is now available and approved! Is this still relevant for you?'}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium"
+              onClick={handleDeclineClick}
+            >
+              <XCircle
+                className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+              />
+              {dict.buttons.decline}
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md rounded-xl font-medium"
+              onClick={(e) => {
+                e.stopPropagation();
+                onApprove?.(suggestion);
+              }}
+            >
+              <Heart
+                className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
+              />
+              {dict.buttons.approve}
+            </Button>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            size="sm"
-            variant="outline"
-            className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl font-medium"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDecline?.(suggestion);
-            }}
-          >
-            <XCircle
-              className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-            />
-            {dict.buttons.decline}
-          </Button>
-          <Button
-            size="sm"
-            variant="default"
-            className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md rounded-xl font-medium"
-            onClick={(e) => {
-              e.stopPropagation();
-              onApprove?.(suggestion);
-            }}
-          >
-            <Heart
-              className={cn('w-4 h-4', locale === 'he' ? 'ml-2' : 'mr-2')}
-            />
-            {dict.buttons.approve}
-          </Button>
-        </div>
-      </div>
+        {declineDialog}
+      </>
     );
   }
 

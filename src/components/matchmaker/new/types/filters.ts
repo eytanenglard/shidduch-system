@@ -55,6 +55,31 @@ export interface FilterState {
   ethnicBackground?: string[];
   hasNoSuggestions?: boolean;
   customTags?: string[];
+
+  // Advanced search mode (about text + partner preferences)
+  advancedSearchQuery?: string;
+  searchInAbout?: boolean;
+  searchInPartnerPrefs?: boolean;
+  searchInMatchmakerNotes?: boolean;
+
+  // Missing profile filters
+  readinessLevel?: string;
+  profileCompletenessMin?: number;
+  smokingStatus?: string;
+  headCovering?: string;
+  kippahType?: string;
+  hasChildrenFromPrevious?: boolean;
+
+  // Engagement filters
+  suggestionsReceivedMin?: number;
+  suggestionsReceivedMax?: number;
+  suggestionsAcceptedMin?: number;
+  lastScannedDays?: number;
+  lastSuggestedDays?: number;
+  impressionScoreMin?: number;
+  impressionScoreMax?: number;
+  difficultyScoreMin?: number;
+  difficultyScoreMax?: number;
 }
 
 // הגדרת אפשרות פילטר
@@ -156,6 +181,25 @@ ageRange: undefined,     // היה: { min: 18, max: 130}
   searchQuery: '',
   savedFilterId: undefined,
   customTags: [],
+  advancedSearchQuery: '',
+  searchInAbout: false,
+  searchInPartnerPrefs: false,
+  searchInMatchmakerNotes: false,
+  readinessLevel: undefined,
+  profileCompletenessMin: undefined,
+  smokingStatus: undefined,
+  headCovering: undefined,
+  kippahType: undefined,
+  hasChildrenFromPrevious: undefined,
+  suggestionsReceivedMin: undefined,
+  suggestionsReceivedMax: undefined,
+  suggestionsAcceptedMin: undefined,
+  lastScannedDays: undefined,
+  lastSuggestedDays: undefined,
+  impressionScoreMin: undefined,
+  impressionScoreMax: undefined,
+  difficultyScoreMin: undefined,
+  difficultyScoreMax: undefined,
 };
 
 // קטגוריות פילטרים מוגדרות מראש

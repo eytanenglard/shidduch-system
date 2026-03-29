@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { Sparkles, ArrowRight, ArrowLeft, Check, X } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Check, X, Lightbulb } from 'lucide-react';
 import { toast } from 'sonner';
 import { LIKED_TRAITS, MISSING_TRAITS } from '@/lib/services/autoSuggestionFeedbackService';
 
@@ -54,6 +54,7 @@ interface AutoSuggestionFeedbackDialogProps {
     submitInterested: string;
     thankYou: string;
     thankYouDesc: string;
+    declineFeedbackNote?: string;
   };
   onSubmit: (feedbackData: FeedbackData) => Promise<void>;
 }
@@ -249,6 +250,15 @@ const AutoSuggestionFeedbackDialog: React.FC<AutoSuggestionFeedbackDialogProps> 
           {/* Step 2: Missing traits (decline only) */}
           {step === 2 && isDecline && (
             <>
+              {/* Importance note */}
+              {dict.declineFeedbackNote && (
+                <div className="flex items-start gap-2.5 px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                  <Lightbulb className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                    {dict.declineFeedbackNote}
+                  </p>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2 justify-center">
                 {MISSING_TRAITS.map((trait) => (
                   <button

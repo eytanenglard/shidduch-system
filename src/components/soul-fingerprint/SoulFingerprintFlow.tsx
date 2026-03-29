@@ -141,7 +141,7 @@ export default function SoulFingerprintFlow({
     return () => clearTimeout(timer);
   }, [state.currentSectionIndex, state.showingPartnerQuestions, screen]);
 
-  // Deactivate a question (allow it to compact)
+  // Deactivate a question (allow it to compact) and scroll to next unanswered
   const deactivateQuestion = useCallback((questionId: string) => {
     if (compactTimerRef.current) {
       clearTimeout(compactTimerRef.current);
@@ -154,7 +154,24 @@ export default function SoulFingerprintFlow({
       next.delete(questionId);
       return next;
     });
-  }, []);
+
+    // Scroll to next unanswered question after compact animation
+    setTimeout(() => {
+      const idx = currentQuestions.findIndex(q => q.id === questionId);
+      if (idx < 0) return;
+      // Find next unanswered after this question
+      for (let i = idx + 1; i < currentQuestions.length; i++) {
+        const ans = state.answers[currentQuestions[i].id];
+        const isUnanswered = ans === null || ans === undefined || ans === '' ||
+          (Array.isArray(ans) && ans.length === 0);
+        if (isUnanswered || expandedQuestionIds.has(currentQuestions[i].id)) {
+          const el = document.getElementById(`sf-question-${currentQuestions[i].id}`);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+    }, 350);
+  }, [currentQuestions, state.answers, expandedQuestionIds]);
 
   // Schedule auto-compact after a delay
   const scheduleCompact = useCallback((questionId: string, delayMs: number) => {

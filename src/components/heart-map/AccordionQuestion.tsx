@@ -94,10 +94,10 @@ export default function AccordionQuestion({
     }
   }, [question.type, question.id, answers, isActive]);
 
-  // Get answer summary for collapsed state
-  const getAnswerSummary = (): string => {
+  // Get answer chips/summary for collapsed state
+  const getAnswerChips = (): { type: 'chips'; labels: string[] } | { type: 'text'; text: string } | null => {
     const val = answers[question.id];
-    if (val === null || val === undefined || val === '') return '';
+    if (val === null || val === undefined || val === '') return null;
 
     switch (question.type) {
       case 'singleChoice': {
@@ -107,46 +107,38 @@ export default function AccordionQuestion({
           const customKey = `${question.id}_custom`;
           const customVal = answers[customKey] as string;
           if (opt.isCustomInput && customVal) {
-            return `${label}: ${customVal}`;
+            return { type: 'chips', labels: [`${label}: ${customVal}`] };
           }
-          return label;
+          return { type: 'chips', labels: [label] };
         }
-        return String(val);
+        return { type: 'chips', labels: [String(val)] };
       }
       case 'multiSelect': {
-        if (!Array.isArray(val) || val.length === 0) return '';
-        if (val.length <= 2) {
-          return val
-            .map(v => {
-              const opt = question.options?.find(o => o.value === v);
-              return opt ? t(opt.labelKey) : v;
-            })
-            .join(', ');
-        }
-        const firstTwo = val.slice(0, 2).map(v => {
+        if (!Array.isArray(val) || val.length === 0) return null;
+        const labels = val.map(v => {
           const opt = question.options?.find(o => o.value === v);
           return opt ? t(opt.labelKey) : v;
         });
-        return `${firstTwo.join(', ')} +${val.length - 2}`;
+        return { type: 'chips', labels };
       }
       case 'openText': {
         const text = String(val);
-        return text.length > 40 ? text.slice(0, 40) + '...' : text;
+        return { type: 'text', text: text.length > 40 ? text.slice(0, 40) + '...' : text };
       }
       case 'slider': {
         const leftLabel = question.sliderLeftKey ? t(question.sliderLeftKey) : '';
         const rightLabel = question.sliderRightKey ? t(question.sliderRightKey) : '';
         if (leftLabel && rightLabel) {
-          return `${val} — ${leftLabel} ↔ ${rightLabel}`;
+          return { type: 'text', text: `${val} — ${leftLabel} ↔ ${rightLabel}` };
         }
-        return String(val);
+        return { type: 'text', text: String(val) };
       }
       default:
-        return String(val);
+        return { type: 'text', text: String(val) };
     }
   };
 
-  const summary = getAnswerSummary();
+  const answerDisplay = getAnswerChips();
 
   return (
     <div
@@ -207,9 +199,27 @@ export default function AccordionQuestion({
               <span className="text-xs font-normal text-gray-400 mx-1">({t('labels.optional')})</span>
             )}
           </h3>
-          {/* Show answer summary when collapsed and answered */}
-          {!isActive && isAnswered && summary && (
-            <p className="text-xs text-teal-600 mt-0.5 truncate">{summary}</p>
+          {/* Show answer chips/summary when collapsed and answered */}
+          {!isActive && isAnswered && answerDisplay && (
+            answerDisplay.type === 'chips' ? (
+              <div className={`flex flex-wrap gap-1 mt-1 ${isRTL ? 'justify-end' : 'justify-start'}`}>
+                {answerDisplay.labels.slice(0, 3).map((label, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-teal-50 text-teal-700 border border-teal-200 max-w-[140px] truncate"
+                  >
+                    {label}
+                  </span>
+                ))}
+                {answerDisplay.labels.length > 3 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-teal-100 text-teal-600">
+                    +{answerDisplay.labels.length - 3}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-teal-600 mt-0.5 truncate">{answerDisplay.text}</p>
+            )
           )}
         </div>
 

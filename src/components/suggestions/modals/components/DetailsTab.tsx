@@ -89,6 +89,17 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
     autoSendMessage ? 'ai' : 'matchmaker'
   );
 
+  // Track which chat sections have been interacted with (dot disappears on interaction)
+  const [visitedSections, setVisitedSections] = useState<Set<'matchmaker' | 'ai'>>(new Set);
+  const markVisited = useCallback((section: 'matchmaker' | 'ai') => {
+    setVisitedSections(prev => {
+      if (prev.has(section)) return prev;
+      const next = new Set(prev);
+      next.add(section);
+      return next;
+    });
+  }, []);
+
   // Deep link: switch to AI tab when autoSendMessage is set after mount
   useEffect(() => {
     if (autoSendMessage) {
@@ -232,9 +243,9 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
       <div className="flex bg-gray-100 rounded-xl p-1 mb-4 lg:hidden" dir={isHe ? 'rtl' : 'ltr'}>
         <button
           type="button"
-          onClick={() => setActiveChatTab('matchmaker')}
+          onClick={() => { setActiveChatTab('matchmaker'); markVisited('matchmaker'); }}
           className={cn(
-            'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-all',
+            'relative flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-all',
             activeChatTab === 'matchmaker'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
@@ -242,12 +253,15 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
         >
           <MessageCircle className="w-4 h-4" />
           {detailsDict.chatTitleFallback}
+          {!visitedSections.has('matchmaker') && (
+            <span className="absolute top-1.5 ltr:right-2 rtl:left-2 w-2 h-2 bg-teal-500 rounded-full animate-pulse motion-reduce:animate-none" />
+          )}
         </button>
         <button
           type="button"
-          onClick={() => setActiveChatTab('ai')}
+          onClick={() => { setActiveChatTab('ai'); markVisited('ai'); }}
           className={cn(
-            'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-all',
+            'relative flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium transition-all',
             activeChatTab === 'ai'
               ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
@@ -255,15 +269,24 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
         >
           <Bot className="w-4 h-4" />
           {detailsDict.aiChatTitle}
+          {!visitedSections.has('ai') && (
+            <span className="absolute top-1.5 ltr:right-2 rtl:left-2 w-2 h-2 bg-violet-500 rounded-full animate-pulse motion-reduce:animate-none" />
+          )}
         </button>
       </div>
 
       {/* Both chats always rendered (preserves state). Hidden via CSS on mobile based on active tab */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className={cn(
-          'lg:block',
-          activeChatTab === 'ai' ? 'block' : 'hidden'
-        )}>
+        <div
+          className={cn(
+            'relative lg:block',
+            activeChatTab === 'ai' ? 'block' : 'hidden'
+          )}
+          onFocusCapture={() => markVisited('ai')}
+        >
+          {!visitedSections.has('ai') && (
+            <span className="hidden lg:block absolute -top-1 ltr:-right-1 rtl:-left-1 z-10 w-2.5 h-2.5 bg-violet-500 rounded-full animate-pulse motion-reduce:animate-none" />
+          )}
           <AiChatPanel
             locale={locale}
             suggestionId={suggestionId}
@@ -277,10 +300,16 @@ const DetailsTab: React.FC<DetailsTabProps> = ({
             onAutoSendComplete={onAutoSendComplete}
           />
         </div>
-        <div className={cn(
-          'lg:block',
-          activeChatTab === 'matchmaker' ? 'block' : 'hidden'
-        )}>
+        <div
+          className={cn(
+            'relative lg:block',
+            activeChatTab === 'matchmaker' ? 'block' : 'hidden'
+          )}
+          onFocusCapture={() => markVisited('matchmaker')}
+        >
+          {!visitedSections.has('matchmaker') && (
+            <span className="hidden lg:block absolute -top-1 ltr:-right-1 rtl:-left-1 z-10 w-2.5 h-2.5 bg-teal-500 rounded-full animate-pulse motion-reduce:animate-none" />
+          )}
           <SuggestionChat
             suggestionId={suggestionId}
             locale={locale}

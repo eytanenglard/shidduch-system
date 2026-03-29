@@ -5,9 +5,95 @@
 
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Bot, User, UserCheck, ThumbsUp, ThumbsDown } from 'lucide-react';
+
+/**
+ * Parse inline markdown formatting (bold, italic) into React elements.
+ */
+function parseInlineMarkdown(text: string, keyPrefix: string = ''): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    if (match[2]) {
+      parts.push(<strong key={`${keyPrefix}b${match.index}`} className="font-semibold">{match[2]}</strong>);
+    } else if (match[3]) {
+      parts.push(<em key={`${keyPrefix}i${match.index}`}>{match[3]}</em>);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+}
+
+/**
+ * Parse markdown text into React elements.
+ * Supports: **bold**, *italic*, bullet lists (- / •), numbered lists (1.), and blockquote-style quotes ("...").
+ */
+function parseMarkdown(text: string): React.ReactNode[] {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trimStart();
+
+    // Bullet list item (- or • at start)
+    if (/^[-•]\s+/.test(trimmed)) {
+      const listItems: React.ReactNode[] = [];
+      while (i < lines.length) {
+        const curr = lines[i].trimStart();
+        if (!/^[-•]\s+/.test(curr)) break;
+        const content = curr.replace(/^[-•]\s+/, '');
+        listItems.push(
+          <li key={`li${i}`} className="mr-3">{parseInlineMarkdown(content, `li${i}`)}</li>
+        );
+        i++;
+      }
+      elements.push(
+        <ul key={`ul${i}`} className="list-disc list-inside my-1 space-y-0.5">{listItems}</ul>
+      );
+      continue;
+    }
+
+    // Numbered list item (1. 2. etc.)
+    if (/^\d+\.\s+/.test(trimmed)) {
+      const listItems: React.ReactNode[] = [];
+      while (i < lines.length) {
+        const curr = lines[i].trimStart();
+        if (!/^\d+\.\s+/.test(curr)) break;
+        const content = curr.replace(/^\d+\.\s+/, '');
+        listItems.push(
+          <li key={`oli${i}`} className="mr-3">{parseInlineMarkdown(content, `oli${i}`)}</li>
+        );
+        i++;
+      }
+      elements.push(
+        <ol key={`ol${i}`} className="list-decimal list-inside my-1 space-y-0.5">{listItems}</ol>
+      );
+      continue;
+    }
+
+    // Regular line — parse inline markdown
+    if (i > 0) elements.push('\n');
+    elements.push(...parseInlineMarkdown(line, `ln${i}`));
+    i++;
+  }
+
+  return elements;
+}
 
 interface AiChatBubbleProps {
   role: 'user' | 'assistant' | 'matchmaker';
@@ -61,20 +147,20 @@ export default function AiChatBubble({
             : isMatchmaker
               ? 'bg-teal-50 border border-teal-200 text-gray-800 rounded-tl-md shadow-sm'
               : 'bg-white border border-gray-200 text-gray-800 rounded-tl-md shadow-sm',
-          isStreaming && 'animate-pulse'
+          isStreaming && 'animate-pulse motion-reduce:animate-none'
         )}
       >
-        {/* Simple text rendering - supports line breaks */}
+        {/* Text rendering with basic markdown support */}
         <div className="whitespace-pre-wrap break-words">
-          {content}
+          {useMemo(() => parseMarkdown(content), [content])}
           {isStreaming && (
-            <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse mr-0.5 align-middle rounded-sm" />
+            <span className="inline-block w-1.5 h-4 bg-violet-500 animate-pulse motion-reduce:animate-none mr-0.5 align-middle rounded-sm" />
           )}
         </div>
 
         {/* Timestamp and rating on hover */}
         {createdAt && (
-          <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-2 mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <span className="text-[10px] text-gray-400">
               {new Date(createdAt).toLocaleTimeString('he-IL', {
                 hour: '2-digit',

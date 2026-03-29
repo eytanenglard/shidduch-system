@@ -312,10 +312,6 @@
       "sortBy": "מיון לפי",
       "filters": "פילטרים",
       "hideFilters": "הסתר",
-      "disableQuickView": "כבה תצוגה מהירה",
-      "enableQuickView": "הפעל תצוגה מהירה",
-      "disableQuickViewTooltip": "כבה את התצוגה המהירה בריחוף",
-      "enableQuickViewTooltip": "הפעל את התצוגה המהירה בריחוף",
       "compareButton": "בצע השוואה ({{count}})",
       "prepareSuggestionsButton": "הכן הצעות",
       "mobile": {
@@ -532,7 +528,28 @@
     "ethnicBackground": "רקע עדתי",
     "demographics": "דמוגרפי",
     "religionValues": "דת וערכים",
-    "appearance": "מראה"
+    "appearance": "מראה",
+    "profileReadiness": "מוכנות ופרופיל",
+    "readinessLevel": "רמת מוכנות",
+    "profileCompleteness": "שלמות פרופיל (מינימום %)",
+    "hasChildren": "ילדים מנישואים קודמים",
+    "smoking": "עישון",
+    "headCovering": "כיסוי ראש",
+    "kippahType": "סוג כיפה",
+    "engagement": "מעורבות ושדכנות",
+    "suggestionsReceived": "הצעות שנשלחו",
+    "impressionScore": "ציון רושם שדכן",
+    "difficultyScore": "רמת קושי",
+    "lastScanned": "נסרק/הוצע לאחרונה (ימים)",
+    "lastScannedLabel": "נסרק",
+    "lastSuggestedLabel": "הוצע",
+    "advancedSearch": "חיפוש מתקדם",
+    "textSearch": "חיפוש בטקסט חופשי",
+    "textSearchPlaceholder": "חפש מילים בתוך טקסטים...",
+    "textSearchHint": "אם לא סומן תחום ספציפי, יחפש בכל השדות",
+    "searchInAbout": "חפש ב\"על עצמי\"",
+    "searchInPartnerPrefs": "חפש בהעדפות בן/בת זוג",
+    "searchInNotes": "חפש בהערות שדכן"
   },
   "buttons": {
     "male": "גברים",
@@ -614,7 +631,6 @@
   }
 },
     "list": {
-      "quickViewTooltip": "תצוגה מהירה",
       "editProfileTooltip": "ערוך פרופיל",
       "emptyState": {
         "title": "לא נמצאו מועמדים",
@@ -710,58 +726,6 @@
         "scoreBreakdown": "פירוט ציון",
         "similarityScore": "ציון דמיון סמנטי",
         "backgroundMultiplier": "מכפיל רקע"
-      },
-      "quickView": {
-        "availability": {
-          "AVAILABLE": "פנוי/ה",
-          "DATING": "בתהליך היכרות",
-          "UNAVAILABLE": "לא פנוי/ה",
-          "UNKNOWN": "לא ידוע"
-        },
-        "availabilityDescription": {
-          "AVAILABLE": "זמין/ה למפגשים חדשים",
-          "DATING": "כרגע בתהליך היכרות",
-          "UNAVAILABLE": "לא זמין/ה כרגע",
-          "UNKNOWN": "סטטוס לא ידוע"
-        },
-        "manualEntry": "מועמד ידני",
-        "tooltips": {
-          "setAsAiTarget": "בחר כמטרה לחיפוש AI",
-          "clearAiTarget": "בטל בחירת מטרה"
-        },
-        "details": {
-          "years": "שנים",
-          "heightUnit": "ס״ם",
-          "maritalStatus": "מצב משפחתי",
-          "religiousLevel": "רמת דתיות",
-          "manualDescription": "תיאור ידני מהשדכן",
-          "moreInfo": "מידע נוסף",
-          "education": "השכלה",
-          "occupation": "עיסוק",
-          "location": "מיקום",
-          "about": "אודות"
-        },
-        "qualityScore": "איכות פרופיל: {{score}}%",
-        "actions": {
-          "view": "צפייה מלאה",
-          "suggest": "הצעת שידוך",
-          "invite": "שלח הזמנה",
-          "contact": "בדוק זמינות",
-          "edit": "עריכה"
-        },
-        "actionsDescription": {
-          "view": "פתח פרופיל מלא",
-          "suggest": "צור הצעה חדשה",
-          "invite": "הזמן למערכת",
-          "contact": "תיאום פגישה",
-          "edit": "ערוך פרופיל"
-        },
-        "stats": {
-          "rating": "דירוג",
-          "match": "התאמה",
-          "response": "תגובה",
-          "quick": "מהירה"
-        }
       }
     },
     "splitView": {
@@ -974,6 +938,21 @@
           "profileCompletion": "השלמות פרופיל"
         }
       }
+    },
+    "toasts": {
+      "candidateAdded": "מועמד חדש נוסף בהצלחה!",
+      "similarFound": "נמצאו {{count}} מועמדים דומים ל{{name}}",
+      "noSimilarFound": "לא נמצאו מועמדים דומים (אין וקטור זמין)",
+      "similarError": "שגיאה בחיפוש מועמדים דומים",
+      "filterSaved": "הפילטר נשמר בהצלחה",
+      "filterSaveError": "שגיאה בשמירת הפילטר",
+      "aiTargetCleared": "בחירת מועמד מטרה בוטלה.",
+      "aiTargetSet": "מועמד מטרה נבחר: {{name}}.",
+      "aiTargetChanged": "מועמד מטרה הוחלף ל: {{name}}.",
+      "virtualProfileLoaded": "פרופיל וירטואלי נטען! כעת ניתן לבצע חיפוש AI.",
+      "bulkUpdateSuccess": "העדכון הכללי הושלם בהצלחה!",
+      "bulkUpdateError": "שגיאה בתהליך העדכון. נסה שוב מאוחר יותר.",
+      "importSuccess": "הייבוא הושלם בהצלחה!"
     }
   },
   "statusBadges": {

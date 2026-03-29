@@ -62,7 +62,6 @@ import {
 
 
 interface SplitViewProps {
-  isQuickViewEnabled: boolean;
   maleCandidates: Candidate[];
   femaleCandidates: Candidate[];
   allCandidates: Candidate[];
@@ -964,7 +963,6 @@ const SplitView: React.FC<SplitViewProps> = ({
   onOpenAiAnalysis,
   onSendProfileFeedback,
   profileDict,
-  isQuickViewEnabled,
   locale,
   ...props
 }) => {
@@ -1458,8 +1456,6 @@ const SplitView: React.FC<SplitViewProps> = ({
         comparisonSelection={comparisonSelection}
                 existingSuggestions={existingSuggestions}
         onToggleComparison={onToggleComparison}
-        quickViewSide={gender === 'male' ? 'right' : 'left'}
-        isQuickViewEnabled={isQuickViewEnabled}
         dict={dict}
         profileDict={profileDict}
         locale={locale}
@@ -1617,8 +1613,6 @@ const SplitView: React.FC<SplitViewProps> = ({
                 comparisonSelection={comparisonSelection}
                 existingSuggestions={existingSuggestions}
                 onToggleComparison={onToggleComparison}
-                quickViewSide="right"
-                isQuickViewEnabled={isQuickViewEnabled}
                 dict={dict}
                 profileDict={profileDict}
                 locale={locale}
@@ -1671,8 +1665,6 @@ const SplitView: React.FC<SplitViewProps> = ({
                 comparisonSelection={comparisonSelection}
                 existingSuggestions={existingSuggestions}
                 onToggleComparison={onToggleComparison}
-                quickViewSide="left"
-                isQuickViewEnabled={isQuickViewEnabled}
                 dict={dict}
                 profileDict={profileDict}
                 locale={locale}

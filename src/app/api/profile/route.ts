@@ -54,6 +54,7 @@ export async function GET(req: Request) {
         profileTags: {
           select: {
             sectionAnswers: true,
+            updatedAt: true,
           }
         },
       }
@@ -90,6 +91,7 @@ export async function GET(req: Request) {
       profile: profileResponseData,
       images: userWithProfile.images || [],
       sfAnswers: userWithProfile.profileTags?.sectionAnswers || null,
+      sfUpdatedAt: userWithProfile.profileTags?.updatedAt?.toISOString?.() ?? null,
     });
 
   } catch (error) {

@@ -121,6 +121,31 @@ function buildQueryParams(
     params.set('searchQuery', filters.searchQuery);
   }
 
+  // Advanced search (about text, partner preferences, matchmaker notes)
+  if (filters.advancedSearchQuery) params.set('advancedSearchQuery', filters.advancedSearchQuery);
+  if (filters.searchInAbout) params.set('searchInAbout', 'true');
+  if (filters.searchInPartnerPrefs) params.set('searchInPartnerPrefs', 'true');
+  if (filters.searchInMatchmakerNotes) params.set('searchInMatchmakerNotes', 'true');
+
+  // Profile filters
+  if (filters.readinessLevel) params.set('readinessLevel', filters.readinessLevel);
+  if (filters.profileCompletenessMin != null) params.set('profileCompletenessMin', String(filters.profileCompletenessMin));
+  if (filters.smokingStatus) params.set('smokingStatus', filters.smokingStatus);
+  if (filters.headCovering) params.set('headCovering', filters.headCovering);
+  if (filters.kippahType) params.set('kippahType', filters.kippahType);
+  if (filters.hasChildrenFromPrevious != null) params.set('hasChildrenFromPrevious', String(filters.hasChildrenFromPrevious));
+
+  // Engagement filters
+  if (filters.suggestionsReceivedMin != null) params.set('suggestionsReceivedMin', String(filters.suggestionsReceivedMin));
+  if (filters.suggestionsReceivedMax != null) params.set('suggestionsReceivedMax', String(filters.suggestionsReceivedMax));
+  if (filters.suggestionsAcceptedMin != null) params.set('suggestionsAcceptedMin', String(filters.suggestionsAcceptedMin));
+  if (filters.lastScannedDays != null) params.set('lastScannedDays', String(filters.lastScannedDays));
+  if (filters.lastSuggestedDays != null) params.set('lastSuggestedDays', String(filters.lastSuggestedDays));
+  if (filters.impressionScoreMin != null) params.set('impressionScoreMin', String(filters.impressionScoreMin));
+  if (filters.impressionScoreMax != null) params.set('impressionScoreMax', String(filters.impressionScoreMax));
+  if (filters.difficultyScoreMin != null) params.set('difficultyScoreMin', String(filters.difficultyScoreMin));
+  if (filters.difficultyScoreMax != null) params.set('difficultyScoreMax', String(filters.difficultyScoreMax));
+
   return params;
 }
 
@@ -265,9 +290,14 @@ export const useCandidates = (
   const [sorting, setSortingState] = useState<{
     field: string;
     direction: 'asc' | 'desc';
-  }>({
-    field: 'lastActive',
-    direction: 'desc',
+  }>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('candidates-sort-preference');
+        if (saved) return JSON.parse(saved);
+      } catch { /* ignore */ }
+    }
+    return { field: 'lastActive', direction: 'desc' };
   });
   const [searchResults, setSearchResults] = useState<{
     term: string;
@@ -521,7 +551,9 @@ export const useCandidates = (
   // =========================================================================
 
   const setSorting = useCallback((field: string, direction: 'asc' | 'desc') => {
-    setSortingState({ field, direction });
+    const sortPref = { field, direction };
+    setSortingState(sortPref);
+    try { localStorage.setItem('candidates-sort-preference', JSON.stringify(sortPref)); } catch { /* ignore */ }
   }, []);
 
   const setPage = useCallback((page: number) => {

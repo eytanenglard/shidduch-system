@@ -153,13 +153,13 @@ export default function HeartMapFlow({
       const nextIndex = currentIndex + 1;
       if (nextIndex < currentQuestions.length) {
         setActiveQuestionIndex(nextIndex);
-        // Scroll to the next question after a short delay for animation
+        // Wait for accordion animation (300ms) before scrolling
         setTimeout(() => {
           const el = document.getElementById(`sf-question-${currentQuestions[nextIndex].id}`);
           if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
-        }, 100);
+        }, 350);
       }
       // If it's the last question, don't auto-advance — user will click Next
     },
@@ -329,7 +329,7 @@ export default function HeartMapFlow({
                   if (el) {
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                   }
-                }, 100);
+                }, 350);
               }}
               onAutoAdvance={() => handleAutoAdvance(index)}
               questionNumber={index + 1}

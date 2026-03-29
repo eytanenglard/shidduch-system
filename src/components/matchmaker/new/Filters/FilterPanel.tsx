@@ -6,22 +6,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Activity,
   Award,
+  Baby,
   Bookmark,
   Calendar,
+  Cigarette,
   Crown,
   Filter as FilterIcon,
   Globe,
   Heart,
   MapPin,
+  MessageSquare,
   Palette,
   RefreshCw,
   Ruler,
   Save,
   Scroll,
+  Search,
   Shield,
   Sparkles,
   Star,
   Target,
+  TrendingUp,
   User,
   Zap,
 } from 'lucide-react';
@@ -56,6 +61,10 @@ import {
   LanguageMultiSelect,
   GenderFilterPanel,
   MARITAL_STATUS_OPTIONS,
+  READINESS_OPTIONS,
+  SMOKING_OPTIONS,
+  HEAD_COVERING_OPTIONS,
+  KIPPAH_OPTIONS,
 } from './sections';
 import {
   AGE_RANGE,
@@ -165,6 +174,18 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         if (filters.bodyType && filters.bodyType.length > 0) count++;
         if (filters.appearanceTone && filters.appearanceTone.length > 0) count++;
         if (filters.ethnicBackground && filters.ethnicBackground.length > 0) count++;
+        if (filters.readinessLevel) count++;
+        if (filters.profileCompletenessMin) count++;
+        if (filters.smokingStatus) count++;
+        if (filters.headCovering) count++;
+        if (filters.kippahType) count++;
+        if (filters.hasChildrenFromPrevious != null) count++;
+        if (filters.suggestionsReceivedMin != null || filters.suggestionsReceivedMax != null) count++;
+        if (filters.impressionScoreMin != null || filters.impressionScoreMax != null) count++;
+        if (filters.difficultyScoreMin != null || filters.difficultyScoreMax != null) count++;
+        if (filters.lastScannedDays) count++;
+        if (filters.lastSuggestedDays) count++;
+        if (filters.advancedSearchQuery) count++;
         break;
     }
     return count;
@@ -1014,6 +1035,350 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                       })}
                     </div>
                   </FilterSection>
+
+                  {/* ── Category: Profile & Readiness ── */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{dict.sections.profileReadiness || 'מוכנות ופרופיל'}</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                  </div>
+
+                  {/* Readiness Level */}
+                  <FilterSection
+                    icon={<Zap className="w-4 h-4" />}
+                    title={dict.sections.readinessLevel || 'רמת מוכנות'}
+                    badge={filters.readinessLevel ? 1 : undefined}
+                  >
+                    <Select
+                      value={filters.readinessLevel || ''}
+                      onValueChange={(val) =>
+                        onFiltersChange({ ...filters, readinessLevel: val || undefined })
+                      }
+                    >
+                      <SelectTrigger className="w-full rounded-xl border-gray-200 bg-white/80 text-sm h-9">
+                        <SelectValue placeholder={dict.sections.readinessLevel || 'בחר רמת מוכנות'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">
+                          {dict.options?.all || 'הכל'}
+                        </SelectItem>
+                        {READINESS_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FilterSection>
+
+                  {/* Profile Completeness */}
+                  <FilterSection
+                    icon={<Target className="w-4 h-4" />}
+                    title={dict.sections.profileCompleteness || 'שלמות פרופיל (מינימום %)'}
+                    badge={filters.profileCompletenessMin ? 1 : undefined}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Slider
+                        value={[filters.profileCompletenessMin || 0]}
+                        onValueChange={([val]) =>
+                          onFiltersChange({ ...filters, profileCompletenessMin: val > 0 ? val : undefined })
+                        }
+                        min={0}
+                        max={100}
+                        step={10}
+                        className="flex-1"
+                      />
+                      <span className="text-xs font-bold text-gray-600 w-10 text-center">
+                        {filters.profileCompletenessMin || 0}%
+                      </span>
+                    </div>
+                  </FilterSection>
+
+                  {/* Has Children From Previous */}
+                  <FilterSection
+                    icon={<Baby className="w-4 h-4" />}
+                    title={dict.sections.hasChildren || 'ילדים מנישואים קודמים'}
+                    badge={filters.hasChildrenFromPrevious != null ? 1 : undefined}
+                  >
+                    <Select
+                      value={filters.hasChildrenFromPrevious == null ? '' : String(filters.hasChildrenFromPrevious)}
+                      onValueChange={(val) =>
+                        onFiltersChange({ ...filters, hasChildrenFromPrevious: val === '' ? undefined : val === 'true' })
+                      }
+                    >
+                      <SelectTrigger className="w-full rounded-xl border-gray-200 bg-white/80 text-sm h-9">
+                        <SelectValue placeholder={dict.sections.hasChildren || 'הכל'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{dict.options?.all || 'הכל'}</SelectItem>
+                        <SelectItem value="true">יש ילדים</SelectItem>
+                        <SelectItem value="false">אין ילדים</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FilterSection>
+
+                  {/* Smoking */}
+                  <FilterSection
+                    icon={<Cigarette className="w-4 h-4" />}
+                    title={dict.sections.smoking || 'עישון'}
+                    badge={filters.smokingStatus ? 1 : undefined}
+                  >
+                    <Select
+                      value={filters.smokingStatus || ''}
+                      onValueChange={(val) =>
+                        onFiltersChange({ ...filters, smokingStatus: val || undefined })
+                      }
+                    >
+                      <SelectTrigger className="w-full rounded-xl border-gray-200 bg-white/80 text-sm h-9">
+                        <SelectValue placeholder={dict.sections.smoking || 'בחר'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{dict.options?.all || 'הכל'}</SelectItem>
+                        {SMOKING_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FilterSection>
+
+                  {/* Head Covering (for women) */}
+                  <FilterSection
+                    icon={<Crown className="w-4 h-4" />}
+                    title={dict.sections.headCovering || 'כיסוי ראש'}
+                    badge={filters.headCovering ? 1 : undefined}
+                  >
+                    <Select
+                      value={filters.headCovering || ''}
+                      onValueChange={(val) =>
+                        onFiltersChange({ ...filters, headCovering: val || undefined })
+                      }
+                    >
+                      <SelectTrigger className="w-full rounded-xl border-gray-200 bg-white/80 text-sm h-9">
+                        <SelectValue placeholder={dict.sections.headCovering || 'בחר'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{dict.options?.all || 'הכל'}</SelectItem>
+                        {HEAD_COVERING_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FilterSection>
+
+                  {/* Kippah (for men) */}
+                  <FilterSection
+                    icon={<Shield className="w-4 h-4" />}
+                    title={dict.sections.kippahType || 'סוג כיפה'}
+                    badge={filters.kippahType ? 1 : undefined}
+                  >
+                    <Select
+                      value={filters.kippahType || ''}
+                      onValueChange={(val) =>
+                        onFiltersChange({ ...filters, kippahType: val || undefined })
+                      }
+                    >
+                      <SelectTrigger className="w-full rounded-xl border-gray-200 bg-white/80 text-sm h-9">
+                        <SelectValue placeholder={dict.sections.kippahType || 'בחר'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">{dict.options?.all || 'הכל'}</SelectItem>
+                        {KIPPAH_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FilterSection>
+
+                  {/* ── Category: Engagement & Matchmaker ── */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{dict.sections.engagement || 'מעורבות ושדכנות'}</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                  </div>
+
+                  {/* Suggestions Received Range */}
+                  <FilterSection
+                    icon={<Heart className="w-4 h-4" />}
+                    title={dict.sections.suggestionsReceived || 'הצעות שנשלחו'}
+                    badge={filters.suggestionsReceivedMin != null || filters.suggestionsReceivedMax != null ? 1 : undefined}
+                  >
+                    <div className="flex items-center gap-2">
+                      <SafeNumberInput
+                        value={filters.suggestionsReceivedMin ?? ''}
+                        onValueChange={(val) =>
+                          onFiltersChange({ ...filters, suggestionsReceivedMin: val || undefined })
+                        }
+                        placeholder="מינימום"
+                        className="flex-1 rounded-xl border-gray-200 bg-white/80 text-sm h-9"
+                      />
+                      <span className="text-gray-400 text-xs">–</span>
+                      <SafeNumberInput
+                        value={filters.suggestionsReceivedMax ?? ''}
+                        onValueChange={(val) =>
+                          onFiltersChange({ ...filters, suggestionsReceivedMax: val || undefined })
+                        }
+                        placeholder="מקסימום"
+                        className="flex-1 rounded-xl border-gray-200 bg-white/80 text-sm h-9"
+                      />
+                    </div>
+                  </FilterSection>
+
+                  {/* Impression Score */}
+                  <FilterSection
+                    icon={<Star className="w-4 h-4" />}
+                    title={dict.sections.impressionScore || 'ציון רושם שדכן'}
+                    badge={filters.impressionScoreMin != null || filters.impressionScoreMax != null ? 1 : undefined}
+                  >
+                    <div className="flex items-center gap-2">
+                      <SafeNumberInput
+                        value={filters.impressionScoreMin ?? ''}
+                        onValueChange={(val) =>
+                          onFiltersChange({ ...filters, impressionScoreMin: val || undefined })
+                        }
+                        placeholder="מינימום"
+                        className="flex-1 rounded-xl border-gray-200 bg-white/80 text-sm h-9"
+                      />
+                      <span className="text-gray-400 text-xs">–</span>
+                      <SafeNumberInput
+                        value={filters.impressionScoreMax ?? ''}
+                        onValueChange={(val) =>
+                          onFiltersChange({ ...filters, impressionScoreMax: val || undefined })
+                        }
+                        placeholder="מקסימום"
+                        className="flex-1 rounded-xl border-gray-200 bg-white/80 text-sm h-9"
+                      />
+                    </div>
+                  </FilterSection>
+
+                  {/* Difficulty Score */}
+                  <FilterSection
+                    icon={<TrendingUp className="w-4 h-4" />}
+                    title={dict.sections.difficultyScore || 'רמת קושי'}
+                    badge={filters.difficultyScoreMin != null || filters.difficultyScoreMax != null ? 1 : undefined}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Slider
+                        value={[filters.difficultyScoreMin || 1, filters.difficultyScoreMax || 10]}
+                        onValueChange={([min, max]) =>
+                          onFiltersChange({
+                            ...filters,
+                            difficultyScoreMin: min > 1 ? min : undefined,
+                            difficultyScoreMax: max < 10 ? max : undefined,
+                          })
+                        }
+                        min={1}
+                        max={10}
+                        step={1}
+                        className="flex-1"
+                      />
+                      <span className="text-xs font-bold text-gray-600 w-12 text-center">
+                        {filters.difficultyScoreMin || 1}-{filters.difficultyScoreMax || 10}
+                      </span>
+                    </div>
+                  </FilterSection>
+
+                  {/* Last Scanned / Last Suggested */}
+                  <FilterSection
+                    icon={<Calendar className="w-4 h-4" />}
+                    title={dict.sections.lastScanned || 'נסרק/הוצע לאחרונה (ימים)'}
+                    badge={filters.lastScannedDays || filters.lastSuggestedDays ? 1 : undefined}
+                  >
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-[10px] text-gray-500 mb-1">{dict.sections.lastScannedLabel || 'נסרק'}</Label>
+                        <SafeNumberInput
+                          value={filters.lastScannedDays ?? ''}
+                          onValueChange={(val) =>
+                            onFiltersChange({ ...filters, lastScannedDays: val || undefined })
+                          }
+                          placeholder="ימים"
+                          className="rounded-xl border-gray-200 bg-white/80 text-sm h-9"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-[10px] text-gray-500 mb-1">{dict.sections.lastSuggestedLabel || 'הוצע'}</Label>
+                        <SafeNumberInput
+                          value={filters.lastSuggestedDays ?? ''}
+                          onValueChange={(val) =>
+                            onFiltersChange({ ...filters, lastSuggestedDays: val || undefined })
+                          }
+                          placeholder="ימים"
+                          className="rounded-xl border-gray-200 bg-white/80 text-sm h-9"
+                        />
+                      </div>
+                    </div>
+                  </FilterSection>
+
+                  {/* ── Category: Advanced Search ── */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{dict.sections.advancedSearch || 'חיפוש מתקדם'}</span>
+                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                  </div>
+
+                  {/* Advanced Text Search */}
+                  <FilterSection
+                    icon={<Search className="w-4 h-4" />}
+                    title={dict.sections.textSearch || 'חיפוש בטקסט חופשי'}
+                    badge={filters.advancedSearchQuery ? 1 : undefined}
+                    defaultOpen={false}
+                  >
+                    <div className="space-y-3">
+                      <Input
+                        value={filters.advancedSearchQuery || ''}
+                        onChange={(e) =>
+                          onFiltersChange({ ...filters, advancedSearchQuery: e.target.value })
+                        }
+                        placeholder={dict.sections.textSearchPlaceholder || 'חפש מילים בתוך טקסטים...'}
+                        className="rounded-xl border-gray-200 bg-white/80 text-sm h-9"
+                      />
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filters.searchInAbout || false}
+                            onChange={(e) =>
+                              onFiltersChange({ ...filters, searchInAbout: e.target.checked })
+                            }
+                            className="rounded border-gray-300"
+                          />
+                          {dict.sections.searchInAbout || 'חפש ב"על עצמי"'}
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filters.searchInPartnerPrefs || false}
+                            onChange={(e) =>
+                              onFiltersChange({ ...filters, searchInPartnerPrefs: e.target.checked })
+                            }
+                            className="rounded border-gray-300"
+                          />
+                          {dict.sections.searchInPartnerPrefs || 'חפש בהעדפות בן/בת זוג'}
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filters.searchInMatchmakerNotes || false}
+                            onChange={(e) =>
+                              onFiltersChange({ ...filters, searchInMatchmakerNotes: e.target.checked })
+                            }
+                            className="rounded border-gray-300"
+                          />
+                          {dict.sections.searchInNotes || 'חפש בהערות שדכן'}
+                        </label>
+                      </div>
+                      <p className="text-[10px] text-gray-400">
+                        {dict.sections.textSearchHint || 'אם לא סומן תחום ספציפי, יחפש בכל השדות'}
+                      </p>
+                    </div>
+                  </FilterSection>
+
                 </TabsContent>
 
                 <TabsContent value="saved" className="space-y-6 m-0">

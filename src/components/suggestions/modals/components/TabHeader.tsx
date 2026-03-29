@@ -89,7 +89,7 @@ const TabHeader: React.FC<TabHeaderProps> = ({
                 <span className="hidden sm:inline">{dict[labelKey as keyof typeof dict]}</span>
                 <span className="sm:hidden">{dict[shortKey as keyof typeof dict]}</span>
                 {hasNotification && (
-                  <span className="absolute top-1 end-1.5 w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                  <span className="absolute top-1 end-1.5 w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse motion-reduce:animate-none" />
                 )}
               </TabsTrigger>
             );

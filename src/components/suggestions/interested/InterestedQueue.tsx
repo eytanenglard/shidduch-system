@@ -473,6 +473,20 @@ const InterestedQueue: React.FC<InterestedQueueProps> = ({
             </SortableContext>
           </DndContext>
 
+          {/* Compare CTA banner — shown when 2+ suggestions */}
+          {items.length >= 2 && (
+            <button
+              type="button"
+              onClick={() => setShowCompare(true)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-200/50 rounded-xl text-sm font-medium text-violet-700 hover:from-violet-100 hover:to-indigo-100 hover:border-violet-300/60 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] group"
+            >
+              <Scale className="w-3.5 h-3.5 text-violet-500 group-hover:scale-110 transition-transform" />
+              {locale === 'he'
+                ? `השווה בין ${items.length} ההצעות שלך — מי מתאים/ה יותר?`
+                : `Compare your ${items.length} suggestions — who's a better fit?`}
+            </button>
+          )}
+
           {/* CTA: Activate next suggestion */}
           {!isUserInActiveProcess && items.length > 0 && (
             <div className="relative mt-3 p-3.5 rounded-xl overflow-hidden">

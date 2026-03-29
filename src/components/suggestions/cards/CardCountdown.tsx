@@ -125,13 +125,16 @@ const CardCountdown: React.FC<CardCountdownProps> = ({
             : 'bg-blue-50 text-blue-600 border border-blue-100',
         className
       )}
+      role="timer"
+      aria-label={`${formatTime()}${isCritical ? (locale === 'he' ? ' — דחוף' : ' — urgent') : ''}`}
     >
       {isCritical ? (
-        <AlertTriangle className="w-3 h-3 animate-pulse" />
+        <AlertTriangle className="w-3 h-3 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
       ) : (
-        <Clock className="w-3 h-3" />
+        <Clock className="w-3 h-3" aria-hidden="true" />
       )}
       <span>{formatTime()}</span>
+      {isCritical && <span className="sr-only">{locale === 'he' ? 'דחוף' : 'Urgent'}</span>}
     </div>
   );
 };

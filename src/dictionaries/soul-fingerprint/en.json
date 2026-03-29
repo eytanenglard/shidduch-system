@@ -249,7 +249,7 @@
     },
     "s3_character_primary": {
       "text": "What best describes your character?",
-      "subtitle": "No right answer — every personality is unique"
+      "subtitle": "You can select up to 3 — most people are a mix of traits"
     },
     "s3_life_tempo": {
       "text": "What is your life pace?",
@@ -446,7 +446,7 @@
     },
     "p_argument_style": {
       "text": "What argument style do you prefer in a partner?",
-      "subtitle": "It's important that partners can argue constructively"
+      "subtitle": "You can select up to 2 — it's important that partners can argue constructively"
     },
     "s7_open_partner": {
       "text": "What's the most important thing to you in a partner that's hard to describe in options?",
@@ -558,7 +558,8 @@
       "text": "What division of roles at home suits you?"
     },
     "p_parenting_style": {
-      "text": "What parenting style suits you in a partner?"
+      "text": "What parenting style suits you in a partner?",
+      "subtitle": "You can select up to 2 approaches"
     },
     "p_education_system": {
       "text": "What educational framework would you want for the children?"
@@ -795,7 +796,8 @@
       "subtitle": "The type of community that suits you"
     },
     "s5_vacation_style": {
-      "text": "What is your vacation style?"
+      "text": "What is your vacation style?",
+      "subtitle": "You can select up to 3 styles"
     },
     "s5_english_comfort": {
       "text": "What is your English comfort level?"

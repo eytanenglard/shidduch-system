@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { ChevronDown, Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { he } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { SF_SECTIONS } from '@/components/soul-fingerprint/questions';
 import { isQuestionVisible, getSectorGroup } from '@/components/soul-fingerprint/types';
@@ -140,6 +143,7 @@ interface SoulFingerprintSectionProps {
   direction: 'ltr' | 'rtl';
   selfOnly?: boolean;
   partnerOnly?: boolean;
+  sfUpdatedAt?: string | null;
 }
 
 interface RenderedAnswer {
@@ -152,6 +156,87 @@ interface RenderedAnswer {
   sliderMax?: number;
   sliderLeftLabel?: string;
   sliderRightLabel?: string;
+  isMultiSelect?: boolean;
+  chipLabels?: string[];
+  isOpenText?: boolean;
+}
+
+// --- Collapsible section wrapper ---
+function CollapsibleSection({
+  section,
+  selfOnly,
+  partnerOnly,
+  locale,
+  gender,
+  renderAnswer,
+}: {
+  section: { sectionId: string; title: string; icon: string; selfAnswers: RenderedAnswer[]; partnerAnswers: RenderedAnswer[] };
+  selfOnly: boolean;
+  partnerOnly: boolean;
+  locale: string;
+  gender: string | null;
+  renderAnswer: (item: RenderedAnswer, idx: number, dotColor: string, sectionColors: { bg: string; text: string }) => React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(true);
+  const colors = SECTION_COLORS[section.sectionId] || SECTION_COLORS.personality;
+  const allAnswers = selfOnly
+    ? section.selfAnswers
+    : partnerOnly
+    ? section.partnerAnswers
+    : section.selfAnswers;
+  const partnerAnswers = !selfOnly && !partnerOnly ? section.partnerAnswers : [];
+  const totalCount = allAnswers.length + partnerAnswers.length;
+
+  return (
+    <div className={cn('rounded-xl border overflow-hidden', colors.border)}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={cn(
+          'w-full px-4 py-2.5 flex items-center gap-2 cursor-pointer transition-colors hover:brightness-95',
+          colors.bg
+        )}
+      >
+        <span className="text-base">{section.icon}</span>
+        <h4 className={cn('font-semibold text-sm flex-1 text-start', colors.text)}>
+          {section.title}
+        </h4>
+        {!isOpen && (
+          <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full', colors.bg, colors.text)}>
+            {totalCount}
+          </span>
+        )}
+        <ChevronDown
+          className={cn(
+            'w-4 h-4 transition-transform duration-200',
+            colors.text,
+            isOpen && 'rotate-180'
+          )}
+        />
+      </button>
+      {isOpen && (
+        <div className="p-4">
+          {allAnswers.length > 0 && (
+            <div className="space-y-3">
+              {allAnswers.map((item, idx) => renderAnswer(item, idx, colors.dot, colors))}
+            </div>
+          )}
+          {partnerAnswers.length > 0 && (
+            <div className={cn(allAnswers.length > 0 && 'mt-4 pt-3 border-t border-gray-100')}>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                {locale === 'he'
+                  ? (gender === 'MALE' ? 'מה אני מחפש' : 'מה אני מחפשת')
+                  : 'Looking for'}
+              </p>
+              <div className="space-y-3">
+                {partnerAnswers.map((item, idx) => renderAnswer(item, idx, colors.dot, colors))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
@@ -162,6 +247,7 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
   direction,
   selfOnly = false,
   partnerOnly = false,
+  sfUpdatedAt,
 }) => {
   const answers = sfAnswers as SFAnswers;
   const sector = (answers['anchor_sector'] as SectorValue) || null;
@@ -192,17 +278,30 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
           )
         : [];
 
-      const mapQuestion = (q: SFQuestion): RenderedAnswer => ({
-        questionText: t(q.textKey),
-        answerText: getAnswerLabel(q, answers[q.id], t),
-        sectionId: section.id,
-        isSlider: q.type === 'slider',
-        sliderValue: q.type === 'slider' ? Number(answers[q.id]) : undefined,
-        sliderMin: q.sliderMin,
-        sliderMax: q.sliderMax,
-        sliderLeftLabel: q.sliderLeftKey ? t(q.sliderLeftKey) : undefined,
-        sliderRightLabel: q.sliderRightKey ? t(q.sliderRightKey) : undefined,
-      });
+      const mapQuestion = (q: SFQuestion): RenderedAnswer => {
+        const isMulti = q.type === 'multiSelect' && Array.isArray(answers[q.id]);
+        const chipLabels = isMulti
+          ? (answers[q.id] as string[]).map((val) => {
+              const opt = q.options?.find((o) => o.value === val);
+              return opt ? t(opt.labelKey) : val;
+            })
+          : undefined;
+
+        return {
+          questionText: t(q.textKey),
+          answerText: getAnswerLabel(q, answers[q.id], t),
+          sectionId: section.id,
+          isSlider: q.type === 'slider',
+          sliderValue: q.type === 'slider' ? Number(answers[q.id]) : undefined,
+          sliderMin: q.sliderMin,
+          sliderMax: q.sliderMax,
+          sliderLeftLabel: q.sliderLeftKey ? t(q.sliderLeftKey) : undefined,
+          sliderRightLabel: q.sliderRightKey ? t(q.sliderRightKey) : undefined,
+          isMultiSelect: isMulti,
+          chipLabels,
+          isOpenText: q.type === 'openText',
+        };
+      };
 
       const hasAnswer = (q: SFQuestion) => {
         const ans = answers[q.id];
@@ -239,7 +338,7 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
 
   if (sectionData.length === 0 && !anchorLabels) return null;
 
-  const renderAnswer = (item: RenderedAnswer, idx: number, dotColor: string) => {
+  const renderAnswer = (item: RenderedAnswer, idx: number, dotColor: string, sectionColors: { bg: string; text: string }) => {
     if (item.isSlider && item.sliderValue !== undefined) {
       return (
         <div key={idx}>
@@ -255,6 +354,36 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
         </div>
       );
     }
+    if (item.isMultiSelect && item.chipLabels && item.chipLabels.length > 0) {
+      return (
+        <div key={idx}>
+          <p className="text-xs text-gray-500 mb-1.5">{item.questionText}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {item.chipLabels.map((label, i) => (
+              <span
+                key={i}
+                className={cn(
+                  'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium',
+                  sectionColors.bg, sectionColors.text
+                )}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    if (item.isOpenText) {
+      return (
+        <div key={idx}>
+          <p className="text-xs text-gray-500 mb-1">{item.questionText}</p>
+          <p className="text-sm text-gray-700 leading-relaxed italic bg-gray-50 rounded-lg p-3 border-s-2 border-gray-200 break-words">
+            {item.answerText}
+          </p>
+        </div>
+      );
+    }
     return (
       <div key={idx}>
         <p className="text-xs text-gray-500 mb-0.5">{item.questionText}</p>
@@ -267,11 +396,21 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
 
   return (
     <div className="space-y-4" dir={direction}>
-      {/* Questionnaire source badge */}
-      <div className="flex items-center gap-2">
+      {/* Questionnaire source badge + timestamp */}
+      <div className="flex items-center gap-2 flex-wrap">
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-50 to-teal-50 border border-purple-200/50 text-xs font-medium text-purple-600">
           {badgeText}
         </span>
+        {sfUpdatedAt && (
+          <span className="inline-flex items-center gap-1 text-[10px] text-gray-400">
+            <Clock className="w-3 h-3" />
+            {locale === 'he' ? 'עודכן ' : 'Updated '}
+            {formatDistanceToNow(new Date(sfUpdatedAt), {
+              addSuffix: true,
+              locale: locale === 'he' ? he : undefined,
+            })}
+          </span>
+        )}
       </div>
 
       {/* Anchor data: sector + life stage */}
@@ -290,48 +429,17 @@ const SoulFingerprintSection: React.FC<SoulFingerprintSectionProps> = ({
         </div>
       )}
 
-      {sectionData.map((section) => {
-        const colors = SECTION_COLORS[section.sectionId] || SECTION_COLORS.personality;
-        const allAnswers = selfOnly
-          ? section.selfAnswers
-          : partnerOnly
-          ? section.partnerAnswers
-          : section.selfAnswers;
-        const partnerAnswers = !selfOnly && !partnerOnly ? section.partnerAnswers : [];
-
-        return (
-          <div
-            key={section.sectionId}
-            className={cn('rounded-xl border overflow-hidden', colors.border)}
-          >
-            <div className={cn('px-4 py-2.5 flex items-center gap-2', colors.bg)}>
-              <span className="text-base">{section.icon}</span>
-              <h4 className={cn('font-semibold text-sm', colors.text)}>
-                {section.title}
-              </h4>
-            </div>
-            <div className="p-4">
-              {allAnswers.length > 0 && (
-                <div className="space-y-3">
-                  {allAnswers.map((item, idx) => renderAnswer(item, idx, colors.dot))}
-                </div>
-              )}
-              {partnerAnswers.length > 0 && (
-                <div className={cn(allAnswers.length > 0 && 'mt-4 pt-3 border-t border-gray-100')}>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                    {locale === 'he'
-                      ? (gender === 'MALE' ? 'מה אני מחפש' : 'מה אני מחפשת')
-                      : 'Looking for'}
-                  </p>
-                  <div className="space-y-3">
-                    {partnerAnswers.map((item, idx) => renderAnswer(item, idx, colors.dot))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })}
+      {sectionData.map((section) => (
+        <CollapsibleSection
+          key={section.sectionId}
+          section={section}
+          selfOnly={selfOnly}
+          partnerOnly={partnerOnly}
+          locale={locale}
+          gender={gender}
+          renderAnswer={renderAnswer}
+        />
+      ))}
     </div>
   );
 };

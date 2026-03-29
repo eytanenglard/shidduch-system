@@ -59,6 +59,7 @@ export interface ProfileTabContextType {
 
   // Soul Fingerprint (Heart Map) answers
   sfAnswers: Record<string, unknown> | null;
+  sfUpdatedAt: string | null;
 
   // Boolean flags
   hasAnyPreferences: boolean;

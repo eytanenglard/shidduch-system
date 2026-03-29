@@ -14,7 +14,7 @@ const ReOfferedActions: React.FC<ActionStateProps> = ({
   dict,
 }) => (
   <div className="space-y-3">
-    <div className="flex items-start gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
+    <div className="flex items-start gap-2 px-3.5 py-2.5 bg-blue-50/80 rounded-xl border border-blue-100">
       <Info className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
       <p className="text-xs text-blue-700 leading-relaxed">
         {dict.reOfferInfo}
@@ -22,16 +22,17 @@ const ReOfferedActions: React.FC<ActionStateProps> = ({
     </div>
     <div className="flex flex-col sm:flex-row gap-3">
       <Button
-        className="sm:flex-[2] bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md rounded-xl h-11 font-medium text-sm"
+        className="group/approve sm:flex-[2] relative overflow-hidden bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg shadow-teal-500/25 rounded-xl h-12 font-medium text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
         disabled={isSubmitting}
         onClick={onApprove}
       >
+        <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover/approve:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
         <Heart className={cn('w-4 h-4', isHe ? 'ml-2' : 'mr-2')} />
         {dict.approve}
       </Button>
       <Button
-        variant="outline"
-        className="sm:flex-1 text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl h-11 font-medium text-sm"
+        variant="ghost"
+        className="sm:flex-1 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl h-12 font-medium text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         disabled={isSubmitting}
         onClick={onDecline}
       >

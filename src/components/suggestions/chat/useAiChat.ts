@@ -479,8 +479,20 @@ export function useAiChat({ locale, suggestionId, initialOpen, proactiveMessage 
         return;
       }
 
-      // Handle tell_me_more (just phase change)
-      if (actionType === 'tell_me_more') return;
+      // Handle tell_me_more — show AI deep explanation
+      if (actionType === 'tell_me_more') {
+        if (data.aiExplanation) {
+          const explanationMsg: ChatMessage = {
+            id: `explain-${Date.now()}`,
+            role: 'assistant',
+            content: data.aiExplanation,
+            createdAt: new Date().toISOString(),
+          };
+          setMessages((prev) => [...prev, explanationMsg]);
+        }
+        if (data.actionButtons) setActionButtons(data.actionButtons);
+        return;
+      }
 
       // Handle candidate presentation (not_for_me, next_candidate, trigger_search)
       if (data.candidateUserId) {

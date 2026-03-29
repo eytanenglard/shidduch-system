@@ -10,6 +10,7 @@ import {
   Clock,
   AlertTriangle,
   RefreshCw,
+  Fingerprint,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -46,6 +47,8 @@ interface BottomStatsProps {
   onRescan?: (e: React.MouseEvent) => void;
   /** Recent suggestion history for tooltip */
   recentSuggestions?: RecentSuggestion[];
+  /** Whether the candidate completed the Soul Fingerprint questionnaire */
+  sfCompleted?: boolean;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -97,6 +100,7 @@ const BottomStats: React.FC<BottomStatsProps> = ({
   lastScannedAt,
   onRescan,
   recentSuggestions,
+  sfCompleted,
 }) => {
   // Check if AI score is stale (profile updated after last scan)
   const isAiStale = (() => {
@@ -151,6 +155,26 @@ const BottomStats: React.FC<BottomStatsProps> = ({
                   </span>
                 </TooltipTrigger>
                 <TooltipContent><p>הפרופיל עודכן מאז הסריקה האחרונה. ציון ה-AI עשוי להיות לא מעודכן.</p></TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {sfCompleted !== undefined && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className={cn(
+                    'text-[11px] px-2 py-0.5 rounded-full border font-medium flex items-center gap-1',
+                    sfCompleted
+                      ? 'border-purple-200 bg-purple-50 text-purple-700'
+                      : 'border-gray-200 bg-gray-50 text-gray-400'
+                  )}>
+                    <Fingerprint className="w-2.5 h-2.5" />
+                    <span>{sfCompleted ? 'טביעת נשמה ✓' : 'ללא טביעה'}</span>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{sfCompleted ? 'המועמד/ת מילא/ה את שאלון טביעת הנשמה' : 'המועמד/ת טרם מילא/ה את שאלון טביעת הנשמה'}</p>
+                </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}

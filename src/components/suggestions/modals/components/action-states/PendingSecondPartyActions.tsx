@@ -15,10 +15,11 @@ const PendingSecondPartyActions: React.FC<ActionStateProps> = ({
 }) => (
   <div className="flex flex-col sm:flex-row gap-3">
     <Button
-      className="sm:flex-[2] bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white shadow-md rounded-xl h-11 font-bold text-sm"
+      className="group/approve sm:flex-[2] relative overflow-hidden bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-lg shadow-teal-500/25 rounded-xl h-12 font-bold text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
       disabled={isSubmitting}
       onClick={onApprove}
     >
+      <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover/approve:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
       {isSubmitting ? (
         <>
           <Loader2 className={cn('w-4 h-4 animate-spin', isHe ? 'ml-2' : 'mr-2')} />
@@ -32,8 +33,8 @@ const PendingSecondPartyActions: React.FC<ActionStateProps> = ({
       )}
     </Button>
     <Button
-      variant="outline"
-      className="sm:flex-1 text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-xl h-11 font-bold text-sm"
+      variant="ghost"
+      className="sm:flex-1 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl h-12 font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
       disabled={isSubmitting}
       onClick={onDecline}
     >

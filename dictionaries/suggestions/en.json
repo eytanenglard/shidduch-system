@@ -69,6 +69,8 @@
       "approvedSecondPartyDesc": "Great news! Now that you've both approved, we will facilitate the exchange of contact details.",
       "declinedSuccess": "Introduction Declined",
       "declinedDesc": "Thank you for your feedback. This helps us find even better matches for you.",
+      "undoDecline": "Undo decline",
+      "undoDeclineSuccess": "Decline undone — suggestion restored",
       "matchmakerNotified": "Your matchmaker has been notified and will guide the process forward.",
       "refreshSuccessTitle": "Data Refreshed",
       "refreshSuccessDescription": "Your introductions are now up to date.",
@@ -185,7 +187,8 @@
         "submitDecline": "Submit & Decline",
         "submitInterested": "Save & Submit",
         "thankYou": "Thank you for your feedback! 🙏",
-        "thankYouDesc": "Your response helps us fine-tune future suggestions for you"
+        "thankYouDesc": "Your response helps us fine-tune future suggestions for you",
+        "declineFeedbackNote": "Your feedback directly shapes your next suggestion. The more we understand what didn't fit — the better we can match you."
       }
     }
   },
@@ -368,7 +371,7 @@
       "sectionSubtitle": "Chat with Neshama or your matchmaker",
       "aiChatTitle": "Ask Neshama",
       "aiChatSubtitle": "Ask me about this suggestion",
-      "chatTitle": "Chat with {{name}}",
+      "chatTitle": "Chat with your matchmaker, {{name}}",
       "chatTitleFallback": "Matchmaker",
       "chatSubtitle": "Ask questions, get updates",
       "contactTitle": "Contact Details",

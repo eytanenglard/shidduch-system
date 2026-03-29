@@ -69,6 +69,8 @@
       "approvedSecondPartyDesc": "מעולה! כעת, מאחר ששניכם אישרתם, פרטי הקשר שלך יישלחו לצד הראשון ופרטיו יישלחו אליך.",
       "declinedSuccess": "דחית את ההצעה בהצלחה",
       "declinedDesc": "תודה על המשוב - זה עוזר לנו להציע התאמות טובות יותר",
+      "undoDecline": "ביטול דחייה",
+      "undoDeclineSuccess": "הדחייה בוטלה — ההצעה חזרה",
       "matchmakerNotified": "השדכן יקבל הודעה ויתקדם עם התהליך",
       "refreshSuccessTitle": "הנתונים עודכנו בהצלחה",
       "refreshSuccessDescription": "כל ההצעות עודכנו למצב הנוכחי",
@@ -185,7 +187,8 @@
         "submitDecline": "שליחה ודחייה",
         "submitInterested": "שמירה ושליחה",
         "thankYou": "תודה על הפידבק! 🙏",
-        "thankYouDesc": "התגובה שלך עוזרת לנו לדייק את ההצעות הבאות עבורך"
+        "thankYouDesc": "התגובה שלך עוזרת לנו לדייק את ההצעות הבאות עבורך",
+        "declineFeedbackNote": "המשוב שלך משפיע ישירות על ההצעה הבאה שתקבל/י. ככל שנבין מה לא התאים — נדע לדייק יותר."
       }
     }
   },
@@ -369,7 +372,7 @@
       "sectionSubtitle": "שוחחו עם נשמה או עם השדכן/ית שלכם",
       "aiChatTitle": "שאל/י את נשמה",
       "aiChatSubtitle": "שאל/י אותי על ההצעה הזו",
-      "chatTitle": "שיחה עם {{name}}",
+      "chatTitle": "שיחה עם השדכן/ית {{name}}",
       "chatTitleFallback": "השדכן/ית",
       "chatSubtitle": "שאל/י שאלות, קבל/י עדכונים",
       "contactTitle": "פרטי קשר",

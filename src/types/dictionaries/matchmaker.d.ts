@@ -242,61 +242,7 @@ type FilterPanelDict = {
   savedFilters: SavedFiltersDict;
 };
 
-type QuickViewDict = {
-  availability: {
-    AVAILABLE: string;
-    DATING: string;
-    UNAVAILABLE: string;
-    UNKNOWN: string;
-  };
-  availabilityDescription: {
-    AVAILABLE: string;
-    DATING: string;
-    UNAVAILABLE: string;
-    UNKNOWN: string;
-  };
-  manualEntry: string;
-  tooltips: {
-    setAsAiTarget: string;
-    clearAiTarget: string;
-  };
-  details: {
-    years: string;
-    heightUnit: string;
-    maritalStatus: string;
-    religiousLevel: string;
-    manualDescription: string;
-    moreInfo: string;
-    education: string;
-    occupation: string;
-    location: string;
-    about: string;
-  };
-  qualityScore: string;
-  actions: {
-    view: string;
-    suggest: string;
-    invite: string;
-    contact: string;
-    edit: string;
-  };
-  actionsDescription: {
-    view: string;
-    suggest: string;
-    invite: string;
-    contact: string;
-    edit: string;
-  };
-  stats: {
-    rating: string;
-    match: string;
-    response: string;
-    quick: string;
-  };
-};
-
 type CandidatesListDict = {
-  quickViewTooltip: string;
   editProfileTooltip: string;
   emptyState: {
     title: string;
@@ -393,7 +339,6 @@ type CandidatesListDict = {
     similarityScore?: string;
     backgroundMultiplier?: string;
   };
-  quickView: QuickViewDict;
 };
 
 // src/types/dictionaries/matchmaker.d.ts
@@ -497,10 +442,6 @@ export type MatchmakerPageDictionary = {
       sortBy: string;
       filters: string;
       hideFilters: string;
-      disableQuickView: string;
-      enableQuickView: string;
-      disableQuickViewTooltip: string;
-      enableQuickViewTooltip: string;
       compareButton: string;
       prepareSuggestionsButton: string;
       mobile: {
@@ -524,6 +465,21 @@ export type MatchmakerPageDictionary = {
     actionDialogs: ActionDialogsDict;
     addManualCandidateDialog: AddManualCandidateDialogDict;
     profileFeedbackDialog: ProfileFeedbackDialogDict;
+    toasts: {
+      candidateAdded: string;
+      similarFound: string;
+      noSimilarFound: string;
+      similarError: string;
+      filterSaved: string;
+      filterSaveError: string;
+      aiTargetCleared: string;
+      aiTargetSet: string;
+      aiTargetChanged: string;
+      virtualProfileLoaded: string;
+      bulkUpdateSuccess: string;
+      bulkUpdateError: string;
+      importSuccess: string;
+    };
   };
   statusBadges: StatusBadgeDict;
   pagination: PaginationDict;

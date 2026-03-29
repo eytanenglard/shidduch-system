@@ -170,6 +170,7 @@ const MinimalCandidateCard: React.FC<MinimalCandidateCardProps> = React.memo(
               hasAiData={state.hasAiData}
               lastActive={candidate.profile.lastActive}
               recentSuggestions={(candidate as any).recentSuggestions}
+              sfCompleted={(candidate as any).sfCompleted}
               dict={dict}
             />
           </div>

@@ -29,16 +29,16 @@ const WithdrawActions: React.FC<WithdrawActionsProps> = ({
   return (
     <div className="space-y-3">
       {isInGracePeriod && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50/50 border border-amber-200/60 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-amber-400/25">
+              <AlertTriangle className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-amber-800">
+              <p className="text-sm font-bold text-amber-800">
                 {dict.gracePeriodTitle}
               </p>
-              <p className="text-xs text-amber-600">
+              <p className="text-xs text-amber-600 font-medium">
                 {dict.gracePeriodTimer
                   .replace('{minutes}', String(graceMinutes))
                   .replace('{seconds}', graceSeconds.toString().padStart(2, '0'))}
@@ -47,7 +47,7 @@ const WithdrawActions: React.FC<WithdrawActionsProps> = ({
           </div>
           <Button
             variant="outline"
-            className="w-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 border-gray-300 rounded-2xl h-12 font-bold"
+            className="w-full text-gray-500 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-200 border-gray-200 rounded-xl h-12 font-bold text-sm transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
             disabled={isSubmitting}
             onClick={() => onWithdraw('grace_period')}
           >
@@ -59,16 +59,16 @@ const WithdrawActions: React.FC<WithdrawActionsProps> = ({
 
       {!isInGracePeriod && (
         <>
-          <div className="flex items-start gap-2 px-3 py-2.5 bg-teal-50 rounded-xl border border-teal-200">
-            <Info className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-2 px-3.5 py-2.5 bg-teal-50/80 rounded-xl border border-teal-100">
+            <Info className="w-3.5 h-3.5 text-teal-500 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-teal-700 leading-relaxed">
               {dict.approvedInfo}
             </p>
           </div>
 
           {showConfirm ? (
-            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 space-y-3">
-              <p className="text-sm font-semibold text-rose-800 text-center">
+            <div className="bg-gradient-to-br from-rose-50 to-pink-50/50 border border-rose-200/60 rounded-2xl p-4 space-y-3 shadow-sm">
+              <p className="text-sm font-bold text-rose-800 text-center">
                 {dict.confirmTitle}
               </p>
               <p className="text-xs text-rose-600 text-center leading-relaxed">
@@ -77,14 +77,14 @@ const WithdrawActions: React.FC<WithdrawActionsProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
-                  className="w-full rounded-2xl h-10 text-sm"
+                  className="w-full rounded-xl h-10 text-sm font-medium border-gray-200 hover:bg-gray-50 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
                   onClick={() => setShowConfirm(false)}
                   disabled={isSubmitting}
                 >
                   {dict.goBack}
                 </Button>
                 <Button
-                  className="w-full bg-rose-500 hover:bg-rose-600 text-white rounded-2xl h-10 text-sm font-bold"
+                  className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl h-10 text-sm font-bold shadow-md shadow-rose-500/25 hover:shadow-lg hover:shadow-rose-500/30 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
                   disabled={isSubmitting}
                   onClick={() => {
                     setShowConfirm(false);
@@ -98,7 +98,7 @@ const WithdrawActions: React.FC<WithdrawActionsProps> = ({
           ) : (
             <Button
               variant="outline"
-              className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 border-gray-200 rounded-2xl h-11 font-medium text-sm"
+              className="w-full text-gray-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-200 border-gray-200 rounded-xl h-11 font-medium text-sm transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
               disabled={isSubmitting}
               onClick={() => setShowConfirm(true)}
             >

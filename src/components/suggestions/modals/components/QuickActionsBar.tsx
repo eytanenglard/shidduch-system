@@ -103,18 +103,22 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
   return (
     <div
       className={cn(
-        'flex-shrink-0 bg-white border-t border-gray-200 transition-all duration-300 ease-in-out relative z-10',
+        'flex-shrink-0 border-t transition-all duration-300 ease-in-out relative z-10',
+        'bg-white/80 backdrop-blur-xl border-gray-200/50',
         isOpen ? 'p-4 md:p-6' : 'py-2.5 px-4 md:px-6'
       )}
     >
+      {/* Subtle gradient top line */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-teal-300/40 to-transparent" />
+
       <div className="max-w-4xl mx-auto relative z-10">
-        {/* Collapsible header — always shown */}
+        {/* Collapsible header */}
         <div
           className="flex justify-between items-center cursor-pointer group"
           onClick={onToggleExpand}
         >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center shadow-md shadow-teal-500/20">
                 <Zap className="w-4.5 h-4.5 text-white" />
               </div>
               <div>
@@ -132,9 +136,12 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-9 w-9 text-gray-400 hover:bg-gray-100 group-hover:scale-110 transition-all"
+              className="rounded-full h-9 w-9 text-gray-400 hover:bg-gray-100/60 group-hover:scale-110 transition-all duration-200"
             >
-              {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+              {isExpanded
+                ? <ChevronDown className="w-5 h-5 transition-transform duration-300" />
+                : <ChevronUp className="w-5 h-5 transition-transform duration-300" />
+              }
             </Button>
         </div>
 
@@ -147,7 +154,7 @@ const QuickActionsBar: React.FC<QuickActionsBarProps> = ({
                 type="button"
                 onClick={onAskQuestion}
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-teal-600 transition-colors py-1.5 disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-violet-600 transition-all duration-200 py-1.5 disabled:opacity-50 hover:bg-violet-50/50 rounded-lg"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
                 {dict.ask}

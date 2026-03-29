@@ -40,7 +40,7 @@ const EssenceTab: React.FC = () => {
 
   return (
     <TabsContent value="essence" className="mt-0 max-w-full min-w-0 animate-in fade-in-0 duration-200">
-      <div className="space-y-6 max-w-full min-w-0" dir={direction}>
+      <div className="space-y-3 md:space-y-6 max-w-full min-w-0" dir={direction}>
         {profile.profileHeadline && (
           <div className={cn(
             'py-4 px-6 rounded-xl',

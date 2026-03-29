@@ -101,29 +101,31 @@ export default function ProgressIndicator({
         })}
       </div>
 
-      {/* Current section info */}
+      {/* Current section info with prominent progress bar */}
       <div className="text-center">
         <p className="text-xs text-gray-500">
           {t('progress.sectionOf')
             .replace('{{current}}', String(currentIndex + 1))
             .replace('{{total}}', String(sections.length))}
         </p>
-        {sections[currentIndex] && (
-          <div className="mt-1 flex justify-center">
-            <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-teal-500 rounded-full transition-all duration-500"
-                style={{
-                  width: `${
-                    sections[currentIndex].total > 0
-                      ? (sections[currentIndex].answered / sections[currentIndex].total) * 100
-                      : 0
-                  }%`,
-                }}
-              />
+        {sections[currentIndex] && (() => {
+          const pct = sections[currentIndex].total > 0
+            ? Math.round((sections[currentIndex].answered / sections[currentIndex].total) * 100)
+            : 0;
+          return (
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700 ease-out bg-gradient-to-r from-teal-400 to-teal-600"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="text-xs font-semibold text-teal-600 tabular-nums w-9 text-left">
+                {pct}%
+              </span>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
